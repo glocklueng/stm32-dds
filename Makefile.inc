@@ -1,3 +1,4 @@
+AS=arm-none-eabi-as
 AR=arm-none-eabi-ar
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
