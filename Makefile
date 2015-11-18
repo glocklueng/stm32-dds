@@ -16,7 +16,7 @@ LDFLAGS+=-Tstm32_flash.ld
 ## use library files
 LDFLAGS+=-Llib
 
-.PHONY: all lib proj clean
+.PHONY: all lib proj clean flash stlink gdb
 
 all: proj
 
@@ -24,6 +24,16 @@ lib/libstm32f4.a:
 	$(MAKE) -C lib
 
 proj: $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin
+
+flash: $(PROJECT_NAME).elf
+	$(GDB) --batch --eval-command="target extended-remote :4242" \
+	    --eval-command="load" --eval-command="continue" $<
+
+gdb: $(PROJECT_NAME).elf
+	$(GDB) --eval-command="target extended-remote :4242" $<
+
+stlink:
+	st-util -p 4242 -s 2
 
 %.elf: $(OBJS) lib/libstm32f4.a
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@ $(LDFLAGS)
