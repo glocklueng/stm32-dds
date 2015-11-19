@@ -36,5 +36,7 @@ data to the external output. There is a time delay between sending the
 trigger on reaction of the processor of one interrupt cycle.
 
 # TODOs
-- Measure reaction time for interrupts
 - Measure update time in serial mode
+
+# Timing information
+- Interupt delay: ~400ns
