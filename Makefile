@@ -20,8 +20,8 @@ LDFLAGS+=-Llib
 
 all: proj
 
-lib/libstm32f4.a:
-	$(MAKE) -C lib
+lib/%.a:
+	$(MAKE) -C lib $(@:lib/%=%)
 
 proj: $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin
 
@@ -35,7 +35,7 @@ gdb: $(PROJECT_NAME).elf
 stlink:
 	st-util -p 4242 -s 2
 
-%.elf: $(OBJS) lib/libstm32f4.a
+%.elf: $(OBJS) lib/libstm32f4.a lib/libtm.a
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@ $(LDFLAGS)
 
 %.hex: %.elf
