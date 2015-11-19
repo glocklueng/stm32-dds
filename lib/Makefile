@@ -5,7 +5,7 @@ CFLAGS+=-ffreestanding -nostdlib
 
 CPPFLAGS+=-Iinclude -Iinclude/core -Iinclude/peripherals
 
-SRCS=src/stm32f4_discovery.c \
+STM32_SRCS=src/stm32f4_discovery.c \
      src/peripherals/misc.c \
      src/peripherals/stm32f4xx_adc.c \
      src/peripherals/stm32f4xx_can.c \
@@ -47,13 +47,24 @@ SRCS=src/stm32f4_discovery.c \
      src/peripherals/stm32f4xx_tim.c \
      src/peripherals/stm32f4xx_usart.c \
      src/peripherals/stm32f4xx_wwdg.c
-ASMS=src/startup_stm32f4xx.s
-OBJS=$(SRCS:.c=.o) $(ASMS:.s=.o)
+STM32_ASMS=src/startup_stm32f4xx.s
+STM32_OBJS=$(STM32_SRCS:.c=.o) $(STM32_ASMS:.s=.o)
 
-all: libstm32f4.a
+TM_SRCS=src/tm_stm32f4_gpio.c \
+     src/tm_stm32f4_exti.c
+TM_OBJS=$(TM_SRCS:.c=.o)
 
-libstm32f4.a: $(OBJS)
-	$(AR) -r $@ $(OBJS)
+OBJS=$(STM32_OBJS) $(TM_OBJS)
+
+ARS=libstm32f4.a libtm.a
+
+all: $(ARS)
+
+libstm32f4.a: $(STM32_OBJS)
+	$(AR) -r $@ $^
+
+libtm.a: $(TM_OBJS)
+	$(AR) -r $@ $^
 
 clean:
-	rm -f $(OBJS) libstm32f4.a
+	rm -f $(OBJS) $(ARS)
