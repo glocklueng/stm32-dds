@@ -22,6 +22,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4_discovery.h"
 
+#include <tm_stm32f4_exti.h>
+#include <tm_stm32f4_gpio.h>
+
 /** @addtogroup STM32F4_Discovery_Peripheral_Examples
   * @{
   */
@@ -56,48 +59,27 @@ main(void)
      */
 
   /* GPIOD Periph clock enable */
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+  TM_GPIO_Init(GPIOD, GPIO_Pin_0 | GPIO_Pin_12 | GPIO_Pin_15, TM_GPIO_Mode_OUT,
+               TM_GPIO_OType_PP, TM_GPIO_PuPd_NOPULL, TM_GPIO_Speed_High);
 
-  /* Configure PD12, PD13, PD14 and PD15 in output pushpull mode */
-  GPIO_InitStructure.GPIO_Pin =
-    GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOD, &GPIO_InitStructure);
+  if (TM_EXTI_Attach(GPIOA, GPIO_Pin_0, TM_EXTI_Trigger_Rising) ==
+      TM_EXTI_Result_Ok) {
+    TM_GPIO_SetPinHigh(GPIOD, GPIO_Pin_12);
+  }
 
   while (1) {
-    /* PD12 to be toggled */
-    GPIO_SetBits(GPIOD, GPIO_Pin_12);
-
-    /* Insert delay */
-    Delay(0x3FFFFF);
-
-    /* PD13 to be toggled */
-    GPIO_SetBits(GPIOD, GPIO_Pin_13);
-
-    /* Insert delay */
-    Delay(0x3FFFFF);
-
-    /* PD14 to be toggled */
-    GPIO_SetBits(GPIOD, GPIO_Pin_14);
-
-    /* Insert delay */
-    Delay(0x3FFFFF);
-
-    /* PD15 to be toggled */
-    GPIO_SetBits(GPIOD, GPIO_Pin_15);
-
-    /* Insert delay */
-    Delay(0x7FFFFF);
-
-    GPIO_ResetBits(GPIOD,
-                   GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
-
-    /* Insert delay */
-    Delay(0xFFFFFF);
+    /* toggle PD0 in a permanent loop */
+    TM_GPIO_SetPinHigh(GPIOD, GPIO_Pin_0);
+    Delay(0xF);
+    TM_GPIO_SetPinLow(GPIOD, GPIO_Pin_0);
+    Delay(0xF);
   }
+}
+
+void
+TM_EXTI_Handler(uint16_t GPIO_Pin)
+{
+  TM_GPIO_SetPinHigh(GPIOD, GPIO_Pin_15);
 }
 
 /**
