@@ -44,5 +44,5 @@ stlink:
 	$(OBJCOPY) -O binary $^ $@
 
 clean:
-	rm -f $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin
+	rm -f $(OBJS) $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin
 	$(MAKE) -C lib clean
