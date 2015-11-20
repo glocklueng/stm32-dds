@@ -3,15 +3,24 @@ PROJECT_NAME=main
 include Makefile.inc
 
 SRCS=src/main.c \
-     src/interrupts.c
+     src/interrupts.c \
+     src/netconf.c \
+     src/stm32f4x7_eth_bsp.c
 OBJS=$(SRCS:.c=.o)
 
 LIBS=libstm32f4.a \
      liblwip.a
 LIB_FILES=$(LIBS:%=lib/%)
 
+STM32_DIR=lib/stm32f4
+LWIP_DIR=lib/lwip
+
 # set search path for include files
-CPPFLAGS+=-Iinclude -Ilib/include -Ilib/include/core -Ilib/include/peripherals
+CPPFLAGS+=-Iinclude
+CPPFLAGS+=-I$(STM32_DIR)/include -I$(STM32_DIR)/include/core -I$(STM32_DIR)/include/peripherals
+CPPFLAGS+=-I$(LWIP_DIR) -I$(LWIP_DIR)/src/include -I$(LWIP_DIR)/src/include/ipv4
+CPPFLAGS+=-I$(LWIP_DIR)/port/STM32F4x7/Standalone/include
+
 
 ## use custom linker script
 LDFLAGS+=-Tstm32_flash.ld
