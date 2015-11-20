@@ -22,7 +22,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_it.h"
+#include "interrupts.h"
 
 /** @addtogroup STM32F4_Discovery_Peripheral_Examples
   * @{
