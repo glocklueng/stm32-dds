@@ -3,11 +3,12 @@ include ../Makefile.inc
 # this library doesn't require the std c library
 CFLAGS+=-ffreestanding -nostdlib
 
-CPPFLAGS+=-Iinclude -Iinclude/core -Iinclude/peripherals
+CPPFLAGS+=-I../include -Iinclude -Iinclude/core -Iinclude/peripherals
 
 SRCS=src/stm32f4_discovery.c \
      src/system_stm32f4xx.c \
      src/peripherals/misc.c \
+     src/peripherals/stm32f4x7_eth.c \
      src/peripherals/stm32f4xx_adc.c \
      src/peripherals/stm32f4xx_can.c \
      src/peripherals/stm32f4xx_cec.c \
