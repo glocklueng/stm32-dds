@@ -2,7 +2,9 @@ include ../../Makefile.inc
 
 # select directory containing the platform specific files
 PORTDIR=port/STM32F4x7/Standalone
-STM32_INCLUDES=-I../../include -I../include -I../include/core -I../include/peripherals
+STM32_DIR=../stm32f4
+STM32_INCLUDES=-I../../include -I$(STM32_DIR)/include
+STM32_INCLUDES+=-I$(STM32_DIR)/include/core -I$(STM32_DIR)/include/peripherals
 
 # this library doesn't require the std c library
 CFLAGS+=-ffreestanding -nostdlib
