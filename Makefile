@@ -3,8 +3,7 @@ PROJECT_NAME=main
 include Makefile.inc
 
 SRCS=src/main.c \
-     src/stm32f4xx_it.c \
-     src/system_stm32f4xx.c
+     src/stm32f4xx_it.c
 OBJS=$(SRCS:.c=.o)
 
 # set search path for include files
