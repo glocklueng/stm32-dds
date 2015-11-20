@@ -52,10 +52,15 @@ SRCS=src/stm32f4_discovery.c \
 ASMS=src/startup_stm32f4xx.s
 OBJS=$(SRCS:.c=.o) $(ASMS:.s=.o)
 
-all: libstm32f4.a
+all: libstm32f4.a liblwip.a
 
 libstm32f4.a: $(OBJS)
 	$(AR) -r $@ $(OBJS)
 
+liblwip.a:
+	$(MAKE) -C lwip
+	cp lwip/liblwip.a .
+
 clean:
-	rm -f $(OBJS) libstm32f4.a
+	rm -f $(OBJS) libstm32f4.a liblwip.a
+	$(MAKE) -C lwip clean

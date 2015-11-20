@@ -6,21 +6,22 @@ SRCS=src/main.c \
      src/interrupts.c
 OBJS=$(SRCS:.c=.o)
 
+LIBS=libstm32f4.a \
+     liblwip.a
+LIB_FILES=$(LIBS:%=lib/%)
+
 # set search path for include files
 CPPFLAGS+=-Iinclude -Ilib/include -Ilib/include/core -Ilib/include/peripherals
 
-LDFLAGS+=-lstm32f4
 ## use custom linker script
 LDFLAGS+=-Tstm32_flash.ld
-## use library files
-LDFLAGS+=-Llib
 
 .PHONY: all lib proj clean flash stlink gdb
 
 all: proj
 
-lib/libstm32f4.a:
-	$(MAKE) -C lib
+lib/%.a:
+	$(MAKE) -C lib $(@:lib/%=%)
 
 proj: $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin
 
@@ -34,7 +35,7 @@ gdb: $(PROJECT_NAME).elf
 stlink:
 	st-util -p 4242 -s 2
 
-%.elf: $(OBJS) lib/libstm32f4.a
+%.elf: $(OBJS) $(LIB_FILES)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@ $(LDFLAGS)
 
 %.hex: %.elf
