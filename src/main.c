@@ -21,6 +21,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4_discovery.h"
+#include "ethernet.h"
+#include "stm32f4x7_eth.h"
+#include "stm32f4x7_eth_bsp.h"
+#include "netconf.h"
 
 /** @addtogroup STM32F4_Discovery_Peripheral_Examples
   * @{
@@ -34,10 +38,14 @@
 GPIO_InitTypeDef GPIO_InitStructure;
 
 /* Private define ------------------------------------------------------------*/
+#define SYSTEMTICK_PERIOD_MS 10
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+/* this variable is used as time reference, incremented by 10ms */
+__IO uint32_t LocalTime = 0;
+uint32_t timingdelay;
+
 /* Private function prototypes -----------------------------------------------*/
-void Delay(__IO uint32_t nCount);
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -55,48 +63,21 @@ main(void)
         system_stm32f4xx.c file
      */
 
-  /* GPIOD Periph clock enable */
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
-  /* Configure PD12, PD13, PD14 and PD15 in output pushpull mode */
-  GPIO_InitStructure.GPIO_Pin =
-    GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOD, &GPIO_InitStructure);
+  ETH_BSP_Config();
 
-  while (1) {
-    /* PD12 to be toggled */
-    GPIO_SetBits(GPIOD, GPIO_Pin_12);
+  LwIP_Init();
 
-    /* Insert delay */
-    Delay(0x3FFFFF);
+  server_init();
 
-    /* PD13 to be toggled */
-    GPIO_SetBits(GPIOD, GPIO_Pin_13);
-
-    /* Insert delay */
-    Delay(0x3FFFFF);
-
-    /* PD14 to be toggled */
-    GPIO_SetBits(GPIOD, GPIO_Pin_14);
-
-    /* Insert delay */
-    Delay(0x3FFFFF);
-
-    /* PD15 to be toggled */
-    GPIO_SetBits(GPIOD, GPIO_Pin_15);
-
-    /* Insert delay */
-    Delay(0x7FFFFF);
-
-    GPIO_ResetBits(GPIOD,
-                   GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15);
-
-    /* Insert delay */
-    Delay(0xFFFFFF);
+  for (;;) {
+    /* if a packet is received let LwIP handle it */
+    if (ETH_CheckFrameReceived()) {
+      LwIP_Pkt_Handle();
+    }
+    /* handle periodic timers for LwIP */
+    LwIP_Periodic_Handle(LocalTime);
   }
 }
 
@@ -106,10 +87,20 @@ main(void)
   * @retval None
   */
 void
-Delay(__IO uint32_t nCount)
+Delay(uint32_t nCount)
 {
-  while (nCount--) {
+  /* capture the current local time */
+  timingdelay = LocalTime + nCount;
+
+  /* wait until the desired delay finishes */
+  while (timingdelay > LocalTime) {
   }
+}
+
+void
+Time_Update(void)
+{
+  LocalTime += SYSTEMTICK_PERIOD_MS;
 }
 
 #ifdef USE_FULL_ASSERT

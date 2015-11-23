@@ -4,6 +4,7 @@ include Makefile.inc
 
 SRCS=src/main.c \
      src/interrupts.c \
+     src/ethernet.c \
      src/netconf.c \
      src/stm32f4x7_eth_bsp.c
 OBJS=$(SRCS:.c=.o)
