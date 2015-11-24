@@ -1,8 +1,12 @@
-AR=arm-none-eabi-ar
-AS=arm-none-eabi-as
-CC=arm-none-eabi-gcc
-GDB=arm-none-eabi-gdb
-OBJCOPY=arm-none-eabi-objcopy
+ifeq ($(OS),Windows_NT)
+	TOOLCHAIN_PATH=/cygdrive/c/Program\ Files\ \(x86\)/GNU\ Tools\ ARM\ Embedded/4.9\ 2015q3/bin/
+endif
+
+AR=$(TOOLCHAIN_PATH)arm-none-eabi-ar
+AS=$(TOOLCHAIN_PATH)arm-none-eabi-as
+CC=$(TOOLCHAIN_PATH)arm-none-eabi-gcc
+GDB=$(TOOLCHAIN_PATH)arm-none-eabi-gdb
+OBJCOPY=$(TOOLCHAIN_PATH)arm-none-eabi-objcopy
 
 CFLAGS+=-std=c99
 CFLAGS+=-Wall -Wextra -ggdb -O2
