@@ -11,7 +11,7 @@ CPPFLAGS+=-Iinclude -Ilib/include -Ilib/include/core -Ilib/include/peripherals
 
 LDFLAGS+=-lstm32f4
 ## use custom linker script
-LDFLAGS+=-Tstm32_flash.ld
+LDFLAGS+=-Tsrc/stm32_flash.ld
 ## use library files
 LDFLAGS+=-Llib
 
