@@ -1,5 +1,5 @@
 ifeq ($(OS),Windows_NT)
-	TOOLCHAIN_PATH=/cygdrive/c/Program\ Files\ \(x86\)/GNU\ Tools\ ARM\ Embedded/4.9\ 2015q3/bin/
+	TOOLCHAIN_PATH?=/cygdrive/c/Program\ Files\ \(x86\)/GNU\ Tools\ ARM\ Embedded/4.9\ 2015q3/bin/
 endif
 
 AR=$(TOOLCHAIN_PATH)arm-none-eabi-ar
