@@ -7,6 +7,13 @@ SRCS=src/main.c \
      src/ethernet.c \
      src/netconf.c \
      src/stm32f4x7_eth_bsp.c
+HDRS=include/defines.h \
+     include/ethernet.h \
+     include/interrupts.h \
+     include/main.h \
+     include/netconf.h \
+     include/stm32f4x7_eth_bsp.h \
+     include/stm32f4x7_eth_conf.h
 OBJS=$(SRCS:.c=.o)
 
 LIBS=libstm32f4.a \
@@ -53,6 +60,9 @@ stlink:
 
 %.bin: %.elf
 	$(OBJCOPY) -O binary $^ $@
+
+format:
+	clang-format -i $(SRCS) $(HDRS)
 
 clean:
 	rm -f $(OBJS) $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin
