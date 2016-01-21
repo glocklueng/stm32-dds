@@ -16,18 +16,21 @@ HDRS=include/defines.h \
      include/stm32f4x7_eth_conf.h
 OBJS=$(SRCS:.c=.o)
 
-LIBS=libstm32f4.a \
+LIBS=libtm.a \
+     libstm32f4.a \
      liblwip.a
 LIB_FILES=$(LIBS:%=lib/%)
 
 STM32_DIR=lib/stm32f4
 LWIP_DIR=lib/lwip
+TM_DIR=lib/tm
 
 # set search path for include files
 CPPFLAGS+=-Iinclude
 CPPFLAGS+=-I$(STM32_DIR)/include -I$(STM32_DIR)/include/core -I$(STM32_DIR)/include/peripherals
 CPPFLAGS+=-I$(LWIP_DIR) -I$(LWIP_DIR)/src/include -I$(LWIP_DIR)/src/include/ipv4
 CPPFLAGS+=-I$(LWIP_DIR)/port/STM32F4x7/Standalone/include
+CPPFLAGS+=-I$(TM_DIR)/include
 
 ## use custom linker script
 LDFLAGS+=-Tsrc/stm32_flash.ld
