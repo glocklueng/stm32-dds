@@ -6,6 +6,7 @@ SRCS=src/main.c \
      src/interrupts.c \
      src/ethernet.c \
      src/netconf.c \
+     src/spi.c \
      src/stm32f4x7_eth_bsp.c
 HDRS=include/defines.h \
      include/ethernet.h \
