@@ -3,6 +3,7 @@ PROJECT_NAME=main
 include Makefile.inc
 
 SRCS=src/main.c \
+     src/ad9910.c \
      src/interrupts.c \
      src/ethernet.c \
      src/netconf.c \
