@@ -35,17 +35,19 @@ ad9910_init()
   /* set correct range for internal VCO */
   set_value(AD9910_VCO_RANGE, AD9910_VCO_RANGE_VCO5);
   /* set pump current for the external PLL loop filter */
-  //  set_value(AD9910_PLL_PUMP_CURRENT, TODO);
-  /* disable REFCLK_OUT (we don't need it) */
-  set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
+  set_value(AD9910_PLL_PUMP_CURRENT, AD9910_PLL_PUMP_CURRENT_237);
+  /* disable REFCLK_OUT (it is not even connected) */
+//  set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
 
   update_reg(AD9910_REG_CFR3);
+
+  SPI_WAIT(SPI1);
 
   /* we perform the io_update manually here because the AD9910 is still
    * running with lower frequency of 10MHz */
   gpio_set_high(IO_UPDATE);
-  /* wait for SYNC_CLK which is SYSCLK/4 => wait for 1s/2.5MHz ~= 10 cycles */
-  volatile int i = 30;
+  /* wait for SYNC_CLK which is SYSCLK/4 => wait for 1s/2.5MHz ~= 100 cycles */
+  volatile int i = 100;
   while (i > 0) {
     --i;
   }
@@ -57,7 +59,13 @@ ad9910_update_register(uint8_t addr, uint16_t length, const uint8_t* value)
 {
   spi_write_single(addr | AD9910_INSTR_WRITE);
 
-  spi_write_multi(value, length);
+  uint8_t rev_value[8];
+
+  for (int i = 0; i < length; ++i) {
+    rev_value[8-1-i] = value[i];
+  }
+
+  spi_write_multi(rev_value + 8 - length, length);
 }
 
 void

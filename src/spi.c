@@ -13,7 +13,7 @@
  */
 
 #define SPI_DATASIZE SPI_DataSize_8b;
-#define SPI_PRESCALER SPI_BaudRatePrescaler_32;
+#define SPI_PRESCALER SPI_BaudRatePrescaler_256;
 
 /**
  * this functions sets up all the spi communication. To only usage of SPI
