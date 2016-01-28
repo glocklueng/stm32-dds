@@ -39,6 +39,9 @@
 #define gpio_set_low(pin)                                                      \
   TM_GPIO_SetPinLow(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
 
+#define gpio_get(pin)                                                          \
+  TM_GPIO_GetInputPinValue(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
+
 void gpio_init();
 
 #define gpio_blink_forever_slow(pin)                                           \
