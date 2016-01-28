@@ -29,6 +29,14 @@ uint64_t reg_prof7 = 0x0;
 void
 ad9910_init()
 {
+  spi_init_slow();
+
+  gpio_set_high(IO_RESET);
+  /* wait for SYNC_CLK which is SYSCLK/4 => wait for 1s/2.5MHz ~= 100 cycles */
+  for (volatile int i = 0; i < 100; ++i) {
+  }
+  gpio_set_low(IO_RESET);
+
   /* enable PLL mode */
   set_value(AD9910_PLL_ENABLE, 1);
   /* set multiplier factor (10MHz -> 1GHz) */
@@ -42,17 +50,25 @@ ad9910_init()
 
   update_reg(AD9910_REG_CFR3);
 
+  /* make sure everything is written before we issue the I/O update */
   SPI_WAIT(SPI1);
 
   /* we perform the io_update manually here because the AD9910 is still
-   * running with lower frequency of 10MHz */
+   * running without PLL and frequency multiplier */
   gpio_set_high(IO_UPDATE);
   /* wait for SYNC_CLK which is SYSCLK/4 => wait for 1s/2.5MHz ~= 100 cycles */
-  volatile int i = 100;
-  while (i > 0) {
-    --i;
+  for (volatile int i = 0; i < 100; ++i) {
   }
   gpio_set_low(IO_UPDATE);
+
+  spi_deinit();
+  spi_init_fast();
+
+  set_value(AD9910_SDIO_INPUT_ONLY, 1);
+  update_mathing_reg(AD9910_SDIO_INPUT_ONLY);
+
+  /* turn green led on signaling that initialization has passed */
+  gpio_set_high(LED_GREEN);
 }
 
 void

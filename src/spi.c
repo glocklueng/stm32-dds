@@ -12,15 +12,24 @@
  * serial programming interface of the DDS chip.
  */
 
-#define SPI_DATASIZE SPI_DataSize_8b;
-#define SPI_PRESCALER SPI_BaudRatePrescaler_256;
+void
+spi_init_slow()
+{
+  spi_init(SPI_BaudRatePrescaler_256);
+}
+
+void
+spi_init_fast()
+{
+  spi_init(SPI_BaudRatePrescaler_2);
+}
 
 /**
  * this functions sets up all the spi communication. To only usage of SPI
  * is currently the communication between AD9910 and the STM32F4
  */
 void
-spi_init()
+spi_init(uint16_t prescaler)
 {
   SPI_InitTypeDef spi_init;
 
@@ -35,8 +44,8 @@ spi_init()
                         TM_GPIO_Speed_High, GPIO_AF_SPI1);
 
   /* set options */
-  spi_init.SPI_DataSize = SPI_DATASIZE;
-  spi_init.SPI_BaudRatePrescaler = SPI_PRESCALER;
+  spi_init.SPI_DataSize = SPI_DataSize_8b;
+  spi_init.SPI_BaudRatePrescaler = prescaler;
   spi_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
   spi_init.SPI_FirstBit = SPI_FirstBit_MSB;
   spi_init.SPI_Mode = SPI_Mode_Master;
@@ -52,6 +61,12 @@ spi_init()
 
   /* enable SPI */
   SPI1->CR1 |= SPI_CR1_SPE;
+}
+
+void
+spi_deinit()
+{
+  SPI_I2S_DeInit(SPI1);
 }
 
 void

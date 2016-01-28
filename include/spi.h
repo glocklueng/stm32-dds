@@ -9,7 +9,10 @@
 
 #define SPI_WAIT(SPIx) while (SPI_IS_BUSY(SPIx))
 
-void spi_init();
+void spi_init_slow();
+void spi_init_fast();
+void spi_init(uint16_t prescaler);
+void spi_deinit();
 
 inline uint8_t
 spi_send_single(uint8_t data)

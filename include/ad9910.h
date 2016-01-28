@@ -224,6 +224,11 @@ extern uint64_t reg_prof7;
   ad9910_update_register(AD9910_GET_ADDR(reg), sizeof(AD9910_GET_NAME(reg)),   \
                          (const uint8_t*)&AD9910_GET_NAME(reg))
 
+/* this function does update the register which contains the given bit
+ * value. If you want to change multiple bits at once first set them and
+ * then call update_reg on that register directly */
+#define update_mathing_reg(field) update_reg(AD9910_GET_REG(field))
+
 void ad9910_init();
 
 void ad9910_update_register(uint8_t reg_addr, uint16_t reg_length,
