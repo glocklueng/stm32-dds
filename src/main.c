@@ -63,16 +63,8 @@ main(void)
      */
   ad9910_init();
 
-  gpio_set_high(PROFILE_0);
-  gpio_set_high(PROFILE_1);
-  gpio_set_high(PROFILE_2);
-
   ad9910_set_single_tone(0, 80e6, 0x3FFF, 0);
-  ad9910_io_update();
-
-  gpio_set_low(PROFILE_0);
-  gpio_set_low(PROFILE_1);
-  gpio_set_low(PROFILE_2);
+  ad9910_select_profile(0);
 
   gpio_blink_forever_slow(LED_RED);
 }

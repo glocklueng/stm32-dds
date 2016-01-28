@@ -128,7 +128,7 @@ ad9910_io_update()
 }
 
 void
-ad9910_set_profile(uint8_t profile)
+ad9910_select_profile(uint8_t profile)
 {
   gpio_set(PROFILE_0, profile & 0x1);
   gpio_set(PROFILE_1, profile & 0x2);
