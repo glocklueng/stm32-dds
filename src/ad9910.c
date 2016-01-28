@@ -71,7 +71,30 @@ ad9910_init()
   gpio_set_low(LED_RED);
 
   set_value(AD9910_SDIO_INPUT_ONLY, 1);
-  update_mathing_reg(AD9910_SDIO_INPUT_ONLY);
+
+  /* update all register. It might be that only the STM32F4 has been
+   * resetet and there is still data in the registers. With these commands
+   * we set them to the values we specified */
+  update_reg(AD9910_REG_CFR1);
+  update_reg(AD9910_REG_CFR2);
+  update_reg(AD9910_REG_CFR3);
+  update_reg(AD9910_REG_AUX_DAC_CTL);
+  update_reg(AD9910_REG_IO_UPDATE_RATE);
+  update_reg(AD9910_REG_FTW);
+  update_reg(AD9910_REG_POW);
+  update_reg(AD9910_REG_ASF);
+  update_reg(AD9910_REG_MULTICHIP_SYNC);
+  update_reg(AD9910_REG_RAMP_LIMIT);
+  update_reg(AD9910_REG_RAMP_STEP);
+  update_reg(AD9910_REG_RAMP_RATE);
+  update_reg(AD9910_REG_PROF0);
+  update_reg(AD9910_REG_PROF1);
+  update_reg(AD9910_REG_PROF2);
+  update_reg(AD9910_REG_PROF3);
+  update_reg(AD9910_REG_PROF4);
+  update_reg(AD9910_REG_PROF5);
+  update_reg(AD9910_REG_PROF6);
+  update_reg(AD9910_REG_PROF7);
 
   /* turn green led on signaling that initialization has passed */
   gpio_set_high(LED_GREEN);
