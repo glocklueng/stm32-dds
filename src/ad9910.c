@@ -70,6 +70,8 @@ ad9910_update_register(uint8_t addr, uint16_t length, const uint8_t* value)
 void
 ad9910_io_update()
 {
+  SPI_WAIT(SPI1);
+
   gpio_set_high(IO_UPDATE);
   /* no delay is needed here. We have to wait for at least 1 SYNC_CLK
    * cycle which is SYSCLK / 4 = 250MHz > STM32F4 CPU clock */
