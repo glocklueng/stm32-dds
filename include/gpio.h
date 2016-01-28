@@ -41,6 +41,14 @@
   TM_GPIO_SetPinHigh(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
 #define gpio_set_low(pin)                                                      \
   TM_GPIO_SetPinLow(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
+#define gpio_set(pin, value)                                                   \
+  do {                                                                         \
+    if (value) {                                                               \
+      gpio_set_high(pin);                                                      \
+    } else {                                                                   \
+      gpio_set_low(pin);                                                       \
+    }                                                                          \
+  } while (0)
 
 #define gpio_get(pin)                                                          \
   TM_GPIO_GetInputPinValue(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
