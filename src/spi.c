@@ -58,14 +58,14 @@ void
 spi_write_multi(uint8_t* data, uint32_t length)
 {
   /* TODO let that use DMA */
-  SPI_WAIT(SPIx);
+  SPI_WAIT(SPI1);
 
   for (uint32_t i = 0; i < length; ++i) {
-    SPIx->DR = data[i];
+    SPI1->DR = data[i];
 
-    SPI_WAIT(SPIx);
+    SPI_WAIT(SPI1);
 
     /* we need to read the data register */
-    (void)SPIx->DR;
+    (void)SPI1->DR;
   }
 }

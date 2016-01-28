@@ -3,14 +3,11 @@
 
 #include <stm32f4xx_spi.h>
 
-/* our used SPI channel */
-#define SPIx SPI1
-
 /* helper macros taken from tm library */
-#define SPI_IS_BUSY(SPIy)                                                      \
-  (((SPIy)->SR & (SPI_SR_TXE | SPI_SR_RXNE)) == 0 || ((SPIy)->SR & SPI_SR_BSY))
+#define SPI_IS_BUSY(SPIx)                                                      \
+  (((SPIx)->SR & (SPI_SR_TXE | SPI_SR_RXNE)) == 0 || ((SPIx)->SR & SPI_SR_BSY))
 
-#define SPI_WAIT(SPIy) while (SPI_IS_BUSY(SPIy))
+#define SPI_WAIT(SPIx) while (SPI_IS_BUSY(SPIx))
 
 void spi_init();
 
@@ -18,23 +15,23 @@ inline uint8_t
 spi_send_single(uint8_t data)
 {
   /* wait until previous transmission is complete */
-  SPI_WAIT(SPIx);
+  SPI_WAIT(SPI1);
 
   /* fill output buffer */
-  SPIx->DR = data;
+  SPI1->DR = data;
 
-  SPI_WAIT(SPIx);
+  SPI_WAIT(SPI1);
 
   /* return received data */
-  return SPIx->DR;
+  return SPI1->DR;
 }
 
 inline void
 spi_write_single(uint8_t data)
 {
-  SPI_WAIT(SPIx);
+  SPI_WAIT(SPI1);
 
-  SPIx->DR = data;
+  SPI1->DR = data;
 }
 
 void spi_write_multi(uint8_t* data, uint32_t length);
