@@ -36,17 +36,6 @@
 /* Private typedef -----------------------------------------------------------*/
 GPIO_InitTypeDef GPIO_InitStructure;
 
-/* Private define ------------------------------------------------------------*/
-#define SYSTEMTICK_PERIOD_MS 10
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* this variable is used as time reference, incremented by 10ms */
-__IO uint32_t LocalTime = 0;
-uint32_t timingdelay;
-
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
-
 /**
   * @brief  Main program
   * @param  None
@@ -67,28 +56,6 @@ main(void)
   ad9910_select_profile(0);
 
   gpio_blink_forever_slow(LED_RED);
-}
-
-/**
-  * @brief  Delay Function.
-  * @param  nCount:specifies the Delay time length.
-  * @retval None
-  */
-void
-Delay(uint32_t nCount)
-{
-  /* capture the current local time */
-  timingdelay = LocalTime + nCount;
-
-  /* wait until the desired delay finishes */
-  while (timingdelay > LocalTime) {
-  }
-}
-
-void
-Time_Update(void)
-{
-  LocalTime += SYSTEMTICK_PERIOD_MS;
 }
 
 #ifdef USE_FULL_ASSERT

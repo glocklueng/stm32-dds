@@ -23,6 +23,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "interrupts.h"
+#include "timing.h"
 
 /** @addtogroup STM32F4_Discovery_Peripheral_Examples
   * @{
@@ -143,7 +144,7 @@ PendSV_Handler(void)
 void
 SysTick_Handler(void)
 {
-  Time_Update();
+  time_update();
 }
 
 /******************************************************************************/

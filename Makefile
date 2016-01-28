@@ -9,7 +9,8 @@ SRCS=src/main.c \
      src/ethernet.c \
      src/netconf.c \
      src/spi.c \
-     src/stm32f4x7_eth_bsp.c
+     src/stm32f4x7_eth_bsp.c \
+     src/timing.c
 HDRS=include/defines.h \
      include/ad9910.h \
      include/ethernet.h \
@@ -19,7 +20,8 @@ HDRS=include/defines.h \
      include/netconf.h \
      include/spi.h \
      include/stm32f4x7_eth_bsp.h \
-     include/stm32f4x7_eth_conf.h
+     include/stm32f4x7_eth_conf.h \
+     include/timing.h
 OBJS=$(SRCS:.c=.o)
 
 LIBS=libtm.a \

@@ -37,6 +37,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
+#include "timing.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -53,7 +54,7 @@ extern "C" {
 #ifdef USE_Delay
 #include "main.h" /* Header file where the Delay function prototype is exported */
 #define _eth_delay_                                                            \
-  Delay /* User can provide more timing precise _eth_delay_ function           \
+  delay /* User can provide more timing precise _eth_delay_ function           \
            ex. use Systick with time base of 10 ms (as done in the provided    \
            STM32F4x7xx demonstrations) */
 #else
