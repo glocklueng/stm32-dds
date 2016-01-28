@@ -208,6 +208,10 @@ extern uint64_t reg_prof7;
 #define AD9910_GET_OFFSET(field) field##_OFFSET
 #define AD9910_GET_REG(field) field##_REG
 
+/**
+ * internal macro which sets the specified bit field in the given register
+ * to the new value
+ */
 #define set_reg_value(reg, field, value)                                       \
   do {                                                                         \
     AD9910_GET_NAME(reg) =                                                     \
@@ -217,9 +221,18 @@ extern uint64_t reg_prof7;
       (AD9910_GET_NAME(reg) | (value << AD9910_GET_OFFSET(field)));            \
   } while (0)
 
+/**
+ * sets the given bit field to the specified value. This is only done
+ * internaly, a call to update_reg or update_matching_reg is required to
+ * send the changed register to the DDS chip
+ */
 #define set_value(field, value)                                                \
   set_reg_value(AD9910_GET_REG(field), field, value)
 
+/**
+ * Write the current internal state of the specified register to the
+ * AD9910 chip
+ */
 #define update_reg(reg)                                                        \
   ad9910_update_register(AD9910_GET_ADDR(reg), sizeof(AD9910_GET_NAME(reg)),   \
                          (const uint8_t*)&AD9910_GET_NAME(reg))
@@ -234,10 +247,22 @@ void ad9910_init();
 void ad9910_update_register(uint8_t reg_addr, uint16_t reg_length,
                             const uint8_t* value);
 
+/**
+ * data written to the registers doesn't get active until this function is
+ * called or another profile is selected
+ */
 void ad9910_io_update();
 
+/**
+ * selects a previosly configured output buffer. Changing the profile
+ * buffer writes all data to the registers like calling io update.
+ */
 void ad9910_select_profile(uint8_t profile);
 
+/**
+ * configures the specified profile to emit a sine with constant frequncy
+ * and amplitude.
+ */
 void ad9910_set_single_tone(uint8_t profile, double freq, uint16_t amplitude,
                             uint16_t phase);
 
