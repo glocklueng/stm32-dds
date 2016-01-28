@@ -128,6 +128,14 @@ ad9910_io_update()
 }
 
 void
+ad9910_set_profile(uint8_t profile)
+{
+  gpio_set(PROFILE_0, profile & 0x1);
+  gpio_set(PROFILE_1, profile & 0x2);
+  gpio_set(PROFILE_2, profile & 0x4);
+}
+
+void
 ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
                        uint16_t phase)
 {

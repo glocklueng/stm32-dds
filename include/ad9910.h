@@ -236,6 +236,8 @@ void ad9910_update_register(uint8_t reg_addr, uint16_t reg_length,
 
 void ad9910_io_update();
 
+void ad9910_select_profile(uint8_t profile);
+
 void ad9910_set_single_tone(uint8_t profile, double freq, uint16_t amplitude,
                             uint16_t phase);
 
