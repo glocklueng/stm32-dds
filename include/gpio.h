@@ -10,6 +10,9 @@
 #define IO_RESET_GROUP B
 #define IO_RESET_PIN 7
 
+#define PLL_LOCK_GROUP C
+#define PLL_LOCK_PIN 15
+
 #define PROFILE_0_GROUP D
 #define PROFILE_0_PIN 10
 #define PROFILE_1_GROUP D

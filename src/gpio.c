@@ -4,6 +4,10 @@
   TM_GPIO_Init(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin), TM_GPIO_Mode_OUT,     \
                TM_GPIO_OType_PP, TM_GPIO_Speed_High, TM_GPIO_PuPd_NOPULL)
 
+#define GPIO_INIT_INPUT(pin)                                                   \
+  TM_GPIO_Init(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin), TM_GPIO_Mode_IN,      \
+               TM_GPIO_OType_PP, TM_GPIO_Speed_High, TM_GPIO_PuPd_NOPULL)
+
 void
 gpio_init()
 {
@@ -17,6 +21,8 @@ gpio_init()
   GPIO_INIT_OUTPUT(LED_ORANGE);
   GPIO_INIT_OUTPUT(LED_BLUE);
   GPIO_INIT_OUTPUT(LED_GREEN);
+
+  GPIO_INIT_INPUT(PLL_LOCK);
 }
 
 void
