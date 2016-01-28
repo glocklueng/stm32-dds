@@ -62,111 +62,19 @@ main(void)
         system_stm32f4xx.c file
      */
 
-  gpio_set_high(LED_ORANGE);
-
   gpio_init();
 
-  spi_init();
+  gpio_set_high(LED_ORANGE);
+
+  ad9910_init();
 
   gpio_set_high(LED_GREEN);
-
-  /*
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
-
-  spi_write_single(AD9910_INSTR_WRITE | AD9910_REG_CFR1_ADDR);
-  spi_write_single(AD9910_INSTR_WRITE | 0x2);
-  spi_write_single(AD9910_INSTR_WRITE | 0x0);
-  spi_write_single(AD9910_INSTR_WRITE | 0x0);
-  spi_write_single(AD9910_INSTR_WRITE | 0x0);
-
-  SPI_WAIT(SPI1);
-
-  ad9910_io_update();
-
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
-
-  spi_send_single(AD9910_INSTR_READ | AD9910_REG_CFR3_ADDR);
-  spi_send_single(0x55);
-  spi_send_single(0x55);
-  spi_send_single(0x55);
-  spi_send_single(0x55);
-  spi_send_single(AD9910_INSTR_READ | AD9910_REG_CFR1_ADDR);
-  spi_send_single(0x55);
-  spi_send_single(0x55);
-  spi_send_single(0x55);
-  spi_send_single(0x55);
-  */
-
-  SPI_WAIT(SPI1);
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
-
-//  ad9910_init();
-
-  update_reg(AD9910_REG_CFR3);
-  SPI_WAIT(SPI1);
-  ad9910_io_update();
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
-
-  /* enable PLL mode */
-  set_value(AD9910_PLL_ENABLE, 1);
-  update_reg(AD9910_REG_CFR3);
-  SPI_WAIT(SPI1);
-  ad9910_io_update();
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
-  /* set multiplier factor (10MHz -> 1GHz) */
-  set_value(AD9910_PLL_DIVIDE, 100);
-  update_reg(AD9910_REG_CFR3);
-  SPI_WAIT(SPI1);
-  ad9910_io_update();
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
-  /* set correct range for internal VCO */
-  set_value(AD9910_VCO_RANGE, AD9910_VCO_RANGE_VCO5);
-  update_reg(AD9910_REG_CFR3);
-  SPI_WAIT(SPI1);
-  ad9910_io_update();
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
-  /* set pump current for the external PLL loop filter */
-  set_value(AD9910_PLL_PUMP_CURRENT, AD9910_PLL_PUMP_CURRENT_237);
-  update_reg(AD9910_REG_CFR3);
-  SPI_WAIT(SPI1);
-  ad9910_io_update();
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
 
   gpio_set_high(PROFILE_0);
   gpio_set_high(PROFILE_1);
   gpio_set_high(PROFILE_2);
 
-  uint64_t f = 0x418937; // should be 10kHz at 10MHz / 1MHz at 1GHz
-  uint64_t p = 0;
-  uint64_t a = 0x3FFF;
-
-  uint64_t data = f | (p << 32) | (a << 48);
-
-  SPI_WAIT(SPI1);
-  gpio_set_high(IO_RESET);
-  for (volatile int i = 0; i < 1000; ++i);
-  gpio_set_low(IO_RESET);
-
-  ad9910_update_register(AD9910_GET_ADDR(AD9910_REG_PROF0), 8, &data);
-
-  SPI_WAIT(SPI1);
-
+  ad9910_set_single_tone(0, 80e6, 0x3FFF, 0);
   ad9910_io_update();
 
   gpio_set_low(PROFILE_0);
