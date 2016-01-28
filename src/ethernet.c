@@ -48,7 +48,7 @@ server_init()
     return 1;
   }
 
-  err_t err = tcp_bind(g_pcb, IP_ADDR_ANY, 80);
+  err_t err = tcp_bind(g_pcb, IP_ADDR_ANY, 1234);
 
   if (err != ERR_OK) {
     memp_free(MEMP_TCP_PCB, g_pcb);
