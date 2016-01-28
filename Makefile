@@ -11,10 +11,13 @@ SRCS=src/main.c \
      src/spi.c \
      src/stm32f4x7_eth_bsp.c
 HDRS=include/defines.h \
+     include/ad9910.h \
      include/ethernet.h \
+     include/gpio.h \
      include/interrupts.h \
      include/main.h \
      include/netconf.h \
+     include/spi.h \
      include/stm32f4x7_eth_bsp.h \
      include/stm32f4x7_eth_conf.h
 OBJS=$(SRCS:.c=.o)
