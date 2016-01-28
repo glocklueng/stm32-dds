@@ -13,6 +13,8 @@ void spi_init_slow();
 void spi_init_fast();
 void spi_init(uint16_t prescaler);
 void spi_deinit();
+inline uint8_t spi_send_single(uint8_t data);
+void spi_write_multi(uint8_t* data, uint32_t length);
 
 inline uint8_t
 spi_send_single(uint8_t data)
@@ -28,7 +30,5 @@ spi_send_single(uint8_t data)
   /* return received data */
   return SPI1->DR;
 }
-
-void spi_write_multi(uint8_t* data, uint32_t length);
 
 #endif /* _SPI_H */
