@@ -2,6 +2,7 @@
 
 #include "gpio.h"
 #include "spi.h"
+#include <math.h>
 
 /* define registers with their values after bootup */
 uint32_t reg_cfr1 = 0x0;
@@ -75,4 +76,21 @@ ad9910_io_update()
   /* no delay is needed here. We have to wait for at least 1 SYNC_CLK
    * cycle which is SYSCLK / 4 = 250MHz > STM32F4 CPU clock */
   gpio_set_low(IO_UPDATE);
+}
+
+void
+ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
+                       uint16_t phase)
+{
+  /* calculate matching frequency tuning word
+   * ftw = freq / clock speed * 2^32 */
+  uint32_t ftw = nearbyint(freq / 1e9 * 0xFFFFFFFF);
+
+  /* amplitude is only 14 bits, force the two upper bits to zero */
+  ampl &= 0x3FFF;
+
+  uint64_t data =
+    (uint64_t)ftw | ((uint64_t)phase << 32) | ((uint64_t)ampl << 48);
+  ad9910_update_register(AD9910_GET_ADDR(AD9910_REG_PROF0) + profile, 8,
+                         (const uint8_t*)&data);
 }
