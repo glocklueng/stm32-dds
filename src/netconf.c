@@ -71,8 +71,6 @@ LwIP_Init(void)
   struct ip_addr ipaddr;
   struct ip_addr netmask;
   struct ip_addr gw;
-  uint8_t iptab[4] = { 0 };
-  uint8_t iptxt[20];
 
   /* Initializes the dynamic memory heap defined by MEM_SIZE.*/
   mem_init();
