@@ -33,6 +33,9 @@ STM32_DIR=lib/stm32f4
 LWIP_DIR=lib/lwip
 TM_DIR=lib/tm
 
+CFLAGS+=-Wmissing-declarations -Werror=implicit-function-declaration
+CFLAGS+=-Wno-unused-parameter
+
 # set search path for include files
 CPPFLAGS+=-Iinclude
 CPPFLAGS+=-I$(STM32_DIR)/include -I$(STM32_DIR)/include/core -I$(STM32_DIR)/include/peripherals
