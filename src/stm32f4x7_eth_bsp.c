@@ -37,7 +37,6 @@
 #include "main.h"
 #include "lwip/netif.h"
 #include "netconf.h"
-#include "lwip/dhcp.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -46,9 +45,6 @@
 ETH_InitTypeDef ETH_InitStructure;
 __IO uint32_t EthStatus = 0;
 extern struct netif gnetif;
-#ifdef USE_DHCP
-extern __IO uint8_t DHCP_state;
-#endif /* LWIP_DHCP */
 
 /* Private function prototypes -----------------------------------------------*/
 static void ETH_GPIO_Config(void);
@@ -391,10 +387,6 @@ ETH_link_callback(struct netif* netif)
   struct ip_addr ipaddr;
   struct ip_addr netmask;
   struct ip_addr gw;
-#ifndef USE_DHCP
-  uint8_t iptab[4] = { 0 };
-  uint8_t iptxt[20];
-#endif /* USE_DHCP */
 
   /* Clear LCD */
   /*
@@ -470,17 +462,10 @@ ETH_link_callback(struct netif* netif)
     /* Restart MAC interface */
     ETH_Start();
 
-#ifdef USE_DHCP
-    ipaddr.addr = 0;
-    netmask.addr = 0;
-    gw.addr = 0;
-    DHCP_state = DHCP_START;
-#else
     IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
     IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2,
              NETMASK_ADDR3);
     IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
-#endif /* USE_DHCP */
 
     netif_set_addr(&gnetif, &ipaddr, &netmask, &gw);
 
@@ -516,10 +501,6 @@ ETH_link_callback(struct netif* netif)
 #endif /* USE_LCD */
   } else {
     ETH_Stop();
-#ifdef USE_DHCP
-    DHCP_state = DHCP_LINK_DOWN;
-    dhcp_stop(netif);
-#endif /* USE_DHCP */
 
     /*  When the netif link is down this function must be called.*/
     netif_set_down(&gnetif);
