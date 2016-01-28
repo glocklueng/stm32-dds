@@ -29,6 +29,10 @@ uint64_t reg_prof7 = 0x0;
 void
 ad9910_init()
 {
+  gpio_init();
+
+  gpio_set_high(LED_ORANGE);
+
   spi_init_slow();
 
   gpio_set_high(IO_RESET);

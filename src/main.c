@@ -61,14 +61,7 @@ main(void)
        To reconfigure the default setting of SystemInit() function, refer to
         system_stm32f4xx.c file
      */
-
-  gpio_init();
-
-  gpio_set_high(LED_ORANGE);
-
   ad9910_init();
-
-  gpio_set_high(LED_GREEN);
 
   gpio_set_high(PROFILE_0);
   gpio_set_high(PROFILE_1);
