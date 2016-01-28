@@ -153,7 +153,6 @@ LwIP_Periodic_Handle(__IO uint32_t localtime)
     ARPTimer = localtime;
     etharp_tmr();
   }
-
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
