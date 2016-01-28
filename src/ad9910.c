@@ -64,6 +64,12 @@ ad9910_init()
   spi_deinit();
   spi_init_fast();
 
+  /* wait for PLL lock signal */
+  gpio_set_high(LED_RED);
+  while (gpio_get(PLL_LOCK) == 0) {
+  }
+  gpio_set_low(LED_RED);
+
   set_value(AD9910_SDIO_INPUT_ONLY, 1);
   update_mathing_reg(AD9910_SDIO_INPUT_ONLY);
 
