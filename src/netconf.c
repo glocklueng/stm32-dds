@@ -34,7 +34,7 @@
 #include "netif/etharp.h"
 #include "lwip/dhcp.h"
 #include "ethernetif.h"
-#include "main.h"
+#include "defines.h"
 #include "stm32f4x7_eth_bsp.h"
 #include "netconf.h"
 #include "misc.h"
@@ -51,11 +51,6 @@ uint32_t TCPTimer = 0;
 uint32_t ARPTimer = 0;
 uint32_t IPaddress = 0;
 
-#ifdef USE_DHCP
-uint32_t DHCPfineTimer = 0;
-uint32_t DHCPcoarseTimer = 0;
-__IO uint8_t DHCP_state;
-#endif
 extern __IO uint32_t EthStatus;
 
 /* Private functions ---------------------------------------------------------*/

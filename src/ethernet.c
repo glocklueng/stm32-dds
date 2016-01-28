@@ -1,7 +1,14 @@
 #include "ethernet.h"
 
-#include "lwip/stats.h"
-#include "lwip/tcp.h"
+#include "gpio.h"
+#include "netconf.h"
+#include "stm32f4x7_eth_bsp.h"
+#include "timing.h"
+
+#include <misc.h>
+#include <stm32f4x7_eth.h>
+#include <lwip/stats.h>
+#include <lwip/tcp.h>
 
 static struct tcp_pcb* g_pcb;
 
@@ -24,6 +31,7 @@ typedef struct
   struct pbuf* p;
 } server_struct;
 
+static int server_init();
 static err_t server_accept_callback(void* arg, struct tcp_pcb* newpcb,
                                     err_t err);
 static err_t server_recv_callback(void* arg, struct tcp_pcb* pcb,
@@ -34,17 +42,42 @@ static err_t server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len);
 static void server_send(struct tcp_pcb* tpcb, server_struct* es);
 static void server_connection_close(struct tcp_pcb* pcb, server_struct* es);
 
+void
+ethernet_init()
+{
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+
+  ETH_BSP_Config();
+
+  LwIP_Init();
+
+  server_init();
+}
+
+void
+ethernet_loop()
+{
+  for (;;) {
+    if (ETH_CheckFrameReceived()) {
+      gpio_set_high(LED_GREEN);
+      LwIP_Pkt_Handle();
+      gpio_set_low(LED_GREEN);
+    }
+    LwIP_Periodic_Handle(LocalTime);
+  }
+}
+
 /**
  * This function starts the server and causes the program to listen on
  * port 1234 waiting for incoming connections.
- *
  */
-int
+static int
 server_init()
 {
   g_pcb = tcp_new();
 
   if (g_pcb == NULL) {
+    gpio_blink_forever_fast(LED_RED);
     return 1;
   }
 
@@ -52,12 +85,15 @@ server_init()
 
   if (err != ERR_OK) {
     memp_free(MEMP_TCP_PCB, g_pcb);
+    gpio_blink_forever_slow(LED_RED);
     return err;
   }
 
   g_pcb = tcp_listen(g_pcb);
 
   tcp_accept(g_pcb, server_accept_callback);
+
+  gpio_set_high(LED_ORANGE);
 
   return 0;
 }

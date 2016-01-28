@@ -22,8 +22,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4_discovery.h"
 #include "ad9910.h"
-#include "spi.h"
 #include "gpio.h"
+#include "ethernet.h"
 
 /** @addtogroup STM32F4_Discovery_Peripheral_Examples
   * @{
@@ -50,10 +50,23 @@ main(void)
        To reconfigure the default setting of SystemInit() function, refer to
         system_stm32f4xx.c file
      */
+  /*
   ad9910_init();
 
   ad9910_set_single_tone(0, 80e6, 0x3FFF, 0);
   ad9910_select_profile(0);
+  */
+
+  gpio_init();
+
+  gpio_set_high(LED_ORANGE);
+
+  ethernet_init();
+
+  gpio_set_low(LED_ORANGE);
+  gpio_set_high(LED_BLUE);
+
+  ethernet_loop();
 
   gpio_blink_forever_slow(LED_RED);
 }

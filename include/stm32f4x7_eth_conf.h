@@ -49,7 +49,7 @@ extern "C" {
 /* Uncomment the line below if you want to use user defined Delay function
    (for precise timing), otherwise default _eth_delay_ function defined within
    the Ethernet driver is used (less precise timing) */
-#define USE_Delay
+//#define USE_Delay
 
 #ifdef USE_Delay
 #include "main.h" /* Header file where the Delay function prototype is exported */
@@ -64,7 +64,7 @@ extern "C" {
 
 /* Uncomment the line below to allow custom configuration of the Ethernet driver
  * buffers */
-#define CUSTOM_DRIVER_BUFFERS_CONFIG
+//#define CUSTOM_DRIVER_BUFFERS_CONFIG
 
 #ifdef CUSTOM_DRIVER_BUFFERS_CONFIG
 /* Redefinition of the Ethernet driver buffers size and count */

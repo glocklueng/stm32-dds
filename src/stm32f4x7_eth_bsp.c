@@ -34,9 +34,10 @@
 #include "stm32f4xx_syscfg.h"
 #include "stm32f4xx_exti.h"
 #include "misc.h"
-#include "main.h"
+#include "defines.h"
 #include "lwip/netif.h"
 #include "netconf.h"
+#include "gpio.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -399,6 +400,9 @@ ETH_link_callback(struct netif* netif)
   */
 
   if (netif_is_link_up(netif)) {
+
+    gpio_set_high(LED_ORANGE);
+
     /* Restart the autonegotiation */
     if (ETH_InitStructure.ETH_AutoNegotiation != ETH_AutoNegotiation_Disable) {
       /* Reset Timeout counter */
@@ -500,6 +504,8 @@ ETH_link_callback(struct netif* netif)
 #endif /* USE_DHCP */
 #endif /* USE_LCD */
   } else {
+    gpio_set_low(LED_ORANGE);
+
     ETH_Stop();
 
     /*  When the netif link is down this function must be called.*/

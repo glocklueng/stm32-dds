@@ -16,7 +16,7 @@ void spi_deinit();
 inline uint8_t spi_send_single(uint8_t data);
 void spi_write_multi(uint8_t* data, uint32_t length);
 
-inline uint8_t
+__attribute__((always_inline)) inline uint8_t
 spi_send_single(uint8_t data)
 {
   /* wait until previous transmission is complete */
