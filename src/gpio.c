@@ -30,10 +30,10 @@ gpio_blink_forever(uint32_t cycles, GPIO_TypeDef* GPIOx, uint16_t pin)
 {
   for (;;) {
     TM_GPIO_SetPinHigh(GPIOx, pin);
-    for (volatile int i = 0; i < cycles; ++i) {
+    for (volatile unsigned int i = 0; i < cycles; ++i) {
     }
     TM_GPIO_SetPinLow(GPIOx, pin);
-    for (volatile int i = 0; i < cycles; ++i) {
+    for (volatile unsigned int i = 0; i < cycles; ++i) {
     }
   }
 }
