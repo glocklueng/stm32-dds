@@ -107,12 +107,12 @@ ad9910_init()
 void
 ad9910_update_register(uint8_t addr, uint16_t length, const uint8_t* value)
 {
-  spi_write_single(addr | AD9910_INSTR_WRITE);
+  spi_send_single(addr | AD9910_INSTR_WRITE);
 
   /* MSB is not only for the bits in every byte but also for the bytes
    * meaning we have to send the last byte first */
   for (int i = 0; i < length; ++i) {
-    spi_write_single(value[length - 1 - i]);
+    spi_send_single(value[length - 1 - i]);
   }
 }
 

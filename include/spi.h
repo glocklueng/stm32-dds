@@ -29,14 +29,6 @@ spi_send_single(uint8_t data)
   return SPI1->DR;
 }
 
-inline void
-spi_write_single(uint8_t data)
-{
-  SPI_WAIT(SPI1);
-
-  SPI1->DR = data;
-}
-
 void spi_write_multi(uint8_t* data, uint32_t length);
 
 #endif /* _SPI_H */
