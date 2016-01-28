@@ -3,6 +3,10 @@ include ../../Makefile.inc
 # this library doesn't require the std c library
 CFLAGS+=-ffreestanding -nostdlib
 
+# suppress warnings in third party libraries
+CFLAGS+=-Wno-missing-field-initializers -Wno-unused-parameter
+CFLAGS+=-Wno-missing-prototypes -Wno-old-style-declaration
+
 STM32F4_DIR=../stm32f4
 STM32F4_INCDIR=$(STM32F4_DIR)/include
 

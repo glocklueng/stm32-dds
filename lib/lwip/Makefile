@@ -9,6 +9,10 @@ STM32_INCLUDES+=-I$(STM32_DIR)/include/core -I$(STM32_DIR)/include/peripherals
 # this library doesn't require the std c library
 CFLAGS+=-ffreestanding -nostdlib
 
+#suppress compiler warnings in third party code
+CFLAGS+=-Wno-empty-body -Wno-unused-but-set-variable -Wno-unused-parameter
+CFLAGS+=-Wno-address
+
 CPPFLAGS+=-Isrc/include -Isrc/include/ipv4 -I$(PORTDIR)/include -I.
 CPPFLAGS+=$(STM32_INCLUDES)
 

@@ -3,6 +3,9 @@ include ../../Makefile.inc
 # this library doesn't require the std c library
 CFLAGS+=-ffreestanding -nostdlib
 
+# suppress warnings in third party library
+CFLAGS+=-Wno-unused-parameter -Wno-unused-variable
+
 CPPFLAGS+=-I../../include -Iinclude -Iinclude/core -Iinclude/peripherals
 
 LIB=libstm32f4
