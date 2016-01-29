@@ -3,6 +3,8 @@
 
 #include <stm32f4xx_spi.h>
 
+#define INLINE __attribute__((always_inline)) inline
+
 /* helper macros taken from tm library */
 #define SPI_IS_BUSY(SPIx)                                                      \
   (((SPIx)->SR & (SPI_SR_TXE | SPI_SR_RXNE)) == 0 || ((SPIx)->SR & SPI_SR_BSY))
@@ -13,10 +15,10 @@ void spi_init_slow();
 void spi_init_fast();
 void spi_init(uint16_t prescaler);
 void spi_deinit();
-inline uint8_t spi_send_single(uint8_t data);
+INLINE uint8_t spi_send_single(uint8_t data);
 void spi_write_multi(uint8_t* data, uint32_t length);
 
-inline uint8_t
+INLINE uint8_t
 spi_send_single(uint8_t data)
 {
   /* wait until previous transmission is complete */
