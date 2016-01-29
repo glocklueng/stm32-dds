@@ -52,8 +52,18 @@ main(void)
      */
   ad9910_init();
 
-  ad9910_set_single_tone(0, 80e6, 0x3FFF, 0);
-  ad9910_select_profile(0);
+  ad9910_set_single_tone(0, 80e6, 0x0000, 0);
+
+  ad9910_io_update();
+
+  gpio_set_high(LED_BLUE);
+
+  ad9910_select_parallel(ad9910_parallel_amplitude);
+  ad9910_enable_parallel(1);
+  for (unsigned int i = 0;; ++i, i %= 0x4000) {
+    ad9910_set_parallel(i << 2);
+  }
+  ad9910_enable_parallel(0);
 
   gpio_blink_forever_slow(LED_RED);
 }
