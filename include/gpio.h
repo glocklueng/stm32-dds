@@ -29,6 +29,13 @@
 #define LED_BLUE_GROUP D
 #define LED_BLUE_PIN 15
 
+#define DRCTL_GROUP D
+#define DRCTL_PIN 2
+#define DRHOLD_GROUP D
+#define DRHOLD_PIN 3
+#define DROVER_GROUP D
+#define DROVER_PIN 1
+
 #define TX_ENABLE_GROUP B
 #define TX_ENABLE_PIN 0
 #define PARALLEL_F0_GROUP B
