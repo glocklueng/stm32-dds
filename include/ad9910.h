@@ -6,6 +6,9 @@
 #define _AD9910_H
 
 #include <stdint.h>
+#include <tm_stm32f4_gpio.h>
+
+#define INLINE __attribute__((always_inline)) inline
 
 #define AD9910_INSTR_WRITE 0x00
 #define AD9910_INSTR_READ 0x80
@@ -299,6 +302,14 @@ extern uint64_t reg_prof7;
  * then call update_reg on that register directly */
 #define update_matching_reg(field) update_reg(AD9910_GET_REG(field))
 
+enum parallel_mode
+{
+  ad9910_parallel_amplitude = 0x0,
+  ad9910_parallel_phase = 0x1,
+  ad9910_parallel_frequency = 0x2,
+  ad9910_parallel_mixed = 0x3
+};
+
 void ad9910_init();
 
 void ad9910_update_register(uint8_t reg_addr, uint16_t reg_length,
@@ -317,10 +328,35 @@ void ad9910_io_update();
 void ad9910_select_profile(uint8_t profile);
 
 /**
+ * changes which registers are influenced by the parallel port. See table
+ * 4 in the AD9910 data sheet for exact specification
+ */
+void ad9910_select_parallel(enum parallel_mode mode);
+
+/**
+ * enables the parallel communication port on the AD9910. As soon as this
+ * is set to 1 the chip will start to use the parallel input lines as
+ * values for the register specified by the parallel mode
+ */
+void ad9910_enable_parallel(int enable);
+
+/**
+ * sets the parallel output pins to the given value
+ */
+INLINE void ad9910_set_parallel(uint16_t port);
+
+/**
  * configures the specified profile to emit a sine with constant frequncy
  * and amplitude.
  */
 void ad9910_set_single_tone(uint8_t profile, double freq, uint16_t amplitude,
                             uint16_t phase);
+
+INLINE
+void
+ad9910_set_parallel(uint16_t port)
+{
+  TM_GPIO_SetPortValue(GPIOE, port);
+}
 
 #endif /* _AD9910_H */
