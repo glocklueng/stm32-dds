@@ -378,7 +378,8 @@ extern uint64_t reg_prof7;
       (AD9910_GET_NAME(reg) &                                                  \
        ~(AD9910_GET_MASK(field) << AD9910_GET_OFFSET(field)));                 \
     AD9910_GET_NAME(reg) =                                                     \
-      (AD9910_GET_NAME(reg) | (value << AD9910_GET_OFFSET(field)));            \
+      (AD9910_GET_NAME(reg) |                                                  \
+       (((uint64_t)(value)) << AD9910_GET_OFFSET(field)));                     \
   } while (0)
 
 /**
