@@ -363,9 +363,9 @@ extern uint64_t reg_prof7;
 #define AD9910_REG_PROF7_NAME reg_prof7
 
 #define AD9910_GET_ADDR(field) field##_ADDR
-#define AD9910_GET_MASK(field) field##_MASK
+#define AD9910_GET_MASK(field) ((uint64_t)field##_MASK)
 #define AD9910_GET_NAME(field) field##_NAME
-#define AD9910_GET_OFFSET(field) field##_OFFSET
+#define AD9910_GET_OFFSET(field) ((uint64_t)field##_OFFSET)
 #define AD9910_GET_REG(field) field##_REG
 
 /**
