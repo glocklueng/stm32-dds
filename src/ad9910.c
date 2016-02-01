@@ -77,8 +77,7 @@ ad9910_init()
   /* set communication mode to SDIO with 3 wires (CLK, IN, OUT) */
   set_value(AD9910_SDIO_INPUT_ONLY, 1);
 
-  /* enable parallel data port and PDCLK output line */
-  set_value(AD9910_PARALLEL_DATA_PORT_ENABLE, 1);
+  /* enable PDCLK line */
   set_value(AD9910_PDCLK_ENABLE, 1);
 
   /* update all register. It might be that only the STM32F4 has been
@@ -154,6 +153,10 @@ ad9910_select_parallel(enum parallel_mode mode)
 void
 ad9910_enable_parallel(int mode)
 {
+  /* enable parallel data port and PDCLK output line */
+  set_value(AD9910_PARALLEL_DATA_PORT_ENABLE, !!mode);
+  update_matching_reg(AD9910_PARALLEL_DATA_PORT_ENABLE);
+
   gpio_set(TX_ENABLE, !!mode);
 }
 
