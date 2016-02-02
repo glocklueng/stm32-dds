@@ -411,8 +411,29 @@ enum parallel_mode
   ad9910_parallel_amplitude = 0x0,
   ad9910_parallel_phase = 0x1,
   ad9910_parallel_frequency = 0x2,
-  ad9910_parallel_mixed = 0x3
+  ad9910_parallel_polar = 0x3
 };
+
+typedef enum {
+  ad9910_ramp_dest_frequency = 0x0,
+  ad9910_ramp_dest_phase = 0x1,
+  ad9910_ramp_dest_amplitude = 0x2
+} ad9910_ramp_destination;
+
+typedef enum {
+  ad9910_ram_dest_frequency = 0x0,
+  ad9910_ram_dest_phase = 0x1,
+  ad9910_ram_dest_amplitude = 0x2,
+  ad9910_ram_dest_polar = 0x3
+} ad9910_ram_destination;
+
+typedef enum {
+  ad9910_ram_ctl_direct_switch = 0x0,
+  ad9910_ram_ctl_ramp_up = 0x1,
+  ad9910_ram_ctl_bidirect_ramp = 0x2,
+  ad9910_ram_ctl_cont_bidirect_ramp = 0x3,
+  ad9910_ram_ctl_cont_recirculate = 0x4
+} ad9910_ram_control;
 
 void ad9910_init();
 
