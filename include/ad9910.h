@@ -435,6 +435,8 @@ typedef enum {
   ad9910_ram_ctl_cont_recirculate = 0x4
 } ad9910_ram_control;
 
+uint32_t ad9910_convert_frequency(double f);
+
 void ad9910_init();
 
 void ad9910_update_register(uint8_t reg_addr, uint16_t reg_length,

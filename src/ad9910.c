@@ -160,6 +160,12 @@ ad9910_enable_parallel(int mode)
   gpio_set(TX_ENABLE, !!mode);
 }
 
+uint32_t
+ad9910_convert_frequency(double f)
+{
+  return nearbyint(f / 1e9 * 0xFFFFFFFF);
+}
+
 void
 ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
                        uint16_t phase)
