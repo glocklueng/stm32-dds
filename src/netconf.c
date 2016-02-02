@@ -38,6 +38,7 @@
 #include "netconf.h"
 #include "misc.h"
 #include <stdio.h>
+#include <stm32f4x7_eth.h>
 
 /* Private typedef -----------------------------------------------------------*/
 #define MAX_DHCP_TRIES 4
@@ -49,8 +50,6 @@ struct netif gnetif;
 uint32_t TCPTimer = 0;
 uint32_t ARPTimer = 0;
 uint32_t IPaddress = 0;
-
-extern __IO uint32_t EthStatus;
 
 /**
 * @brief  Initializes the lwIP stack
@@ -93,7 +92,7 @@ LwIP_Init(void)
   /*  Registers the default network interface.*/
   netif_set_default(&gnetif);
 
-  if (EthStatus == (ETH_INIT_FLAG | ETH_LINK_FLAG)) {
+  if (ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1) {
     /* Set Ethernet link flag */
     gnetif.flags |= NETIF_FLAG_LINK_UP;
 

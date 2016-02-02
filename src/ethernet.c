@@ -15,7 +15,6 @@
 extern struct netif gnetif;
 static struct tcp_pcb* g_pcb;
 static ETH_InitTypeDef ETH_InitStructure;
-static __IO uint32_t EthStatus = 0;
 
 enum server_states
 {
@@ -77,12 +76,6 @@ ethernet_init()
   ethernet_gpio_init();
 
   ethernet_dma_init();
-
-  /* Get Ethernet link status*/
-  // if (ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1) {
-  // for now just force the link to the up state
-  EthStatus |= ETH_LINK_FLAG;
-  //  }
 
   LwIP_Init();
 
@@ -224,7 +217,7 @@ ethernet_dma_init()
   ETH_InitStructure.ETH_DMAArbitration = ETH_DMAArbitration_RoundRobin_RxTx_2_1;
 
   /* Configure Ethernet */
-  EthStatus = ETH_Init(&ETH_InitStructure, DP83848_PHY_ADDRESS);
+  ETH_Init(&ETH_InitStructure, DP83848_PHY_ADDRESS);
 }
 
 /**
