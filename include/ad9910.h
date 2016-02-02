@@ -390,7 +390,7 @@ extern uint64_t reg_prof7;
 #define set_value(field, value)                                                \
   set_reg_value(AD9910_GET_REG(field), field, value)
 
-#define set_profile_value(profile, field, value) \
+#define set_profile_value(profile, field, value)                               \
   set_reg_value(AD9910_GET_ADDR(AD9910_REG_PROF0) + profile, field, value)
 
 /**
