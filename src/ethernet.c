@@ -1,18 +1,20 @@
 #include "ethernet.h"
 
 #include "gpio.h"
-#include "netconf.h"
 #include "stm32f4x7_eth_bsp.h"
 #include "timing.h"
 
+#include <ethernetif.h>
+#include <lwip/stats.h>
+#include <lwip/tcp.h>
+#include <lwip/tcp_impl.h>
 #include <misc.h>
+#include <netif/etharp.h>
 #include <stm32f4x7_eth.h>
 #include <stm32f4xx_rcc.h>
 #include <stm32f4xx_syscfg.h>
-#include <lwip/stats.h>
-#include <lwip/tcp.h>
 
-extern struct netif gnetif;
+struct netif gnetif;
 static struct tcp_pcb* g_pcb;
 static ETH_InitTypeDef ETH_InitStructure;
 
@@ -37,6 +39,8 @@ typedef struct
 
 static void ethernet_gpio_init();
 static void ethernet_dma_init();
+static void lwip_init();
+static void lwip_periodic_handle();
 
 static int server_init();
 static err_t server_accept_callback(void* arg, struct tcp_pcb* newpcb,
@@ -77,7 +81,7 @@ ethernet_init()
 
   ethernet_dma_init();
 
-  LwIP_Init();
+  lwip_init();
 
   server_init();
 }
@@ -85,28 +89,16 @@ ethernet_init()
 void
 ethernet_loop()
 {
-  int status = 0;
-  unsigned int timer = 0;
   for (;;) {
     if (ETH_CheckFrameReceived()) {
       TM_GPIO_TogglePinValue(GPIOD, GPIO_PIN_12);
-      LwIP_Pkt_Handle();
+      /* Read a received packet from the Ethernet buffers and send it to the
+       * lwIP
+       * for handling */
+      ethernetif_input(&gnetif);
     }
 
-    if (LocalTime > timer) {
-      int nstatus = ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1;
-      if (nstatus != status) {
-        if (nstatus == 1) {
-          netif_set_link_up(&gnetif);
-        } else {
-          netif_set_link_down(&gnetif);
-        }
-      }
-      status = nstatus;
-      timer = LocalTime + 100;
-    }
-
-    LwIP_Periodic_Handle(LocalTime);
+    lwip_periodic_handle(LocalTime);
   }
 }
 
@@ -218,6 +210,91 @@ ethernet_dma_init()
 
   /* Configure Ethernet */
   ETH_Init(&ETH_InitStructure, DP83848_PHY_ADDRESS);
+}
+
+static void
+lwip_init()
+{
+  struct ip_addr ipaddr;
+  struct ip_addr netmask;
+  struct ip_addr gw;
+
+  /* Initializes the dynamic memory heap defined by MEM_SIZE.*/
+  mem_init();
+
+  /* Initializes the memory pools defined by MEMP_NUM_x.*/
+  memp_init();
+
+  IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
+  IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2,
+           NETMASK_ADDR3);
+  IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
+
+  /* - netif_add(struct netif *netif, struct ip_addr *ipaddr,
+  struct ip_addr *netmask, struct ip_addr *gw,
+  void *state, err_t (* init)(struct netif *netif),
+  err_t (* input)(struct pbuf *p, struct netif *netif))
+
+  Adds your network interface to the netif_list. Allocate a struct
+  netif and pass a pointer to this structure as the first argument.
+  Give pointers to cleared ip_addr structures when using DHCP,
+  or fill them with sane numbers otherwise. The state pointer may be NULL.
+
+  The init function pointer must point to a initialization function for
+  your ethernet netif interface. The following code illustrates it's use.*/
+  netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init,
+            &ethernet_input);
+
+  /*  Registers the default network interface.*/
+  netif_set_default(&gnetif);
+
+  if (ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1) {
+    /* Set Ethernet link flag */
+    gnetif.flags |= NETIF_FLAG_LINK_UP;
+
+    /* When the netif is fully configured this function must be called.*/
+    netif_set_up(&gnetif);
+  } else {
+    /*  When the netif link is down this function must be called.*/
+    netif_set_down(&gnetif);
+  }
+
+  /* Set the link callback function, this function is called on change of link
+   * status*/
+  netif_set_link_callback(&gnetif, ETH_link_callback);
+}
+
+static void
+lwip_periodic_handle(uint32_t localtime)
+{
+  static uint32_t tcp_timer = 0;
+  static uint32_t arp_timer = 0;
+  static uint32_t link_timer = 0;
+  static int link_status = 0;
+
+  if (localtime - link_timer >= 100) {
+    link_timer = localtime;
+
+    int new_status = ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1;
+    if (link_status != new_status) {
+      link_status = new_status;
+      if (link_status == 1) {
+        netif_set_link_up(&gnetif);
+      } else {
+        netif_set_link_down(&gnetif);
+      }
+    }
+  }
+
+  if (localtime - tcp_timer >= TCP_TMR_INTERVAL) {
+    tcp_timer = localtime;
+    tcp_tmr();
+  }
+
+  if (localtime - arp_timer >= ARP_TMR_INTERVAL) {
+    arp_timer = localtime;
+    etharp_tmr();
+  }
 }
 
 /**
