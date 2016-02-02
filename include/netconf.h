@@ -36,16 +36,6 @@ extern "C" {
 
 #include <stdint.h>
 
-/* Includes ------------------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-#define DHCP_START 1
-#define DHCP_WAIT_ADDRESS 2
-#define DHCP_ADDRESS_ASSIGNED 3
-#define DHCP_TIMEOUT 4
-#define DHCP_LINK_DOWN 5
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
 void LwIP_Init(void);
 void LwIP_Pkt_Handle(void);
 void LwIP_Periodic_Handle(volatile uint32_t localtime);
