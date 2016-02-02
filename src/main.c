@@ -20,15 +20,9 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4_discovery.h"
 #include "ad9910.h"
 #include "gpio.h"
 #include "ethernet.h"
-
-#include <lwip/tcp.h>
-#include <string.h>
-
-static err_t connectCallback(void* arg, struct tcp_pcb* tpcb, err_t err);
 
 int
 main(void)
@@ -44,32 +38,12 @@ main(void)
   ad9910_set_single_tone(0, 80e6, 0x3FFF, 0);
   ad9910_select_profile(0);
 
-  gpio_init();
-
   gpio_set_high(LED_ORANGE);
 
   ethernet_init();
 
-  char* msg = "This is a test message!\r\n";
-
-  struct ip_addr ip;
-  IP4_ADDR(&ip, 172, 31, 10, 12);
-
-  struct tcp_pcb* pcb = tcp_new();
-
-  tcp_arg(pcb, msg);
-
-  tcp_connect(pcb, &ip, 10000, connectCallback);
-
-  gpio_set_low(LED_ORANGE);
-  gpio_set_high(LED_BLUE);
-
   ethernet_loop();
-
-  gpio_blink_forever_slow(LED_RED);
 }
-
-#ifdef USE_FULL_ASSERT
 
 void
 assert_failed(uint8_t* file, uint32_t line)
@@ -79,14 +53,3 @@ assert_failed(uint8_t* file, uint32_t line)
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   gpio_blink_forever_fast(LED_RED);
 }
-#endif
-
-static err_t
-connectCallback(void* arg, struct tcp_pcb* tpcb, err_t err)
-{
-  gpio_set_high(LED_ORANGE);
-  tcp_write(tpcb, (char*)arg, strlen((char*)arg), TCP_WRITE_FLAG_COPY);
-  return tcp_output(tpcb);
-}
-
-
