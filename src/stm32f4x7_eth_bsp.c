@@ -36,7 +36,6 @@
 #include "misc.h"
 #include "defines.h"
 #include "lwip/netif.h"
-#include "netconf.h"
 #include "gpio.h"
 
 /* Private typedef -----------------------------------------------------------*/
