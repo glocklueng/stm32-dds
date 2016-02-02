@@ -76,6 +76,9 @@
 #define PARALLEL_D15_GROUP E
 #define PARALLEL_D15_PIN 15
 
+#define USER_BUTTON_GROUP A
+#define USER_BUTTON_PIN 0
+
 #define ___GPIO_GET_GROUP(pin) GPIO##pin
 #define __GPIO_GET_GROUP(pin) ___GPIO_GET_GROUP(pin)
 #define _GPIO_GET_GROUP(pin) __GPIO_GET_GROUP(pin##_GROUP)
