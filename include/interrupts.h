@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+void init_interrupts();
 
 void NMI_Handler(void);
 void HardFault_Handler(void);
