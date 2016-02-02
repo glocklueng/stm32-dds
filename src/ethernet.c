@@ -1,7 +1,6 @@
 #include "ethernet.h"
 
 #include "gpio.h"
-#include "stm32f4x7_eth_bsp.h"
 #include "timing.h"
 
 #include <ethernetif.h>
@@ -14,7 +13,9 @@
 #include <stm32f4xx_rcc.h>
 #include <stm32f4xx_syscfg.h>
 
-struct netif gnetif;
+#define DP83848_PHY_ADDRESS 0x01 /* Relative to STM324xG-EVAL Board */
+
+static struct netif gnetif;
 static struct tcp_pcb* g_pcb;
 static ETH_InitTypeDef ETH_InitStructure;
 
@@ -39,6 +40,7 @@ typedef struct
 
 static void ethernet_gpio_init();
 static void ethernet_dma_init();
+static void ethernet_link_callback(struct netif*);
 static void lwip_init();
 static void lwip_periodic_handle();
 
@@ -213,6 +215,93 @@ ethernet_dma_init()
 }
 
 static void
+ethernet_link_callback(struct netif* netif)
+{
+  if (netif_is_link_up(netif)) {
+    /* Restart the autonegotiation */
+    if (ETH_InitStructure.ETH_AutoNegotiation != ETH_AutoNegotiation_Disable) {
+      /* Reset Timeout counter */
+      uint32_t timeout = 0;
+
+      /* Enable Auto-Negotiation */
+      ETH_WritePHYRegister(DP83848_PHY_ADDRESS, PHY_BCR, PHY_AutoNegotiation);
+
+      /* Wait until the auto-negotiation will be completed */
+      do {
+        timeout++;
+      } while (!(ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_BSR) &
+                 PHY_AutoNego_Complete) &&
+               (timeout < (uint32_t)PHY_READ_TO));
+
+      /* Reset Timeout counter */
+      timeout = 0;
+
+      /* Read the result of the auto-negotiation */
+      uint32_t RegValue = ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR);
+
+      /* Configure the MAC with the Duplex Mode fixed by the auto-negotiation
+       * process */
+      if ((RegValue & PHY_DUPLEX_STATUS) != (uint32_t)RESET) {
+        /* Set Ethernet duplex mode to Full-duplex following the
+         * auto-negotiation */
+        ETH_InitStructure.ETH_Mode = ETH_Mode_FullDuplex;
+      } else {
+        /* Set Ethernet duplex mode to Half-duplex following the
+         * auto-negotiation */
+        ETH_InitStructure.ETH_Mode = ETH_Mode_HalfDuplex;
+      }
+      /* Configure the MAC with the speed fixed by the auto-negotiation process
+       */
+      if (RegValue & PHY_SPEED_STATUS) {
+        /* Set Ethernet speed to 10M following the auto-negotiation */
+        ETH_InitStructure.ETH_Speed = ETH_Speed_10M;
+      } else {
+        /* Set Ethernet speed to 100M following the auto-negotiation */
+        ETH_InitStructure.ETH_Speed = ETH_Speed_100M;
+      }
+
+      /*------------------------ ETHERNET MACCR Re-Configuration
+       * --------------------*/
+      /* Get the ETHERNET MACCR value */
+      uint32_t tmpreg = ETH->MACCR;
+
+      /* Set the FES bit according to ETH_Speed value */
+      /* Set the DM bit according to ETH_Mode value */
+      tmpreg |=
+        (uint32_t)(ETH_InitStructure.ETH_Speed | ETH_InitStructure.ETH_Mode);
+
+      /* Write to ETHERNET MACCR */
+      ETH->MACCR = (uint32_t)tmpreg;
+
+      _eth_delay_(ETH_REG_WRITE_DELAY);
+      tmpreg = ETH->MACCR;
+      ETH->MACCR = tmpreg;
+    }
+
+    /* Restart MAC interface */
+    ETH_Start();
+
+  struct ip_addr ipaddr;
+  struct ip_addr netmask;
+  struct ip_addr gw;
+    IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
+    IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2,
+             NETMASK_ADDR3);
+    IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
+
+    netif_set_addr(&gnetif, &ipaddr, &netmask, &gw);
+
+    /* When the netif is fully configured this function must be called.*/
+    netif_set_up(&gnetif);
+  } else {
+    ETH_Stop();
+
+    /*  When the netif link is down this function must be called.*/
+    netif_set_down(&gnetif);
+      }
+}
+
+static void
 lwip_init()
 {
   struct ip_addr ipaddr;
@@ -261,7 +350,7 @@ lwip_init()
 
   /* Set the link callback function, this function is called on change of link
    * status*/
-  netif_set_link_callback(&gnetif, ETH_link_callback);
+  netif_set_link_callback(&gnetif, ethernet_link_callback);
 }
 
 static void
