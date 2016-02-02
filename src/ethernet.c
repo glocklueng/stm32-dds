@@ -58,6 +58,9 @@ static void server_connection_close(struct tcp_pcb* pcb, server_struct* es);
 void
 ethernet_init()
 {
+  /* enable systick interrupts */
+  SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
+
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
   RCC_ClocksTypeDef RCC_Clocks;

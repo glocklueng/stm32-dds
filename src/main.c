@@ -48,9 +48,6 @@ main(void)
 
   gpio_set_high(LED_ORANGE);
 
-  /* enable systick interrupts */
-  SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
-
   ethernet_init();
 
   char* msg = "This is a test message!\r\n";
