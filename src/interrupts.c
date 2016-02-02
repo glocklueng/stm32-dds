@@ -25,20 +25,8 @@
 #include "interrupts.h"
 #include "timing.h"
 
-/** @addtogroup STM32F4_Discovery_Peripheral_Examples
-  * @{
-  */
 
-/** @addtogroup IO_Toggle
-  * @{
-  */
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
