@@ -96,6 +96,8 @@
       gpio_set_low(pin);                                                       \
     }                                                                          \
   } while (0)
+#define gpio_toggle(pin)                                                       \
+  TM_GPIO_TogglePinValue(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
 
 #define gpio_get(pin)                                                          \
   TM_GPIO_GetInputPinValue(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
