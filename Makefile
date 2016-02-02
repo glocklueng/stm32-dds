@@ -8,7 +8,6 @@ SRCS=src/main.c \
      src/interrupts.c \
      src/ethernet.c \
      src/spi.c \
-     src/stm32f4x7_eth_bsp.c \
      src/timing.c
 HDRS=include/defines.h \
      include/ad9910.h \
@@ -17,7 +16,6 @@ HDRS=include/defines.h \
      include/interrupts.h \
      include/main.h \
      include/spi.h \
-     include/stm32f4x7_eth_bsp.h \
      include/stm32f4x7_eth_conf.h \
      include/timing.h
 OBJS=$(SRCS:.c=.o)
