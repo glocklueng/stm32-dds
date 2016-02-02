@@ -64,7 +64,7 @@ extern "C" {
 
 /* Uncomment the line below to allow custom configuration of the Ethernet driver
  * buffers */
-#define CUSTOM_DRIVER_BUFFERS_CONFIG
+//#define CUSTOM_DRIVER_BUFFERS_CONFIG
 
 #ifdef CUSTOM_DRIVER_BUFFERS_CONFIG
 /* Redefinition of the Ethernet driver buffers size and count */

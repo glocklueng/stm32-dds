@@ -22,10 +22,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4_discovery.h"
 #include "ad9910.h"
-#include "spi.h"
 #include "gpio.h"
+#include "ethernet.h"
 
+#include <lwip/tcp.h>
+#include <string.h>
 
+static err_t connectCallback(void* arg, struct tcp_pcb* tpcb, err_t err);
 
 int
 main(void)
@@ -38,18 +41,33 @@ main(void)
      */
   ad9910_init();
 
-  ad9910_set_single_tone(0, 80e6, 0x0000, 0);
+  ad9910_set_single_tone(0, 80e6, 0x3FFF, 0);
+  ad9910_select_profile(0);
 
-  ad9910_io_update();
+  gpio_init();
 
+  gpio_set_high(LED_ORANGE);
+
+  /* enable systick interrupts */
+  SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
+
+  ethernet_init();
+
+  char* msg = "This is a test message!\r\n";
+
+  struct ip_addr ip;
+  IP4_ADDR(&ip, 172, 31, 10, 12);
+
+  struct tcp_pcb* pcb = tcp_new();
+
+  tcp_arg(pcb, msg);
+
+  tcp_connect(pcb, &ip, 10000, connectCallback);
+
+  gpio_set_low(LED_ORANGE);
   gpio_set_high(LED_BLUE);
 
-  ad9910_select_parallel(ad9910_parallel_amplitude);
-  ad9910_enable_parallel(1);
-  for (unsigned int i = 0;; ++i, i %= 0x4000) {
-    ad9910_set_parallel(i << 2);
-  }
-  ad9910_enable_parallel(0);
+  ethernet_loop();
 
   gpio_blink_forever_slow(LED_RED);
 }
@@ -66,5 +84,12 @@ assert_failed(uint8_t* file, uint32_t line)
 }
 #endif
 
+static err_t
+connectCallback(void* arg, struct tcp_pcb* tpcb, err_t err)
+{
+  gpio_set_high(LED_ORANGE);
+  tcp_write(tpcb, (char*)arg, strlen((char*)arg), TCP_WRITE_FLAG_COPY);
+  return tcp_output(tpcb);
+}
 
 

@@ -7,9 +7,7 @@ SRCS=src/main.c \
      src/gpio.c \
      src/interrupts.c \
      src/ethernet.c \
-     src/netconf.c \
      src/spi.c \
-     src/stm32f4x7_eth_bsp.c \
      src/timing.c
 HDRS=include/defines.h \
      include/ad9910.h \
@@ -17,9 +15,7 @@ HDRS=include/defines.h \
      include/gpio.h \
      include/interrupts.h \
      include/main.h \
-     include/netconf.h \
      include/spi.h \
-     include/stm32f4x7_eth_bsp.h \
      include/stm32f4x7_eth_conf.h \
      include/timing.h
 OBJS=$(SRCS:.c=.o)
@@ -33,8 +29,8 @@ STM32_DIR=lib/stm32f4
 LWIP_DIR=lib/lwip
 TM_DIR=lib/tm
 
-CFLAGS+=-Wmissing-declarations -Werror=implicit-function-declaration
-CFLAGS+=-Wno-unused-parameter
+#CFLAGS+=-Wmissing-declarations -Werror=implicit-function-declaration
+CFLAGS+=-Wno-unused-parameter -Winline
 
 # set search path for include files
 CPPFLAGS+=-Iinclude
@@ -63,7 +59,7 @@ gdb: $(PROJECT_NAME).elf
 	$(GDB) --eval-command="target extended-remote :4242" $<
 
 stlink:
-	st-util -p 4242 -s 2
+	st-util -p 4242 -s 2 -m
 
 %.elf: $(OBJS) $(LIB_FILES)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@ $(LDFLAGS)
