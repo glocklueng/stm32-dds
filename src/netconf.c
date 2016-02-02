@@ -32,7 +32,6 @@
 #include "lwip/tcp_impl.h"
 #include "lwip/udp.h"
 #include "netif/etharp.h"
-#include "lwip/dhcp.h"
 #include "ethernetif.h"
 #include "defines.h"
 #include "stm32f4x7_eth_bsp.h"
@@ -53,8 +52,6 @@ uint32_t IPaddress = 0;
 
 extern __IO uint32_t EthStatus;
 
-/* Private functions ---------------------------------------------------------*/
-void LwIP_DHCP_Process_Handle(void);
 /**
 * @brief  Initializes the lwIP stack
 * @param  None
