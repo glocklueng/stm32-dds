@@ -363,6 +363,8 @@ Eth_Link_EXTIConfig(void)
 void
 Eth_Link_ITHandler(uint16_t PHYAddress)
 {
+  gpio_toggle(LED_GREEN);
+
   /* Check whether the link interrupt has occurred or not */
   if (((ETH_ReadPHYRegister(PHYAddress, PHY_MISR)) & PHY_LINK_STATUS) != 0) {
     if ((ETH_ReadPHYRegister(PHYAddress, PHY_SR) & 1)) {
@@ -388,6 +390,8 @@ ETH_link_callback(struct netif* netif)
   struct ip_addr netmask;
   struct ip_addr gw;
 
+  gpio_toggle(LED_BLUE);
+
   /* Clear LCD */
   /*
   LCD_ClearLine(Line4);
@@ -399,6 +403,10 @@ ETH_link_callback(struct netif* netif)
   */
 
   if (netif_is_link_up(netif)) {
+
+    gpio_set_high(LED_ORANGE);
+    gpio_set_low(LED_RED);
+
     /* Restart the autonegotiation */
     if (ETH_InitStructure.ETH_AutoNegotiation != ETH_AutoNegotiation_Disable) {
       /* Reset Timeout counter */
@@ -500,6 +508,9 @@ ETH_link_callback(struct netif* netif)
 #endif /* USE_DHCP */
 #endif /* USE_LCD */
   } else {
+    gpio_set_low(LED_ORANGE);
+    gpio_set_high(LED_RED);
+
     ETH_Stop();
 
     /*  When the netif link is down this function must be called.*/
