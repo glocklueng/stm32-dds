@@ -27,4 +27,3 @@ time_update()
 {
   LocalTime += SYSTEMTICK_PERIOD_MS;
 }
-

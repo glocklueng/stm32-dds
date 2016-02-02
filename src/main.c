@@ -25,6 +25,11 @@
 #include "gpio.h"
 #include "ethernet.h"
 
+#include <lwip/tcp.h>
+#include <string.h>
+
+static err_t connectCallback(void* arg, struct tcp_pcb* tpcb, err_t err);
+
 /** @addtogroup STM32F4_Discovery_Peripheral_Examples
   * @{
   */
@@ -61,7 +66,21 @@ main(void)
 
   gpio_set_high(LED_ORANGE);
 
+  /* enable systick interrupts */
+  SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
+
   ethernet_init();
+
+  char* msg = "This is a test message!\r\n";
+
+  struct ip_addr ip;
+  IP4_ADDR(&ip, 172, 31, 10, 12);
+
+  struct tcp_pcb* pcb = tcp_new();
+
+  tcp_arg(pcb, msg);
+
+  tcp_connect(pcb, &ip, 10000, connectCallback);
 
   gpio_set_low(LED_ORANGE);
   gpio_set_high(LED_BLUE);
@@ -92,6 +111,14 @@ assert_failed(uint8_t* file, uint32_t line)
   gpio_blink_forever_fast(LED_RED);
 }
 #endif
+
+static err_t
+connectCallback(void* arg, struct tcp_pcb* tpcb, err_t err)
+{
+  gpio_set_high(LED_ORANGE);
+  tcp_write(tpcb, (char*)arg, strlen((char*)arg), TCP_WRITE_FLAG_COPY);
+  return tcp_output(tpcb);
+}
 
 /**
   * @}

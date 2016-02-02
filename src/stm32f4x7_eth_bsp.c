@@ -342,6 +342,8 @@ ETH_link_callback(struct netif* netif)
   LCD_ClearLine(Line9);
   */
 
+  gpio_set_high(LED_RED);
+
   if (netif_is_link_up(netif)) {
 
     gpio_set_high(LED_ORANGE);
@@ -464,6 +466,8 @@ ETH_link_callback(struct netif* netif)
     /* Set the LCD Text Color */
     LCD_SetTextColor(White);
 #endif /* USE_LCD */
+
+    gpio_set_low(LED_RED);
   }
 }
 

@@ -50,7 +50,7 @@ ad9910_init()
   /* set pump current for the external PLL loop filter */
   set_value(AD9910_PLL_PUMP_CURRENT, AD9910_PLL_PUMP_CURRENT_237);
   /* disable REFCLK_OUT (it is not even connected) */
-//  set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
+  //  set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
 
   update_reg(AD9910_REG_CFR3);
 

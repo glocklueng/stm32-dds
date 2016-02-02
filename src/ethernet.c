@@ -7,10 +7,15 @@
 
 #include <misc.h>
 #include <stm32f4x7_eth.h>
+#include <stm32f4xx_rcc.h>
+#include <stm32f4xx_syscfg.h>
 #include <lwip/stats.h>
 #include <lwip/tcp.h>
 
+extern struct netif gnetif;
 static struct tcp_pcb* g_pcb;
+static ETH_InitTypeDef ETH_InitStructure;
+static __IO uint32_t EthStatus = 0;
 
 enum server_states
 {
@@ -47,7 +52,132 @@ ethernet_init()
 {
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
-  ETH_BSP_Config();
+  RCC_ClocksTypeDef RCC_Clocks;
+
+  /***************************************************************************
+    NOTE:
+         When using Systick to manage the delay in Ethernet driver, the Systick
+         must be configured before Ethernet initialization and, the interrupt
+         priority should be the highest one.
+  *****************************************************************************/
+
+  /* Configure Systick clock source as HCLK */
+  SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
+
+  /* SystTick configuration: an interrupt every 10ms */
+  RCC_GetClocksFreq(&RCC_Clocks);
+  SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
+
+  /* Set Systick interrupt priority to 0*/
+  NVIC_SetPriority(SysTick_IRQn, 0);
+
+  /* Enable GPIOs clocks */
+  RCC_AHB1PeriphClockCmd(
+    RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOB | RCC_AHB1Periph_GPIOC, ENABLE);
+
+  /* Enable SYSCFG clock */
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+
+  GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+
+  /* MII/RMII Media interface selection --------------------------------------*/
+  SYSCFG_ETH_MediaInterfaceConfig(SYSCFG_ETH_MediaInterface_RMII);
+
+  /* Configure PA1, PA2 and PA7 */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_7;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_ETH);
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_ETH);
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_ETH);
+
+  /* Configure PB11, PB12 and PB13 */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_ETH);
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_ETH);
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_ETH);
+
+  /* Configure PC1, PC4 and PC5 */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_4 | GPIO_Pin_5;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource1, GPIO_AF_ETH);
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource4, GPIO_AF_ETH);
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource5, GPIO_AF_ETH);
+
+  /* Enable ETHERNET clock  */
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_ETH_MAC | RCC_AHB1Periph_ETH_MAC_Tx |
+                           RCC_AHB1Periph_ETH_MAC_Rx,
+                         ENABLE);
+
+  /* Reset ETHERNET on AHB Bus */
+  ETH_DeInit();
+
+  /* Software reset */
+  ETH_SoftwareReset();
+
+  /* Wait for software reset */
+  while (ETH_GetSoftwareResetStatus() == SET)
+    ;
+
+  /* ETHERNET Configuration --------------------------------------------------*/
+  /* Call ETH_StructInit if you don't like to configure all ETH_InitStructure
+   * parameter */
+  ETH_StructInit(&ETH_InitStructure);
+
+  /* Fill ETH_InitStructure parametrs */
+  /*------------------------   MAC   -----------------------------------*/
+  // ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Enable;
+  ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Disable;
+  ETH_InitStructure.ETH_Speed = ETH_Speed_100M;
+  ETH_InitStructure.ETH_Mode = ETH_Mode_FullDuplex;
+
+  ETH_InitStructure.ETH_LoopbackMode = ETH_LoopbackMode_Disable;
+  ETH_InitStructure.ETH_RetryTransmission = ETH_RetryTransmission_Disable;
+  ETH_InitStructure.ETH_AutomaticPadCRCStrip = ETH_AutomaticPadCRCStrip_Disable;
+  ETH_InitStructure.ETH_ReceiveAll = ETH_ReceiveAll_Disable;
+  ETH_InitStructure.ETH_BroadcastFramesReception =
+    ETH_BroadcastFramesReception_Enable;
+  ETH_InitStructure.ETH_PromiscuousMode = ETH_PromiscuousMode_Disable;
+  ETH_InitStructure.ETH_MulticastFramesFilter =
+    ETH_MulticastFramesFilter_Perfect;
+  ETH_InitStructure.ETH_UnicastFramesFilter = ETH_UnicastFramesFilter_Perfect;
+  ETH_InitStructure.ETH_ChecksumOffload = ETH_ChecksumOffload_Enable;
+
+  /*------------------------   DMA   -----------------------------------*/
+
+  /* When we use the Checksum offload feature, we need to enable the Store and
+  Forward mode:
+  the store and forward guarantee that a whole frame is stored in the FIFO, so
+  the MAC can insert/verify the checksum,
+  if the checksum is OK the DMA can handle the frame otherwise the frame is
+  dropped */
+  ETH_InitStructure.ETH_DropTCPIPChecksumErrorFrame =
+    ETH_DropTCPIPChecksumErrorFrame_Enable;
+  ETH_InitStructure.ETH_ReceiveStoreForward = ETH_ReceiveStoreForward_Enable;
+  ETH_InitStructure.ETH_TransmitStoreForward = ETH_TransmitStoreForward_Enable;
+
+  ETH_InitStructure.ETH_ForwardErrorFrames = ETH_ForwardErrorFrames_Disable;
+  ETH_InitStructure.ETH_ForwardUndersizedGoodFrames =
+    ETH_ForwardUndersizedGoodFrames_Disable;
+  ETH_InitStructure.ETH_SecondFrameOperate = ETH_SecondFrameOperate_Enable;
+  ETH_InitStructure.ETH_AddressAlignedBeats = ETH_AddressAlignedBeats_Enable;
+  ETH_InitStructure.ETH_FixedBurst = ETH_FixedBurst_Enable;
+  ETH_InitStructure.ETH_RxDMABurstLength = ETH_RxDMABurstLength_32Beat;
+  ETH_InitStructure.ETH_TxDMABurstLength = ETH_TxDMABurstLength_32Beat;
+  ETH_InitStructure.ETH_DMAArbitration = ETH_DMAArbitration_RoundRobin_RxTx_2_1;
+
+  /* Configure Ethernet */
+  EthStatus = ETH_Init(&ETH_InitStructure, DP83848_PHY_ADDRESS);
+
+  /* Get Ethernet link status*/
+  // if (ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1) {
+  // for now just force the link to the up state
+  EthStatus |= ETH_LINK_FLAG;
+  //  }
 
   LwIP_Init();
 
@@ -57,12 +187,27 @@ ethernet_init()
 void
 ethernet_loop()
 {
+  int status = 0;
+  unsigned int timer = 0;
   for (;;) {
     if (ETH_CheckFrameReceived()) {
-      gpio_set_high(LED_GREEN);
+      TM_GPIO_TogglePinValue(GPIOD, GPIO_PIN_12);
       LwIP_Pkt_Handle();
-      gpio_set_low(LED_GREEN);
     }
+
+    if (LocalTime > timer) {
+      int nstatus = ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1;
+      if (nstatus != status) {
+        if (nstatus == 1) {
+          netif_set_link_up(&gnetif);
+        } else {
+          netif_set_link_down(&gnetif);
+        }
+      }
+      status = nstatus;
+      timer = LocalTime + 100;
+    }
+
     LwIP_Periodic_Handle(LocalTime);
   }
 }
