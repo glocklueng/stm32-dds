@@ -36,6 +36,9 @@ typedef struct
   struct pbuf* p;
 } server_struct;
 
+static void ethernet_gpio_init();
+static void ethernet_dma_init();
+
 static int server_init();
 static err_t server_accept_callback(void* arg, struct tcp_pcb* newpcb,
                                     err_t err);
@@ -71,6 +74,52 @@ ethernet_init()
   /* Set Systick interrupt priority to 0*/
   NVIC_SetPriority(SysTick_IRQn, 0);
 
+  ethernet_gpio_init();
+
+  ethernet_dma_init();
+
+  /* Get Ethernet link status*/
+  // if (ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1) {
+  // for now just force the link to the up state
+  EthStatus |= ETH_LINK_FLAG;
+  //  }
+
+  LwIP_Init();
+
+  server_init();
+}
+
+void
+ethernet_loop()
+{
+  int status = 0;
+  unsigned int timer = 0;
+  for (;;) {
+    if (ETH_CheckFrameReceived()) {
+      TM_GPIO_TogglePinValue(GPIOD, GPIO_PIN_12);
+      LwIP_Pkt_Handle();
+    }
+
+    if (LocalTime > timer) {
+      int nstatus = ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1;
+      if (nstatus != status) {
+        if (nstatus == 1) {
+          netif_set_link_up(&gnetif);
+        } else {
+          netif_set_link_down(&gnetif);
+        }
+      }
+      status = nstatus;
+      timer = LocalTime + 100;
+    }
+
+    LwIP_Periodic_Handle(LocalTime);
+  }
+}
+
+static void
+ethernet_gpio_init()
+{
   /* Enable GPIOs clocks */
   RCC_AHB1PeriphClockCmd(
     RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOB | RCC_AHB1Periph_GPIOC, ENABLE);
@@ -107,7 +156,11 @@ ethernet_init()
   GPIO_PinAFConfig(GPIOC, GPIO_PinSource1, GPIO_AF_ETH);
   GPIO_PinAFConfig(GPIOC, GPIO_PinSource4, GPIO_AF_ETH);
   GPIO_PinAFConfig(GPIOC, GPIO_PinSource5, GPIO_AF_ETH);
+}
 
+static void
+ethernet_dma_init()
+{
   /* Enable ETHERNET clock  */
   RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_ETH_MAC | RCC_AHB1Periph_ETH_MAC_Tx |
                            RCC_AHB1Periph_ETH_MAC_Rx,
@@ -172,44 +225,6 @@ ethernet_init()
 
   /* Configure Ethernet */
   EthStatus = ETH_Init(&ETH_InitStructure, DP83848_PHY_ADDRESS);
-
-  /* Get Ethernet link status*/
-  // if (ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1) {
-  // for now just force the link to the up state
-  EthStatus |= ETH_LINK_FLAG;
-  //  }
-
-  LwIP_Init();
-
-  server_init();
-}
-
-void
-ethernet_loop()
-{
-  int status = 0;
-  unsigned int timer = 0;
-  for (;;) {
-    if (ETH_CheckFrameReceived()) {
-      TM_GPIO_TogglePinValue(GPIOD, GPIO_PIN_12);
-      LwIP_Pkt_Handle();
-    }
-
-    if (LocalTime > timer) {
-      int nstatus = ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1;
-      if (nstatus != status) {
-        if (nstatus == 1) {
-          netif_set_link_up(&gnetif);
-        } else {
-          netif_set_link_down(&gnetif);
-        }
-      }
-      status = nstatus;
-      timer = LocalTime + 100;
-    }
-
-    LwIP_Periodic_Handle(LocalTime);
-  }
 }
 
 /**
