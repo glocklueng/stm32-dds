@@ -284,9 +284,9 @@ ethernet_link_callback(struct netif* netif)
     /* Restart MAC interface */
     ETH_Start();
 
-  struct ip_addr ipaddr;
-  struct ip_addr netmask;
-  struct ip_addr gw;
+    struct ip_addr ipaddr;
+    struct ip_addr netmask;
+    struct ip_addr gw;
     IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
     IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2,
              NETMASK_ADDR3);
@@ -301,7 +301,7 @@ ethernet_link_callback(struct netif* netif)
 
     /*  When the netif link is down this function must be called.*/
     netif_set_down(&gnetif);
-      }
+  }
 }
 
 static void
