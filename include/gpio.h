@@ -10,6 +10,9 @@
 #define IO_RESET_GROUP B
 #define IO_RESET_PIN 7
 
+#define EXTERNAL_TRIGGER_GROUP B
+#define EXTERNAL_TRIGGER_PIN 1
+
 #define PLL_LOCK_GROUP C
 #define PLL_LOCK_PIN 15
 
