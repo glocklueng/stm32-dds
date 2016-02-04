@@ -367,6 +367,10 @@ lwip_periodic_handle(uint32_t localtime)
   if (localtime - link_timer >= 100) {
     link_timer = localtime;
 
+    /* the normal solution to detect link changes is via an extra line in
+     * the MII interface. Our system however uses RMII, which doesn't have
+     * that line. To replace that we periodicaly poll the link status bit
+     * in the registers of the PHYTER */
     int new_status = ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1;
     if (link_status != new_status) {
       link_status = new_status;
