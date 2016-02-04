@@ -86,6 +86,7 @@
 #define ___GPIO_GET_PIN(pin) GPIO_PIN_##pin
 #define __GPIO_GET_PIN(pin) ___GPIO_GET_PIN(pin)
 #define _GPIO_GET_PIN(pin) __GPIO_GET_PIN(pin##_PIN)
+#define _GPIO_GET_PINPOS(pin) pin##_PIN
 
 /* these are defined as makros to save the time of a function call */
 #define gpio_set_high(pin)                                                     \
@@ -107,6 +108,14 @@
   TM_GPIO_GetInputPinValue(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
 
 void gpio_init();
+
+void gpio_change_pin_mode(uint8_t mode, GPIO_TypeDef* GPIOx, uint16_t pinpos);
+#define gpio_set_pin_mode_input(pin)                                           \
+  gpio_change_pin_mode(TM_GPIO_Mode_IN, _GPIO_GET_GROUP(pin),                  \
+                       _GPIO_GET_PINPOS(pin))
+#define gpio_set_pin_mode_output(pin)                                          \
+  gpio_change_pin_mode(TM_GPIO_Mode_OUT, _GPIO_GET_GROUP(pin),                 \
+                       _GPIO_GET_PINPOS(pin))
 
 #define gpio_blink_forever_slow(pin)                                           \
   gpio_blink_forever(20 * 1000 * 1000, _GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))

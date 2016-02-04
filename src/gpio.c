@@ -52,6 +52,18 @@ gpio_init()
 }
 
 void
+gpio_change_pin_mode(uint8_t mode, GPIO_TypeDef* GPIOx, uint16_t pinpos)
+{
+  /* remove any upper bits */
+  mode &= 0x3;
+
+  uint32_t tmp = GPIOx->MODER;
+  tmp &= ~((uint32_t)(0x03 << (2 * pinpos)));
+  tmp |= ((uint32_t)(mode << (2 * pinpos)));
+  GPIOx->MODER = tmp;
+}
+
+void
 gpio_blink_forever(uint32_t cycles, GPIO_TypeDef* GPIOx, uint16_t pin)
 {
   for (;;) {
