@@ -1,58 +1,94 @@
 #include "gpio.h"
 
-#define GPIO_INIT_OUTPUT(pin)                                                  \
-  TM_GPIO_Init(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin), TM_GPIO_Mode_OUT,     \
-               TM_GPIO_OType_PP, TM_GPIO_Speed_High, TM_GPIO_PuPd_NOPULL)
-
-#define GPIO_INIT_INPUT(pin)                                                   \
-  TM_GPIO_Init(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin), TM_GPIO_Mode_IN,      \
-               TM_GPIO_OType_PP, TM_GPIO_Speed_High, TM_GPIO_PuPd_NOPULL)
+static void gpio_init_output(gpio_pin);
+static void gpio_init_input(gpio_pin);
+static void gpio_change_pin_mode(uint8_t mode, GPIO_TypeDef* GPIOx,
+                                 uint16_t pinpos);
+static void gpio_blink_forever(uint32_t cycles, GPIO_TypeDef* GPIOx,
+                               uint16_t pin);
 
 void
 gpio_init()
 {
-  GPIO_INIT_OUTPUT(IO_UPDATE);
-  GPIO_INIT_OUTPUT(IO_RESET);
-  GPIO_INIT_OUTPUT(PROFILE_0);
-  GPIO_INIT_OUTPUT(PROFILE_1);
-  GPIO_INIT_OUTPUT(PROFILE_2);
+  gpio_init_output(IO_UPDATE);
+  gpio_init_output(IO_RESET);
+  gpio_init_output(PROFILE_0);
+  gpio_init_output(PROFILE_1);
+  gpio_init_output(PROFILE_2);
 
-  GPIO_INIT_OUTPUT(LED_RED);
-  GPIO_INIT_OUTPUT(LED_ORANGE);
-  GPIO_INIT_OUTPUT(LED_BLUE);
-  GPIO_INIT_OUTPUT(LED_GREEN);
+  gpio_init_output(LED_RED);
+  gpio_init_output(LED_ORANGE);
+  gpio_init_output(LED_BLUE);
+  gpio_init_output(LED_GREEN);
 
-  GPIO_INIT_INPUT(USER_BUTTON);
-  GPIO_INIT_INPUT(EXTERNAL_TRIGGER);
+  gpio_init_input(USER_BUTTON);
+  gpio_init_input(EXTERNAL_TRIGGER);
 
-  GPIO_INIT_INPUT(PLL_LOCK);
+  gpio_init_input(PLL_LOCK);
 
-  GPIO_INIT_OUTPUT(DRCTL);
-  GPIO_INIT_OUTPUT(DRHOLD);
-  GPIO_INIT_INPUT(DROVER);
+  gpio_init_output(DRCTL);
+  gpio_init_output(DRHOLD);
+  gpio_init_input(DROVER);
 
-  GPIO_INIT_OUTPUT(TX_ENABLE);
-  GPIO_INIT_OUTPUT(PARALLEL_F0);
-  GPIO_INIT_OUTPUT(PARALLEL_F1);
-  GPIO_INIT_OUTPUT(PARALLEL_D0);
-  GPIO_INIT_OUTPUT(PARALLEL_D1);
-  GPIO_INIT_OUTPUT(PARALLEL_D2);
-  GPIO_INIT_OUTPUT(PARALLEL_D3);
-  GPIO_INIT_OUTPUT(PARALLEL_D4);
-  GPIO_INIT_OUTPUT(PARALLEL_D5);
-  GPIO_INIT_OUTPUT(PARALLEL_D6);
-  GPIO_INIT_OUTPUT(PARALLEL_D7);
-  GPIO_INIT_OUTPUT(PARALLEL_D8);
-  GPIO_INIT_OUTPUT(PARALLEL_D9);
-  GPIO_INIT_OUTPUT(PARALLEL_D10);
-  GPIO_INIT_OUTPUT(PARALLEL_D11);
-  GPIO_INIT_OUTPUT(PARALLEL_D12);
-  GPIO_INIT_OUTPUT(PARALLEL_D13);
-  GPIO_INIT_OUTPUT(PARALLEL_D14);
-  GPIO_INIT_OUTPUT(PARALLEL_D15);
+  gpio_init_output(TX_ENABLE);
+  gpio_init_output(PARALLEL_F0);
+  gpio_init_output(PARALLEL_F1);
+  gpio_init_output(PARALLEL_D0);
+  gpio_init_output(PARALLEL_D1);
+  gpio_init_output(PARALLEL_D2);
+  gpio_init_output(PARALLEL_D3);
+  gpio_init_output(PARALLEL_D4);
+  gpio_init_output(PARALLEL_D5);
+  gpio_init_output(PARALLEL_D6);
+  gpio_init_output(PARALLEL_D7);
+  gpio_init_output(PARALLEL_D8);
+  gpio_init_output(PARALLEL_D9);
+  gpio_init_output(PARALLEL_D10);
+  gpio_init_output(PARALLEL_D11);
+  gpio_init_output(PARALLEL_D12);
+  gpio_init_output(PARALLEL_D13);
+  gpio_init_output(PARALLEL_D14);
+  gpio_init_output(PARALLEL_D15);
+}
+void
+gpio_set_pin_mode_input(gpio_pin pin)
+{
+  gpio_change_pin_mode(TM_GPIO_Mode_IN, pin.group, pin.pin);
 }
 
 void
+gpio_set_pin_mode_output(gpio_pin pin)
+{
+  gpio_change_pin_mode(TM_GPIO_Mode_OUT, pin.group, pin.pin);
+}
+
+void
+gpio_blink_forever_slow(gpio_pin pin)
+{
+  gpio_blink_forever(20 * 1000 * 1000, pin.group, 1 << pin.pin);
+}
+
+void
+gpio_blink_forever_fast(gpio_pin pin)
+{
+  gpio_blink_forever(2 * 1000 * 1000, pin.group, 1 << pin.pin);
+}
+
+static void
+gpio_init_output(gpio_pin pin)
+{
+  TM_GPIO_Init(pin.group, 1 << pin.pin, TM_GPIO_Mode_OUT, TM_GPIO_OType_PP,
+               TM_GPIO_Speed_High, TM_GPIO_PuPd_NOPULL);
+}
+
+static void
+gpio_init_input(gpio_pin pin)
+{
+  TM_GPIO_Init(pin.group, 1 << pin.pin, TM_GPIO_Mode_IN, TM_GPIO_OType_PP,
+               TM_GPIO_Speed_High, TM_GPIO_PuPd_NOPULL);
+}
+
+static void
 gpio_change_pin_mode(uint8_t mode, GPIO_TypeDef* GPIOx, uint16_t pinpos)
 {
   /* remove any upper bits */
@@ -64,7 +100,7 @@ gpio_change_pin_mode(uint8_t mode, GPIO_TypeDef* GPIOx, uint16_t pinpos)
   GPIOx->MODER = tmp;
 }
 
-void
+static void
 gpio_blink_forever(uint32_t cycles, GPIO_TypeDef* GPIOx, uint16_t pin)
 {
   for (;;) {

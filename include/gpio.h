@@ -1,130 +1,119 @@
 #ifndef _GPIO_H
 #define _GPIO_H
 
+#include "defines.h"
+
 #include <tm_stm32f4_gpio.h>
+
+typedef struct
+{
+  GPIO_TypeDef* group;
+  unsigned int pin;
+} gpio_pin;
 
 /* definition of all used GPIO ports */
 /* TODO add remaining pins */
-#define IO_UPDATE_GROUP D
-#define IO_UPDATE_PIN 11
-#define IO_RESET_GROUP B
-#define IO_RESET_PIN 7
+#define DEF_GPIO(name, _group, _pin)                                           \
+  static const gpio_pin name = {.group = GPIO##_group, .pin = _pin }
 
-#define EXTERNAL_TRIGGER_GROUP B
-#define EXTERNAL_TRIGGER_PIN 1
+DEF_GPIO(IO_UPDATE, D, 11);
+DEF_GPIO(IO_RESET, B, 7);
 
-#define PLL_LOCK_GROUP C
-#define PLL_LOCK_PIN 15
+DEF_GPIO(EXTERNAL_TRIGGER, B, 1);
+DEF_GPIO(PLL_LOCK, C, 15);
 
-#define PROFILE_0_GROUP D
-#define PROFILE_0_PIN 10
-#define PROFILE_1_GROUP D
-#define PROFILE_1_PIN 9
-#define PROFILE_2_GROUP D
-#define PROFILE_2_PIN 8
+DEF_GPIO(PROFILE_0, D, 10);
+DEF_GPIO(PROFILE_1, D, 9);
+DEF_GPIO(PROFILE_2, D, 8);
 
-#define LED_RED_GROUP D
-#define LED_RED_PIN 14
-#define LED_GREEN_GROUP D
-#define LED_GREEN_PIN 12
-#define LED_ORANGE_GROUP D
-#define LED_ORANGE_PIN 13
-#define LED_BLUE_GROUP D
-#define LED_BLUE_PIN 15
+DEF_GPIO(LED_RED, D, 14);
+DEF_GPIO(LED_GREEN, D, 12);
+DEF_GPIO(LED_ORANGE, D, 13);
+DEF_GPIO(LED_BLUE, D, 15);
 
-#define DRCTL_GROUP D
-#define DRCTL_PIN 2
-#define DRHOLD_GROUP D
-#define DRHOLD_PIN 3
-#define DROVER_GROUP D
-#define DROVER_PIN 1
+DEF_GPIO(DRCTL, D, 2);
+DEF_GPIO(DRHOLD, D, 3);
+DEF_GPIO(DROVER, D, 1);
 
-#define TX_ENABLE_GROUP B
-#define TX_ENABLE_PIN 0
-#define PARALLEL_F0_GROUP B
-#define PARALLEL_F0_PIN 15
-#define PARALLEL_F1_GROUP B
-#define PARALLEL_F1_PIN 14
-#define PARALLEL_D_GROUP E
-#define PARALLEL_D0_GROUP E
-#define PARALLEL_D0_PIN 0
-#define PARALLEL_D1_GROUP E
-#define PARALLEL_D1_PIN 1
-#define PARALLEL_D2_GROUP E
-#define PARALLEL_D2_PIN 2
-#define PARALLEL_D3_GROUP E
-#define PARALLEL_D3_PIN 3
-#define PARALLEL_D4_GROUP E
-#define PARALLEL_D4_PIN 4
-#define PARALLEL_D5_GROUP E
-#define PARALLEL_D5_PIN 5
-#define PARALLEL_D6_GROUP E
-#define PARALLEL_D6_PIN 6
-#define PARALLEL_D7_GROUP E
-#define PARALLEL_D7_PIN 7
-#define PARALLEL_D8_GROUP E
-#define PARALLEL_D8_PIN 8
-#define PARALLEL_D9_GROUP E
-#define PARALLEL_D9_PIN 9
-#define PARALLEL_D10_GROUP E
-#define PARALLEL_D10_PIN 10
-#define PARALLEL_D11_GROUP E
-#define PARALLEL_D11_PIN 11
-#define PARALLEL_D12_GROUP E
-#define PARALLEL_D12_PIN 12
-#define PARALLEL_D13_GROUP E
-#define PARALLEL_D13_PIN 13
-#define PARALLEL_D14_GROUP E
-#define PARALLEL_D14_PIN 14
-#define PARALLEL_D15_GROUP E
-#define PARALLEL_D15_PIN 15
+DEF_GPIO(TX_ENABLE, B, 0);
+DEF_GPIO(PARALLEL_F0, B, 15);
+DEF_GPIO(PARALLEL_F1, B, 14);
 
-#undef USER_BUTTON_PIN
-#define USER_BUTTON_GROUP A
-#define USER_BUTTON_PIN 0
+DEF_GPIO(PARALLEL_D0, E, 0);
+DEF_GPIO(PARALLEL_D1, E, 1);
+DEF_GPIO(PARALLEL_D2, E, 2);
+DEF_GPIO(PARALLEL_D3, E, 3);
+DEF_GPIO(PARALLEL_D4, E, 4);
+DEF_GPIO(PARALLEL_D5, E, 5);
+DEF_GPIO(PARALLEL_D6, E, 6);
+DEF_GPIO(PARALLEL_D7, E, 7);
+DEF_GPIO(PARALLEL_D8, E, 8);
+DEF_GPIO(PARALLEL_D9, E, 9);
+DEF_GPIO(PARALLEL_D10, E, 10);
+DEF_GPIO(PARALLEL_D11, E, 11);
+DEF_GPIO(PARALLEL_D12, E, 12);
+DEF_GPIO(PARALLEL_D13, E, 13);
+DEF_GPIO(PARALLEL_D14, E, 14);
+DEF_GPIO(PARALLEL_D15, E, 15);
 
-#define ___GPIO_GET_GROUP(pin) GPIO##pin
-#define __GPIO_GET_GROUP(pin) ___GPIO_GET_GROUP(pin)
-#define _GPIO_GET_GROUP(pin) __GPIO_GET_GROUP(pin##_GROUP)
-#define ___GPIO_GET_PIN(pin) GPIO_PIN_##pin
-#define __GPIO_GET_PIN(pin) ___GPIO_GET_PIN(pin)
-#define _GPIO_GET_PIN(pin) __GPIO_GET_PIN(pin##_PIN)
-#define _GPIO_GET_PINPOS(pin) pin##_PIN
+DEF_GPIO(USER_BUTTON, A, 0);
 
-/* these are defined as makros to save the time of a function call */
-#define gpio_set_high(pin)                                                     \
-  TM_GPIO_SetPinHigh(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
-#define gpio_set_low(pin)                                                      \
-  TM_GPIO_SetPinLow(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
-#define gpio_set(pin, value)                                                   \
-  do {                                                                         \
-    if (value) {                                                               \
-      gpio_set_high(pin);                                                      \
-    } else {                                                                   \
-      gpio_set_low(pin);                                                       \
-    }                                                                          \
-  } while (0)
-#define gpio_toggle(pin)                                                       \
-  TM_GPIO_TogglePinValue(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
+#undef DEF_GPIO
 
-#define gpio_get(pin)                                                          \
-  TM_GPIO_GetInputPinValue(_GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
+/* basic GPIO functions defined as inline to save call time */
+INLINE void gpio_set_high(gpio_pin);
+INLINE void gpio_set_low(gpio_pin);
+INLINE void gpio_set(gpio_pin, int);
+INLINE void gpio_toggle(gpio_pin);
+INLINE int gpio_get(gpio_pin);
 
 void gpio_init();
 
-void gpio_change_pin_mode(uint8_t mode, GPIO_TypeDef* GPIOx, uint16_t pinpos);
-#define gpio_set_pin_mode_input(pin)                                           \
-  gpio_change_pin_mode(TM_GPIO_Mode_IN, _GPIO_GET_GROUP(pin),                  \
-                       _GPIO_GET_PINPOS(pin))
-#define gpio_set_pin_mode_output(pin)                                          \
-  gpio_change_pin_mode(TM_GPIO_Mode_OUT, _GPIO_GET_GROUP(pin),                 \
-                       _GPIO_GET_PINPOS(pin))
+void gpio_set_pin_mode_input(gpio_pin);
+void gpio_set_pin_mode_output(gpio_pin);
 
-#define gpio_blink_forever_slow(pin)                                           \
-  gpio_blink_forever(20 * 1000 * 1000, _GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
-#define gpio_blink_forever_fast(pin)                                           \
-  gpio_blink_forever(2 * 1000 * 1000, _GPIO_GET_GROUP(pin), _GPIO_GET_PIN(pin))
+void gpio_blink_forever_slow(gpio_pin);
+void gpio_blink_forever_fast(gpio_pin);
 
-void gpio_blink_forever(uint32_t cycles, GPIO_TypeDef* GPIOx, uint16_t pin);
+/** implementation starts here */
+
+INLINE
+void
+gpio_set_high(gpio_pin pin)
+{
+  TM_GPIO_SetPinHigh(pin.group, 1 << pin.pin);
+}
+
+INLINE
+void
+gpio_set_low(gpio_pin pin)
+{
+  TM_GPIO_SetPinLow(pin.group, 1 << pin.pin);
+}
+
+INLINE
+void
+gpio_toggle(gpio_pin pin)
+{
+  TM_GPIO_TogglePinValue(pin.group, 1 << pin.pin);
+}
+
+INLINE
+void
+gpio_set(gpio_pin pin, int value)
+{
+  if (value) {
+    gpio_set_high(pin);
+  } else {
+    gpio_set_low(pin);
+  }
+}
+
+INLINE
+int
+gpio_get(gpio_pin pin)
+{
+  return TM_GPIO_GetInputPinValue(pin.group, 1 << pin.pin);
+}
 
 #endif /* _GPIO_H */

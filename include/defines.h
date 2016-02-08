@@ -1,6 +1,9 @@
 #ifndef __DEFINES_H
 #define __DEFINES_H
 
+/* inline even on -O0 */
+#define INLINE __attribute__((always_inline)) inline
+
 /* network configuration settings */
 #define MAC_ADDR0 02
 #define MAC_ADDR1 00
