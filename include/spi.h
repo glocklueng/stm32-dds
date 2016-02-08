@@ -1,9 +1,9 @@
 #ifndef _SPI_H
 #define _SPI_H
 
-#include <stm32f4xx_spi.h>
+#include "defines.h"
 
-#define INLINE __attribute__((always_inline)) inline
+#include <stm32f4xx_spi.h>
 
 /* helper macros taken from tm library */
 #define SPI_IS_BUSY(SPIx)                                                      \

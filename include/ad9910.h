@@ -5,10 +5,9 @@
 #ifndef _AD9910_H
 #define _AD9910_H
 
+#include "defines.h"
 #include <stdint.h>
 #include <tm_stm32f4_gpio.h>
-
-#define INLINE __attribute__((always_inline)) inline
 
 #define AD9910_INSTR_WRITE 0x00
 #define AD9910_INSTR_READ 0x80
