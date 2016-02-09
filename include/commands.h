@@ -7,7 +7,9 @@ typedef enum {
   ad9910_command_end = 0,
   ad9910_command_parallel,
   ad9910_command_ram,
-  ad9910_command_ramp,
+  ad9910_command_frequeny_ramp,
+  ad9910_command_amplitude_ramp,
+  ad9910_command_phase_ramp,
   ad9910_command_single_tone,
 } ad9910_command_type;
 
