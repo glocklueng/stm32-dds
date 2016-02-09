@@ -170,8 +170,7 @@ typedef enum {
   ad9910_pump_current_387 = 7
 } ad9910_pump_current;
 
-typedef enum
-{
+typedef enum {
   ad9910_parallel_amplitude = 0x0,
   ad9910_parallel_phase = 0x1,
   ad9910_parallel_frequency = 0x2,
