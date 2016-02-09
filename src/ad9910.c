@@ -200,3 +200,27 @@ ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
   reg->value = data;
   update_reg(reg);
 }
+
+void
+ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
+                    uint32_t lower_limit, uint32_t decrement_step,
+                    uint32_t increment_step, uint16_t negative_slope,
+                    uint16_t positive_slope, int no_dwell_high,
+                    int no_dwell_low)
+{
+  set_value(AD9910_RAMP_UPPER_LIMIT, upper_limit);
+  set_value(AD9910_RAMP_LOWER_LIMIT, lower_limit);
+  set_value(AD9910_RAMP_DECREMENT_STEP, decrement_step);
+  set_value(AD9910_RAMP_INCREMENT_STEP, increment_step);
+  set_value(AD9910_RAMP_NEGATIVE_RATE, negative_slope);
+  set_value(AD9910_RAMP_POSITIVE_RATE, positive_slope);
+  set_value(AD9910_DIGITAL_RAMP_DESTINATION, dest);
+  set_value(AD9910_DIGITAL_RAMP_ENABLE, 1);
+  set_value(AD9910_DIGITAL_RAMP_NO_DWELL_HIGH, !!no_dwell_high);
+  set_value(AD9910_DIGITAL_RAMP_NO_DWELL_LOW, !!no_dwell_low);
+
+  update_reg(&ad9910_reg_ramp_limit);
+  update_reg(&ad9910_reg_ramp_step);
+  update_reg(&ad9910_reg_ramp_rate);
+  update_reg(&ad9910_reg_cfr2);
+}

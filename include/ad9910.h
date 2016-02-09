@@ -286,6 +286,16 @@ INLINE void ad9910_set_parallel(uint16_t port);
 void ad9910_set_single_tone(uint8_t profile, double freq, uint16_t amplitude,
                             uint16_t phase);
 
+/**
+ * this function programs the ramp registers with the given parameters. It
+ * does not enable the ramp generator.
+ */
+void ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
+                         uint32_t lower_limit, uint32_t decrement_step,
+                         uint32_t increment_step, uint16_t negative_slope,
+                         uint16_t positive_slope, int no_dwell_high,
+                         int no_dwell_low);
+
 /** implementation starts here */
 
 INLINE ad9910_register*
