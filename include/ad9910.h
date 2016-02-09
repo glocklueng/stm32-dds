@@ -142,30 +142,33 @@ DEF_REG_BIT(profile_0_ram_mode_control, prof0, 3, 0);
 
 #undef DEF_REG_BIT
 
-/* DRV0 bits / REFCLK_OUT buffer control */
-#define AD9910_DRV0_DISABLE 0x0
-#define AD9910_DRV0_LOW 0x1
-#define AD9910_DRV0_MEDIUM 0x2
-#define AD9910_DRV0_HIGH 0x3
+typedef enum {
+  ad9910_drv0_output_disable = 0,
+  ad9910_drv0_output_low = 1,
+  ad9910_drv0_output_medium = 2,
+  ad9910_drv0_output_high = 3
+} ad9910_drv0_output;
 
-/* VCO range bits */
-#define AD9910_VCO_RANGE_VCO0 0x0
-#define AD9910_VCO_RANGE_VCO1 0x1
-#define AD9910_VCO_RANGE_VCO2 0x2
-#define AD9910_VCO_RANGE_VCO3 0x3
-#define AD9910_VCO_RANGE_VCO4 0x4
-#define AD9910_VCO_RANGE_VCO5 0x5
-#define AD9910_VCO_RANGE_NO_PLL 0x6
+typedef enum {
+  ad9910_vco_range_setting_vco0 = 0,
+  ad9910_vco_range_setting_vco1 = 1,
+  ad9910_vco_range_setting_vco2 = 2,
+  ad9910_vco_range_setting_vco3 = 3,
+  ad9910_vco_range_setting_vco4 = 4,
+  ad9910_vco_range_setting_vco5 = 5,
+  ad9910_vco_range_setting_no_pll = 6
+} ad9910_vco_range_setting;
 
-/* PLL charge pump */
-#define AD9910_PLL_PUMP_CURRENT_212 0x0
-#define AD9910_PLL_PUMP_CURRENT_237 0x1
-#define AD9910_PLL_PUMP_CURRENT_262 0x2
-#define AD9910_PLL_PUMP_CURRENT_287 0x3
-#define AD9910_PLL_PUMP_CURRENT_312 0x4
-#define AD9910_PLL_PUMP_CURRENT_337 0x5
-#define AD9910_PLL_PUMP_CURRENT_363 0x6
-#define AD9910_PLL_PUMP_CURRENT_387 0x7
+typedef enum {
+  ad9910_pump_current_212 = 0,
+  ad9910_pump_current_237 = 1,
+  ad9910_pump_current_262 = 2,
+  ad9910_pump_current_287 = 3,
+  ad9910_pump_current_312 = 4,
+  ad9910_pump_current_337 = 5,
+  ad9910_pump_current_363 = 6,
+  ad9910_pump_current_387 = 7
+} ad9910_pump_current;
 
 typedef enum
 {

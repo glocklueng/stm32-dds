@@ -63,11 +63,11 @@ ad9910_init()
   /* set multiplier factor (10MHz -> 1GHz) */
   ad9910_set_value(ad9910_pll_divide, 100);
   /* set correct range for internal VCO */
-  ad9910_set_value(ad9910_vco_range, AD9910_VCO_RANGE_VCO5);
+  ad9910_set_value(ad9910_vco_range, ad9910_vco_range_setting_vco5);
   /* set pump current for the external PLL loop filter */
-  ad9910_set_value(ad9910_pll_pump_current, AD9910_PLL_PUMP_CURRENT_237);
+  ad9910_set_value(ad9910_pll_pump_current, ad9910_pump_current_237);
   /* disable REFCLK_OUT (it is not even connected) */
-  //  ad9910_set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
+  //  ad9910_set_value(AD9910_DRV0, ad9910_drv0_output_disable);
 
   ad9910_update_reg(&ad9910_reg_cfr3);
 
