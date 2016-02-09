@@ -72,7 +72,7 @@ ad9910_init()
   ad9910_update_reg(&ad9910_reg_cfr3);
 
   /* make sure everything is written before we issue the I/O update */
-  SPI_WAIT(SPI1);
+  spi_wait();
 
   /* we perform the io_update manually here because the AD9910 is still
    * running without PLL and frequency multiplier */
@@ -144,7 +144,7 @@ ad9910_update_reg(ad9910_register* reg)
 void
 ad9910_io_update()
 {
-  SPI_WAIT(SPI1);
+  spi_wait();
 
   gpio_set_high(IO_UPDATE);
   /* no delay is needed here. We have to wait for at least 1 SYNC_CLK
