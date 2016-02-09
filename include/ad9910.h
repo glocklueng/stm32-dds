@@ -167,33 +167,6 @@ DEF_REG_BIT(profile_0_ram_mode_control, prof0, 3, 0);
 #define AD9910_PLL_PUMP_CURRENT_363 0x6
 #define AD9910_PLL_PUMP_CURRENT_387 0x7
 
-#define AD9910_REG_CFR1_NAME reg_cfr1
-#define AD9910_REG_CFR2_NAME reg_cfr2
-#define AD9910_REG_CFR3_NAME reg_cfr3
-#define AD9910_REG_AUX_DAC_CTL_NAME reg_aux_dac_ctl
-#define AD9910_REG_IO_UPDATE_RATE_NAME reg_io_update_rate
-#define AD9910_REG_FTW_NAME reg_ftw
-#define AD9910_REG_POW_NAME reg_pow
-#define AD9910_REG_ASF_NAME reg_asf
-#define AD9910_REG_MULTICHIP_SYNC_NAME reg_multichip_sync
-#define AD9910_REG_RAMP_LIMIT_NAME reg_ramp_limit
-#define AD9910_REG_RAMP_STEP_NAME reg_ramp_step
-#define AD9910_REG_RAMP_RATE_NAME reg_ramp_rate
-#define AD9910_REG_PROF0_NAME reg_prof0
-#define AD9910_REG_PROF1_NAME reg_prof1
-#define AD9910_REG_PROF2_NAME reg_prof2
-#define AD9910_REG_PROF3_NAME reg_prof3
-#define AD9910_REG_PROF4_NAME reg_prof4
-#define AD9910_REG_PROF5_NAME reg_prof5
-#define AD9910_REG_PROF6_NAME reg_prof6
-#define AD9910_REG_PROF7_NAME reg_prof7
-
-#define AD9910_GET_ADDR(field) field##_ADDR
-#define AD9910_GET_MASK(field) ((uint64_t)field##_MASK)
-#define AD9910_GET_NAME(field) field##_NAME
-#define AD9910_GET_OFFSET(field) ((uint64_t)field##_OFFSET)
-#define AD9910_GET_REG(field) field##_REG
-
 typedef enum
 {
   ad9910_parallel_amplitude = 0x0,
