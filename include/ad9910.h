@@ -52,93 +52,93 @@ extern ad9910_register ad9910_reg_prof6;
 extern ad9910_register ad9910_reg_prof7;
 
 #define DEF_REG_BIT(_name, _reg, _bits, _offset)                               \
-  static const ad9910_register_bit AD9910_##_name = {                          \
+  static const ad9910_register_bit ad9910_##_name = {                          \
     .reg = &ad9910_reg_##_reg, .bits = _bits, .offset = _offset                \
   }
 
 /* CFR1 */
-DEF_REG_BIT(RAM_ENABLE, cfr1, 1, 31);
-DEF_REG_BIT(RAM_PLAYBACK_DESTINATION, cfr1, 2, 29);
-DEF_REG_BIT(MANUAL_OSK_EXTERNAL_CONTROL, cfr1, 1, 23);
-DEF_REG_BIT(INVERSE_SINC_FILTER_ENABLE, cfr1, 1, 22);
-DEF_REG_BIT(INTERNAL_PROFILE_CTRL, cfr1, 4, 17);
-DEF_REG_BIT(SELECT_DDS_SINE_OUTPUT, cfr1, 1, 16);
-DEF_REG_BIT(LOAD_LRR, cfr1, 1, 15);
-DEF_REG_BIT(AUTOCLEAR_DIGITAL_RAMP_ACCUMULATOR, cfr1, 1, 14);
-DEF_REG_BIT(AUTOCLEAR_PHASE_ACCUMULATOR, cfr1, 1, 13);
-DEF_REG_BIT(CLEAR_DIGITAL_RAMP_ACCUMULATOR, cfr1, 1, 12);
-DEF_REG_BIT(CLEAR_PHASE_ACCUMULATOR, cfr1, 1, 11);
-DEF_REG_BIT(LOAD_ARR, cfr1, 1, 10);
-DEF_REG_BIT(OSK_ENABLE, cfr1, 1, 9);
-DEF_REG_BIT(SELECT_AUTO_OSK, cfr1, 1, 8);
-DEF_REG_BIT(DIGITAL_POWER_DOWN, cfr1, 1, 7);
-DEF_REG_BIT(DAC_POWER_DOWN, cfr1, 1, 6);
-DEF_REG_BIT(REFCLK_INPUT_POWER_DOWN, cfr1, 1, 5);
-DEF_REG_BIT(AUX_DAC_POWER_DOWN, cfr1, 1, 4);
-DEF_REG_BIT(EXTERNAL_POWER_DOWN_CONTROL, cfr1, 1, 3);
-DEF_REG_BIT(SDIO_INPUT_ONLY, cfr1, 1, 1);
-DEF_REG_BIT(LSB_FIRST, cfr1, 1, 0);
+DEF_REG_BIT(ram_enable, cfr1, 1, 31);
+DEF_REG_BIT(ram_playback_destination, cfr1, 2, 29);
+DEF_REG_BIT(manual_osk_external_control, cfr1, 1, 23);
+DEF_REG_BIT(inverse_sinc_filter_enable, cfr1, 1, 22);
+DEF_REG_BIT(internal_profile_ctrl, cfr1, 4, 17);
+DEF_REG_BIT(select_dds_sine_output, cfr1, 1, 16);
+DEF_REG_BIT(load_lrr, cfr1, 1, 15);
+DEF_REG_BIT(autoclear_digital_ramp_accumulator, cfr1, 1, 14);
+DEF_REG_BIT(autoclear_phase_accumulator, cfr1, 1, 13);
+DEF_REG_BIT(clear_digital_ramp_accumulator, cfr1, 1, 12);
+DEF_REG_BIT(clear_phase_accumulator, cfr1, 1, 11);
+DEF_REG_BIT(load_arr, cfr1, 1, 10);
+DEF_REG_BIT(osk_enable, cfr1, 1, 9);
+DEF_REG_BIT(select_auto_osk, cfr1, 1, 8);
+DEF_REG_BIT(digital_power_down, cfr1, 1, 7);
+DEF_REG_BIT(dac_power_down, cfr1, 1, 6);
+DEF_REG_BIT(refclk_input_power_down, cfr1, 1, 5);
+DEF_REG_BIT(aux_dac_power_down, cfr1, 1, 4);
+DEF_REG_BIT(external_power_down_control, cfr1, 1, 3);
+DEF_REG_BIT(sdio_input_only, cfr1, 1, 1);
+DEF_REG_BIT(lsb_first, cfr1, 1, 0);
 
 /* CFR2 */
-DEF_REG_BIT(ENABLE_AMPLITUDE_SCALE, cfr2, 1, 24);
-DEF_REG_BIT(INTERNAL_IO_UPDATE, cfr2, 1, 23);
-DEF_REG_BIT(SYNC_CLK_ENABLE, cfr2, 1, 22);
-DEF_REG_BIT(DIGITAL_RAMP_DESTINATION, cfr2, 2, 20);
-DEF_REG_BIT(DIGITAL_RAMP_ENABLE, cfr2, 1, 19);
-DEF_REG_BIT(DIGITAL_RAMP_NO_DWELL_HIGH, cfr2, 1, 18);
-DEF_REG_BIT(DIGITAL_RAMP_NO_DWELL_LOW, cfr2, 1, 17);
-DEF_REG_BIT(READ_EFFECTIVE_FTW, cfr2, 1, 16);
-DEF_REG_BIT(IO_UPDATE_RATE_CONTROL, cfr2, 2, 14);
-DEF_REG_BIT(PDCLK_ENABLE, cfr2, 1, 11);
-DEF_REG_BIT(PDCLK_INVERT, cfr2, 1, 10);
-DEF_REG_BIT(TXENABLE_INVERT, cfr2, 1, 9);
-DEF_REG_BIT(MATCHED_LATENCY_ENABLE, cfr2, 1, 7);
-DEF_REG_BIT(DATA_ASSEMBLER_HOST_LAST_VALUE, cfr2, 1, 6);
-DEF_REG_BIT(SYNC_TIMING_VALIDATION_ENABLE, cfr2, 1, 5);
-DEF_REG_BIT(PARALLEL_DATA_PORT_ENABLE, cfr2, 1, 4);
-DEF_REG_BIT(FM_GAIN, cfr2, 4, 0);
+DEF_REG_BIT(enable_amplitude_scale, cfr2, 1, 24);
+DEF_REG_BIT(internal_io_update, cfr2, 1, 23);
+DEF_REG_BIT(sync_clk_enable, cfr2, 1, 22);
+DEF_REG_BIT(digital_ramp_destination, cfr2, 2, 20);
+DEF_REG_BIT(digital_ramp_enable, cfr2, 1, 19);
+DEF_REG_BIT(digital_ramp_no_dwell_high, cfr2, 1, 18);
+DEF_REG_BIT(digital_ramp_no_dwell_low, cfr2, 1, 17);
+DEF_REG_BIT(read_effective_ftw, cfr2, 1, 16);
+DEF_REG_BIT(io_update_rate_control, cfr2, 2, 14);
+DEF_REG_BIT(pdclk_enable, cfr2, 1, 11);
+DEF_REG_BIT(pdclk_invert, cfr2, 1, 10);
+DEF_REG_BIT(txenable_invert, cfr2, 1, 9);
+DEF_REG_BIT(matched_latency_enable, cfr2, 1, 7);
+DEF_REG_BIT(data_assembler_host_last_value, cfr2, 1, 6);
+DEF_REG_BIT(sync_timing_validation_enable, cfr2, 1, 5);
+DEF_REG_BIT(parallel_data_port_enable, cfr2, 1, 4);
+DEF_REG_BIT(fm_gain, cfr2, 4, 0);
 
-DEF_REG_BIT(DRV0, cfr3, 2, 28);
-DEF_REG_BIT(VCO_RANGE, cfr3, 3, 24);
-DEF_REG_BIT(PLL_PUMP_CURRENT, cfr3, 3, 19);
-DEF_REG_BIT(REFCLK_INPUT_DIVIDER_BYPASS, cfr3, 1, 15);
-DEF_REG_BIT(REFCLK_INPUT_DIVIDER_RESETB, cfr3, 1, 14);
-DEF_REG_BIT(PFD_RESET, cfr3, 1, 10);
-DEF_REG_BIT(PLL_ENABLE, cfr3, 1, 8);
-DEF_REG_BIT(PLL_DIVIDE, cfr3, 7, 1);
+DEF_REG_BIT(drv0, cfr3, 2, 28);
+DEF_REG_BIT(vco_range, cfr3, 3, 24);
+DEF_REG_BIT(pll_pump_current, cfr3, 3, 19);
+DEF_REG_BIT(refclk_input_divider_bypass, cfr3, 1, 15);
+DEF_REG_BIT(refclk_input_divider_resetb, cfr3, 1, 14);
+DEF_REG_BIT(pfd_reset, cfr3, 1, 10);
+DEF_REG_BIT(pll_enable, cfr3, 1, 8);
+DEF_REG_BIT(pll_divide, cfr3, 7, 1);
 
-DEF_REG_BIT(FSC, aux_dac_ctl, 8, 0);
-DEF_REG_BIT(IO_UPDATE_RATE, io_update_rate, 32, 0);
-DEF_REG_BIT(FTW, ftw, 32, 0);
-DEF_REG_BIT(POW, pow, 16, 0);
-DEF_REG_BIT(AMPLITUDE_RAME_RATE, asf, 16, 16);
-DEF_REG_BIT(AMPLITUDE_SCALE_FACTOR, asf, 14, 2);
-DEF_REG_BIT(AMPLITUDE_STEP_SIZE, asf, 2, 0);
+DEF_REG_BIT(fsc, aux_dac_ctl, 8, 0);
+DEF_REG_BIT(io_update_rate, io_update_rate, 32, 0);
+DEF_REG_BIT(ftw, ftw, 32, 0);
+DEF_REG_BIT(pow, pow, 16, 0);
+DEF_REG_BIT(amplitude_rame_rate, asf, 16, 16);
+DEF_REG_BIT(amplitude_scale_factor, asf, 14, 2);
+DEF_REG_BIT(amplitude_step_size, asf, 2, 0);
 
-DEF_REG_BIT(SYNC_VALIDATION_DELAY, multichip_sync, 4, 28);
-DEF_REG_BIT(SYNC_RECEIVER_ENABLE, multichip_sync, 1, 27);
-DEF_REG_BIT(SYNC_GENERATOR_ENABLE, multichip_sync, 1, 26);
-DEF_REG_BIT(SYNC_GENERATOR_POLARITY, multichip_sync, 1, 25);
-DEF_REG_BIT(SYNC_STATE_PRESET_VALUE, multichip_sync, 6, 18);
-DEF_REG_BIT(OUTPUT_SYNC_GENERATOR, multichip_sync, 5, 11);
-DEF_REG_BIT(INPUT_SYNC_RECEIVER_DELAY, multichip_sync, 5, 0);
+DEF_REG_BIT(sync_validation_delay, multichip_sync, 4, 28);
+DEF_REG_BIT(sync_receiver_enable, multichip_sync, 1, 27);
+DEF_REG_BIT(sync_generator_enable, multichip_sync, 1, 26);
+DEF_REG_BIT(sync_generator_polarity, multichip_sync, 1, 25);
+DEF_REG_BIT(sync_state_preset_value, multichip_sync, 6, 18);
+DEF_REG_BIT(output_sync_generator, multichip_sync, 5, 11);
+DEF_REG_BIT(input_sync_receiver_delay, multichip_sync, 5, 0);
 
-DEF_REG_BIT(RAMP_UPPER_LIMIT, ramp_limit, 32, 32);
-DEF_REG_BIT(RAMP_LOWER_LIMIT, ramp_limit, 32, 0);
-DEF_REG_BIT(RAMP_DECREMENT_STEP, ramp_step, 32, 32);
-DEF_REG_BIT(RAMP_INCREMENT_STEP, ramp_step, 32, 0);
-DEF_REG_BIT(RAMP_NEGATIVE_RATE, ramp_rate, 16, 16);
-DEF_REG_BIT(RAMP_POSITIVE_RATE, ramp_rate, 16, 0);
+DEF_REG_BIT(ramp_upper_limit, ramp_limit, 32, 32);
+DEF_REG_BIT(ramp_lower_limit, ramp_limit, 32, 0);
+DEF_REG_BIT(ramp_decrement_step, ramp_step, 32, 32);
+DEF_REG_BIT(ramp_increment_step, ramp_step, 32, 0);
+DEF_REG_BIT(ramp_negative_rate, ramp_rate, 16, 16);
+DEF_REG_BIT(ramp_positive_rate, ramp_rate, 16, 0);
 
-DEF_REG_BIT(PROFILE_0_AMPLITUDE, prof0, 14, 48);
-DEF_REG_BIT(PROFILE_0_PHASE, prof0, 16, 32);
-DEF_REG_BIT(PROFILE_0_FREQUENCY, prof0, 32, 0);
-DEF_REG_BIT(PROFILE_0_ADDRESS_STEP_RATE, prof0, 16, 40);
-DEF_REG_BIT(PROFILE_0_WAVEFORM_END_ADDRESS, prof0, 10, 30);
-DEF_REG_BIT(PROFILE_0_WAVEFORM_START_ADDRESS, prof0, 10, 14);
-DEF_REG_BIT(PROFILE_0_NO_DWELL_HIGH, prof0, 1, 5);
-DEF_REG_BIT(PROFILE_0_ZERO_CROSSING, prof0, 1, 3);
-DEF_REG_BIT(PROFILE_0_RAM_MODE_CONTROL, prof0, 3, 0);
+DEF_REG_BIT(profile_0_amplitude, prof0, 14, 48);
+DEF_REG_BIT(profile_0_phase, prof0, 16, 32);
+DEF_REG_BIT(profile_0_frequency, prof0, 32, 0);
+DEF_REG_BIT(profile_0_address_step_rate, prof0, 16, 40);
+DEF_REG_BIT(profile_0_waveform_end_address, prof0, 10, 30);
+DEF_REG_BIT(profile_0_waveform_start_address, prof0, 10, 14);
+DEF_REG_BIT(profile_0_no_dwell_high, prof0, 1, 5);
+DEF_REG_BIT(profile_0_zero_crossing, prof0, 1, 3);
+DEF_REG_BIT(profile_0_ram_mode_control, prof0, 3, 0);
 
 #undef DEF_REG_BIT
 

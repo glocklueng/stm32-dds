@@ -59,13 +59,13 @@ ad9910_init()
   gpio_set_low(IO_RESET);
 
   /* enable PLL mode */
-  ad9910_set_value(AD9910_PLL_ENABLE, 1);
+  ad9910_set_value(ad9910_pll_enable, 1);
   /* set multiplier factor (10MHz -> 1GHz) */
-  ad9910_set_value(AD9910_PLL_DIVIDE, 100);
+  ad9910_set_value(ad9910_pll_divide, 100);
   /* set correct range for internal VCO */
-  ad9910_set_value(AD9910_VCO_RANGE, AD9910_VCO_RANGE_VCO5);
+  ad9910_set_value(ad9910_vco_range, AD9910_VCO_RANGE_VCO5);
   /* set pump current for the external PLL loop filter */
-  ad9910_set_value(AD9910_PLL_PUMP_CURRENT, AD9910_PLL_PUMP_CURRENT_237);
+  ad9910_set_value(ad9910_pll_pump_current, AD9910_PLL_PUMP_CURRENT_237);
   /* disable REFCLK_OUT (it is not even connected) */
   //  ad9910_set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
 
@@ -92,10 +92,10 @@ ad9910_init()
   gpio_set_low(LED_RED);
 
   /* set communication mode to SDIO with 3 wires (CLK, IN, OUT) */
-  ad9910_set_value(AD9910_SDIO_INPUT_ONLY, 1);
+  ad9910_set_value(ad9910_sdio_input_only, 1);
 
   /* enable PDCLK line */
-  ad9910_set_value(AD9910_PDCLK_ENABLE, 1);
+  ad9910_set_value(ad9910_pdclk_enable, 1);
 
   /* update all register. It might be that only the STM32F4 has been
    * resetet and there is still data in the registers. With these commands
@@ -171,8 +171,8 @@ void
 ad9910_enable_parallel(int mode)
 {
   /* enable parallel data port and PDCLK output line */
-  ad9910_set_value(AD9910_PARALLEL_DATA_PORT_ENABLE, !!mode);
-  ad9910_update_matching_reg(AD9910_PARALLEL_DATA_PORT_ENABLE);
+  ad9910_set_value(ad9910_parallel_data_port_enable, !!mode);
+  ad9910_update_matching_reg(ad9910_parallel_data_port_enable);
 
   gpio_set(TX_ENABLE, !!mode);
 }
@@ -208,16 +208,16 @@ ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
                     uint16_t positive_slope, int no_dwell_high,
                     int no_dwell_low)
 {
-  ad9910_set_value(AD9910_RAMP_UPPER_LIMIT, upper_limit);
-  ad9910_set_value(AD9910_RAMP_LOWER_LIMIT, lower_limit);
-  ad9910_set_value(AD9910_RAMP_DECREMENT_STEP, decrement_step);
-  ad9910_set_value(AD9910_RAMP_INCREMENT_STEP, increment_step);
-  ad9910_set_value(AD9910_RAMP_NEGATIVE_RATE, negative_slope);
-  ad9910_set_value(AD9910_RAMP_POSITIVE_RATE, positive_slope);
-  ad9910_set_value(AD9910_DIGITAL_RAMP_DESTINATION, dest);
-  ad9910_set_value(AD9910_DIGITAL_RAMP_ENABLE, 1);
-  ad9910_set_value(AD9910_DIGITAL_RAMP_NO_DWELL_HIGH, !!no_dwell_high);
-  ad9910_set_value(AD9910_DIGITAL_RAMP_NO_DWELL_LOW, !!no_dwell_low);
+  ad9910_set_value(ad9910_ramp_upper_limit, upper_limit);
+  ad9910_set_value(ad9910_ramp_lower_limit, lower_limit);
+  ad9910_set_value(ad9910_ramp_decrement_step, decrement_step);
+  ad9910_set_value(ad9910_ramp_increment_step, increment_step);
+  ad9910_set_value(ad9910_ramp_negative_rate, negative_slope);
+  ad9910_set_value(ad9910_ramp_positive_rate, positive_slope);
+  ad9910_set_value(ad9910_digital_ramp_destination, dest);
+  ad9910_set_value(ad9910_digital_ramp_enable, 1);
+  ad9910_set_value(ad9910_digital_ramp_no_dwell_high, !!no_dwell_high);
+  ad9910_set_value(ad9910_digital_ramp_no_dwell_low, !!no_dwell_low);
 
   ad9910_update_reg(&ad9910_reg_ramp_limit);
   ad9910_update_reg(&ad9910_reg_ramp_step);
