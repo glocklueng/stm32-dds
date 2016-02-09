@@ -5,26 +5,43 @@
 #include <math.h>
 
 /* define registers with their values after bootup */
-uint32_t reg_cfr1 = 0x0;
-uint32_t reg_cfr2 = 0x400820;
-uint32_t reg_cfr3 = 0x17384000;
-uint32_t reg_aux_dac_ctl = 0x7F;
-uint32_t reg_io_update_rate = 0xFFFFFFFF;
-uint32_t reg_ftw = 0x0;
-uint16_t reg_pow = 0x0;
-uint32_t reg_asf = 0x0;
-uint32_t reg_multichip_sync = 0x0;
-uint64_t reg_ramp_limit = 0x0;
-uint64_t reg_ramp_step = 0x0;
-uint32_t reg_ramp_rate = 0x0;
-uint64_t reg_prof0 = 0x0;
-uint64_t reg_prof1 = 0x0;
-uint64_t reg_prof2 = 0x0;
-uint64_t reg_prof3 = 0x0;
-uint64_t reg_prof4 = 0x0;
-uint64_t reg_prof5 = 0x0;
-uint64_t reg_prof6 = 0x0;
-uint64_t reg_prof7 = 0x0;
+ad9910_register ad9910_reg_cfr1 = {.address = 0x00, .value = 0x0, .size = 4 };
+ad9910_register ad9910_reg_cfr2 = {.address = 0x01,
+                                   .value = 0x400820,
+                                   .size = 4 };
+ad9910_register ad9910_reg_cfr3 = {.address = 0x02,
+                                   .value = 0x17384000,
+                                   .size = 4 };
+ad9910_register ad9910_reg_aux_dac_ctl = {.address = 0x03,
+                                          .value = 0x7F,
+                                          .size = 4 };
+ad9910_register ad9910_reg_io_update_rate = {.address = 0x04,
+                                             .value = 0xFFFFFFFF,
+                                             .size = 4 };
+ad9910_register ad9910_reg_ftw = {.address = 0x07, .value = 0x0, .size = 4 };
+ad9910_register ad9910_reg_pow = {.address = 0x08, .value = 0x0, .size = 2 };
+ad9910_register ad9910_reg_asf = {.address = 0x09, .value = 0x0, .size = 4 };
+ad9910_register ad9910_reg_multichip_sync = {.address = 0x0A,
+                                             .value = 0x0,
+                                             .size = 4 };
+ad9910_register ad9910_reg_ramp_limit = {.address = 0x0B,
+                                         .value = 0x0,
+                                         .size = 8 };
+ad9910_register ad9910_reg_ramp_step = {.address = 0x0C,
+                                        .value = 0x0,
+                                        .size = 8 };
+ad9910_register ad9910_reg_ramp_rate = {.address = 0x0D,
+                                        .value = 0x0,
+                                        .size = 4 };
+ad9910_register ad9910_reg_prof0 = {.address = 0x0E, .value = 0x0, .size = 8 };
+ad9910_register ad9910_reg_prof1 = {.address = 0x0F, .value = 0x0, .size = 8 };
+ad9910_register ad9910_reg_prof2 = {.address = 0x10, .value = 0x0, .size = 8 };
+ad9910_register ad9910_reg_prof3 = {.address = 0x11, .value = 0x0, .size = 8 };
+ad9910_register ad9910_reg_prof4 = {.address = 0x12, .value = 0x0, .size = 8 };
+ad9910_register ad9910_reg_prof5 = {.address = 0x13, .value = 0x0, .size = 8 };
+ad9910_register ad9910_reg_prof6 = {.address = 0x14, .value = 0x0, .size = 8 };
+ad9910_register ad9910_reg_prof7 = {.address = 0x15, .value = 0x0, .size = 8 };
+ad9910_register ad9910_reg_ram = {.address = 0x16, .value = 0x0, .size = 4 };
 
 void
 ad9910_init()
@@ -52,7 +69,7 @@ ad9910_init()
   /* disable REFCLK_OUT (it is not even connected) */
   //  set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
 
-  update_reg(AD9910_REG_CFR3);
+  update_reg(&ad9910_reg_cfr3);
 
   /* make sure everything is written before we issue the I/O update */
   SPI_WAIT(SPI1);
@@ -83,26 +100,26 @@ ad9910_init()
   /* update all register. It might be that only the STM32F4 has been
    * resetet and there is still data in the registers. With these commands
    * we set them to the values we specified */
-  update_reg(AD9910_REG_CFR1);
-  update_reg(AD9910_REG_CFR2);
-  update_reg(AD9910_REG_CFR3);
-  update_reg(AD9910_REG_AUX_DAC_CTL);
-  update_reg(AD9910_REG_IO_UPDATE_RATE);
-  update_reg(AD9910_REG_FTW);
-  update_reg(AD9910_REG_POW);
-  update_reg(AD9910_REG_ASF);
-  update_reg(AD9910_REG_MULTICHIP_SYNC);
-  update_reg(AD9910_REG_RAMP_LIMIT);
-  update_reg(AD9910_REG_RAMP_STEP);
-  update_reg(AD9910_REG_RAMP_RATE);
-  update_reg(AD9910_REG_PROF0);
-  update_reg(AD9910_REG_PROF1);
-  update_reg(AD9910_REG_PROF2);
-  update_reg(AD9910_REG_PROF3);
-  update_reg(AD9910_REG_PROF4);
-  update_reg(AD9910_REG_PROF5);
-  update_reg(AD9910_REG_PROF6);
-  update_reg(AD9910_REG_PROF7);
+  update_reg(&ad9910_reg_cfr1);
+  update_reg(&ad9910_reg_cfr2);
+  update_reg(&ad9910_reg_cfr3);
+  update_reg(&ad9910_reg_aux_dac_ctl);
+  update_reg(&ad9910_reg_io_update_rate);
+  update_reg(&ad9910_reg_ftw);
+  update_reg(&ad9910_reg_pow);
+  update_reg(&ad9910_reg_asf);
+  update_reg(&ad9910_reg_multichip_sync);
+  update_reg(&ad9910_reg_ramp_limit);
+  update_reg(&ad9910_reg_ramp_step);
+  update_reg(&ad9910_reg_ramp_rate);
+  update_reg(&ad9910_reg_prof0);
+  update_reg(&ad9910_reg_prof1);
+  update_reg(&ad9910_reg_prof2);
+  update_reg(&ad9910_reg_prof3);
+  update_reg(&ad9910_reg_prof4);
+  update_reg(&ad9910_reg_prof5);
+  update_reg(&ad9910_reg_prof6);
+  update_reg(&ad9910_reg_prof7);
 
   ad9910_select_profile(0);
   ad9910_select_parallel(0);
@@ -113,14 +130,14 @@ ad9910_init()
 }
 
 void
-ad9910_update_register(uint8_t addr, uint16_t length, const uint8_t* value)
+update_reg(ad9910_register* reg)
 {
-  spi_send_single(addr | AD9910_INSTR_WRITE);
+  spi_send_single(reg->address | AD9910_INSTR_WRITE);
 
   /* MSB is not only for the bits in every byte but also for the bytes
    * meaning we have to send the last byte first */
-  for (int i = 0; i < length; ++i) {
-    spi_send_single(value[length - 1 - i]);
+  for (int i = 0; i < reg->size; ++i) {
+    spi_send_single(((const char*)(&(reg->value)))[reg->size - 1 - i]);
   }
 }
 
@@ -179,6 +196,7 @@ ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
 
   uint64_t data =
     (uint64_t)ftw | ((uint64_t)phase << 32) | ((uint64_t)ampl << 48);
-  ad9910_update_register(AD9910_GET_ADDR(AD9910_REG_PROF0) + profile, 8,
-                         (const uint8_t*)&data);
+  ad9910_register* reg = get_profile_reg(profile);
+  reg->value = data;
+  update_reg(reg);
 }
