@@ -22,9 +22,3 @@ main(void)
 
   ethernet_loop();
 }
-
-void
-assert_failed(uint8_t* file, uint32_t line)
-{
-  gpio_blink_forever_fast(LED_RED);
-}

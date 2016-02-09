@@ -6,6 +6,6 @@
 extern volatile uint32_t LocalTime;
 
 void delay(uint32_t nCount);
-void time_update();
+void time_update(void);
 
 #endif /* _TIMING_H */

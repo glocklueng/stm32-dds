@@ -249,13 +249,13 @@ INLINE void ad9910_update_matching_reg(ad9910_register_bit field);
 
 uint32_t ad9910_convert_frequency(double f);
 
-void ad9910_init();
+void ad9910_init(void);
 
 /**
  * data written to the registers doesn't get active until this function is
  * called or another profile is selected
  */
-void ad9910_io_update();
+void ad9910_io_update(void);
 
 /**
  * selects a previosly configured output buffer. Changing the profile

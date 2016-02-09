@@ -38,13 +38,13 @@ typedef struct
   struct pbuf* p;
 } server_struct;
 
-static void ethernet_gpio_init();
-static void ethernet_dma_init();
+static void ethernet_gpio_init(void);
+static void ethernet_dma_init(void);
 static void ethernet_link_callback(struct netif*);
-static void lwip_init();
-static void lwip_periodic_handle();
+static void lwip_init(void);
+static void lwip_periodic_handle(uint32_t localtime);
 
-static int server_init();
+static int server_init(void);
 static err_t server_accept_callback(void* arg, struct tcp_pcb* newpcb,
                                     err_t err);
 static err_t server_recv_callback(void* arg, struct tcp_pcb* pcb,

@@ -67,7 +67,7 @@ INLINE void gpio_set(gpio_pin, int);
 INLINE void gpio_toggle(gpio_pin);
 INLINE int gpio_get(gpio_pin);
 
-void gpio_init();
+void gpio_init(void);
 
 void gpio_set_pin_mode_input(gpio_pin);
 void gpio_set_pin_mode_output(gpio_pin);

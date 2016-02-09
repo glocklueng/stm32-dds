@@ -13,5 +13,7 @@ CFLAGS+=-Wall -Wextra -ggdb -O0
 # processor settings for stm32f407
 CFLAGS+=-mthumb -mcpu=cortex-m4
 
+CFLAGS+=-Werror=missing-prototypes -Werror=implicit-function-declaration
+
 # define constant for processor type
 CPPFLAGS+=-DSTM32F40_41xxx
