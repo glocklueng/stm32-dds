@@ -223,27 +223,29 @@ typedef enum {
   ad9910_ram_ctl_cont_recirculate = 0x4
 } ad9910_ram_control;
 
-INLINE ad9910_register* get_profile_reg(int profile);
+INLINE ad9910_register* ad9910_get_profile_reg(int profile);
 
 /**
  * sets the given bit field to the specified value. This is only done
- * internaly, a call to update_reg or update_matching_reg is required to
+ * internaly, a call to ad9910_update_reg or ad9910_update_matching_reg is
+ * required to
  * send the changed register to the DDS chip
  */
-INLINE void set_value(ad9910_register_bit, uint64_t value);
+INLINE void ad9910_set_value(ad9910_register_bit, uint64_t value);
 
-INLINE void set_profile_value(int profile, ad9910_register_bit, uint64_t value);
+INLINE void ad9910_set_profile_value(int profile, ad9910_register_bit,
+                                     uint64_t value);
 
 /**
  * Write the current internal state of the specified register to the
  * AD9910 chip
  */
-void update_reg(ad9910_register* reg);
+void ad9910_update_reg(ad9910_register* reg);
 
 /* this function does update the register which contains the given bit
  * value. If you want to change multiple bits at once first set them and
- * then call update_reg on that register directly */
-INLINE void update_matching_reg(ad9910_register_bit field);
+ * then call ad9910_update_reg on that register directly */
+INLINE void ad9910_update_matching_reg(ad9910_register_bit field);
 
 uint32_t ad9910_convert_frequency(double f);
 
@@ -299,7 +301,7 @@ void ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
 /** implementation starts here */
 
 INLINE ad9910_register*
-get_profile_reg(int profile)
+ad9910_get_profile_reg(int profile)
 {
   switch (profile) {
     case 0:
@@ -324,7 +326,7 @@ get_profile_reg(int profile)
 }
 
 INLINE void
-set_value(ad9910_register_bit field, uint64_t value)
+ad9910_set_value(ad9910_register_bit field, uint64_t value)
 {
   /* convert the numbers of bits in a mask with matching length */
   const uint64_t mask = (1 << field.bits) - 1;
@@ -335,7 +337,7 @@ set_value(ad9910_register_bit field, uint64_t value)
 }
 
 INLINE void
-set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
+ad9910_set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
 {
   /* convert the numbers of bits in a mask with matching length */
   const uint64_t mask = (1 << field.bits) - 1;
@@ -348,9 +350,9 @@ set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
 }
 
 INLINE void
-update_matching_reg(ad9910_register_bit field)
+ad9910_update_matching_reg(ad9910_register_bit field)
 {
-  update_reg(field.reg);
+  ad9910_update_reg(field.reg);
 }
 
 INLINE void

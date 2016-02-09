@@ -59,17 +59,17 @@ ad9910_init()
   gpio_set_low(IO_RESET);
 
   /* enable PLL mode */
-  set_value(AD9910_PLL_ENABLE, 1);
+  ad9910_set_value(AD9910_PLL_ENABLE, 1);
   /* set multiplier factor (10MHz -> 1GHz) */
-  set_value(AD9910_PLL_DIVIDE, 100);
+  ad9910_set_value(AD9910_PLL_DIVIDE, 100);
   /* set correct range for internal VCO */
-  set_value(AD9910_VCO_RANGE, AD9910_VCO_RANGE_VCO5);
+  ad9910_set_value(AD9910_VCO_RANGE, AD9910_VCO_RANGE_VCO5);
   /* set pump current for the external PLL loop filter */
-  set_value(AD9910_PLL_PUMP_CURRENT, AD9910_PLL_PUMP_CURRENT_237);
+  ad9910_set_value(AD9910_PLL_PUMP_CURRENT, AD9910_PLL_PUMP_CURRENT_237);
   /* disable REFCLK_OUT (it is not even connected) */
-  //  set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
+  //  ad9910_set_value(AD9910_DRV0, AD9910_DRV0_DISABLE);
 
-  update_reg(&ad9910_reg_cfr3);
+  ad9910_update_reg(&ad9910_reg_cfr3);
 
   /* make sure everything is written before we issue the I/O update */
   SPI_WAIT(SPI1);
@@ -92,34 +92,34 @@ ad9910_init()
   gpio_set_low(LED_RED);
 
   /* set communication mode to SDIO with 3 wires (CLK, IN, OUT) */
-  set_value(AD9910_SDIO_INPUT_ONLY, 1);
+  ad9910_set_value(AD9910_SDIO_INPUT_ONLY, 1);
 
   /* enable PDCLK line */
-  set_value(AD9910_PDCLK_ENABLE, 1);
+  ad9910_set_value(AD9910_PDCLK_ENABLE, 1);
 
   /* update all register. It might be that only the STM32F4 has been
    * resetet and there is still data in the registers. With these commands
    * we set them to the values we specified */
-  update_reg(&ad9910_reg_cfr1);
-  update_reg(&ad9910_reg_cfr2);
-  update_reg(&ad9910_reg_cfr3);
-  update_reg(&ad9910_reg_aux_dac_ctl);
-  update_reg(&ad9910_reg_io_update_rate);
-  update_reg(&ad9910_reg_ftw);
-  update_reg(&ad9910_reg_pow);
-  update_reg(&ad9910_reg_asf);
-  update_reg(&ad9910_reg_multichip_sync);
-  update_reg(&ad9910_reg_ramp_limit);
-  update_reg(&ad9910_reg_ramp_step);
-  update_reg(&ad9910_reg_ramp_rate);
-  update_reg(&ad9910_reg_prof0);
-  update_reg(&ad9910_reg_prof1);
-  update_reg(&ad9910_reg_prof2);
-  update_reg(&ad9910_reg_prof3);
-  update_reg(&ad9910_reg_prof4);
-  update_reg(&ad9910_reg_prof5);
-  update_reg(&ad9910_reg_prof6);
-  update_reg(&ad9910_reg_prof7);
+  ad9910_update_reg(&ad9910_reg_cfr1);
+  ad9910_update_reg(&ad9910_reg_cfr2);
+  ad9910_update_reg(&ad9910_reg_cfr3);
+  ad9910_update_reg(&ad9910_reg_aux_dac_ctl);
+  ad9910_update_reg(&ad9910_reg_io_update_rate);
+  ad9910_update_reg(&ad9910_reg_ftw);
+  ad9910_update_reg(&ad9910_reg_pow);
+  ad9910_update_reg(&ad9910_reg_asf);
+  ad9910_update_reg(&ad9910_reg_multichip_sync);
+  ad9910_update_reg(&ad9910_reg_ramp_limit);
+  ad9910_update_reg(&ad9910_reg_ramp_step);
+  ad9910_update_reg(&ad9910_reg_ramp_rate);
+  ad9910_update_reg(&ad9910_reg_prof0);
+  ad9910_update_reg(&ad9910_reg_prof1);
+  ad9910_update_reg(&ad9910_reg_prof2);
+  ad9910_update_reg(&ad9910_reg_prof3);
+  ad9910_update_reg(&ad9910_reg_prof4);
+  ad9910_update_reg(&ad9910_reg_prof5);
+  ad9910_update_reg(&ad9910_reg_prof6);
+  ad9910_update_reg(&ad9910_reg_prof7);
 
   ad9910_select_profile(0);
   ad9910_select_parallel(0);
@@ -130,7 +130,7 @@ ad9910_init()
 }
 
 void
-update_reg(ad9910_register* reg)
+ad9910_update_reg(ad9910_register* reg)
 {
   spi_send_single(reg->address | AD9910_INSTR_WRITE);
 
@@ -171,8 +171,8 @@ void
 ad9910_enable_parallel(int mode)
 {
   /* enable parallel data port and PDCLK output line */
-  set_value(AD9910_PARALLEL_DATA_PORT_ENABLE, !!mode);
-  update_matching_reg(AD9910_PARALLEL_DATA_PORT_ENABLE);
+  ad9910_set_value(AD9910_PARALLEL_DATA_PORT_ENABLE, !!mode);
+  ad9910_update_matching_reg(AD9910_PARALLEL_DATA_PORT_ENABLE);
 
   gpio_set(TX_ENABLE, !!mode);
 }
@@ -196,9 +196,9 @@ ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
 
   uint64_t data =
     (uint64_t)ftw | ((uint64_t)phase << 32) | ((uint64_t)ampl << 48);
-  ad9910_register* reg = get_profile_reg(profile);
+  ad9910_register* reg = ad9910_get_profile_reg(profile);
   reg->value = data;
-  update_reg(reg);
+  ad9910_update_reg(reg);
 }
 
 void
@@ -208,19 +208,19 @@ ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
                     uint16_t positive_slope, int no_dwell_high,
                     int no_dwell_low)
 {
-  set_value(AD9910_RAMP_UPPER_LIMIT, upper_limit);
-  set_value(AD9910_RAMP_LOWER_LIMIT, lower_limit);
-  set_value(AD9910_RAMP_DECREMENT_STEP, decrement_step);
-  set_value(AD9910_RAMP_INCREMENT_STEP, increment_step);
-  set_value(AD9910_RAMP_NEGATIVE_RATE, negative_slope);
-  set_value(AD9910_RAMP_POSITIVE_RATE, positive_slope);
-  set_value(AD9910_DIGITAL_RAMP_DESTINATION, dest);
-  set_value(AD9910_DIGITAL_RAMP_ENABLE, 1);
-  set_value(AD9910_DIGITAL_RAMP_NO_DWELL_HIGH, !!no_dwell_high);
-  set_value(AD9910_DIGITAL_RAMP_NO_DWELL_LOW, !!no_dwell_low);
+  ad9910_set_value(AD9910_RAMP_UPPER_LIMIT, upper_limit);
+  ad9910_set_value(AD9910_RAMP_LOWER_LIMIT, lower_limit);
+  ad9910_set_value(AD9910_RAMP_DECREMENT_STEP, decrement_step);
+  ad9910_set_value(AD9910_RAMP_INCREMENT_STEP, increment_step);
+  ad9910_set_value(AD9910_RAMP_NEGATIVE_RATE, negative_slope);
+  ad9910_set_value(AD9910_RAMP_POSITIVE_RATE, positive_slope);
+  ad9910_set_value(AD9910_DIGITAL_RAMP_DESTINATION, dest);
+  ad9910_set_value(AD9910_DIGITAL_RAMP_ENABLE, 1);
+  ad9910_set_value(AD9910_DIGITAL_RAMP_NO_DWELL_HIGH, !!no_dwell_high);
+  ad9910_set_value(AD9910_DIGITAL_RAMP_NO_DWELL_LOW, !!no_dwell_low);
 
-  update_reg(&ad9910_reg_ramp_limit);
-  update_reg(&ad9910_reg_ramp_step);
-  update_reg(&ad9910_reg_ramp_rate);
-  update_reg(&ad9910_reg_cfr2);
+  ad9910_update_reg(&ad9910_reg_ramp_limit);
+  ad9910_update_reg(&ad9910_reg_ramp_step);
+  ad9910_update_reg(&ad9910_reg_ramp_rate);
+  ad9910_update_reg(&ad9910_reg_cfr2);
 }
