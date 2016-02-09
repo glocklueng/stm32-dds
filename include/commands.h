@@ -32,6 +32,21 @@ typedef struct
   uint16_t phase;
 } ad9910_single_tone_command;
 
+typedef struct
+{
+  ad9910_command command;
+  uint16_t amplitude;
+  uint16_t phase;
+  uint32_t upper_limit;
+  uint32_t lower_limit;
+  uint32_t decrement_step;
+  uint32_t increment_step;
+  uint16_t negative_slope;
+  uint16_t positive_slope;
+  int no_dwell_high;
+  int no_dwell_low;
+} ad9910_frequency_ramp_command;
+
 /** this function takes a list of commands and works through that list
  * command by command. It waits until the corresponding trigger is
  * triggered and then prepares the next command until the
