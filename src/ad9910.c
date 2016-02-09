@@ -161,7 +161,7 @@ ad9910_select_profile(uint8_t profile)
 }
 
 void
-ad9910_select_parallel(enum parallel_mode mode)
+ad9910_select_parallel(parallel_mode mode)
 {
   gpio_set(PARALLEL_F0, mode & 0x1);
   gpio_set(PARALLEL_F0, mode & 0x2);

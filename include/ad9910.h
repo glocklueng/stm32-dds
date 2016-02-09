@@ -194,13 +194,13 @@ DEF_REG_BIT(profile_0_ram_mode_control, prof0, 3, 0);
 #define AD9910_GET_OFFSET(field) ((uint64_t)field##_OFFSET)
 #define AD9910_GET_REG(field) field##_REG
 
-enum parallel_mode
+typedef enum
 {
   ad9910_parallel_amplitude = 0x0,
   ad9910_parallel_phase = 0x1,
   ad9910_parallel_frequency = 0x2,
   ad9910_parallel_polar = 0x3
-};
+} parallel_mode;
 
 typedef enum {
   ad9910_ramp_dest_frequency = 0x0,
@@ -267,7 +267,7 @@ void ad9910_select_profile(uint8_t profile);
  * changes which registers are influenced by the parallel port. See table
  * 4 in the AD9910 data sheet for exact specification
  */
-void ad9910_select_parallel(enum parallel_mode mode);
+void ad9910_select_parallel(parallel_mode mode);
 
 /**
  * enables the parallel communication port on the AD9910. As soon as this
