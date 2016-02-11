@@ -130,15 +130,15 @@ DEF_REG_BIT(ramp_increment_step, ramp_step, 32, 0);
 DEF_REG_BIT(ramp_negative_rate, ramp_rate, 16, 16);
 DEF_REG_BIT(ramp_positive_rate, ramp_rate, 16, 0);
 
-DEF_REG_BIT(profile_0_amplitude, prof0, 14, 48);
-DEF_REG_BIT(profile_0_phase, prof0, 16, 32);
-DEF_REG_BIT(profile_0_frequency, prof0, 32, 0);
-DEF_REG_BIT(profile_0_address_step_rate, prof0, 16, 40);
-DEF_REG_BIT(profile_0_waveform_end_address, prof0, 10, 30);
-DEF_REG_BIT(profile_0_waveform_start_address, prof0, 10, 14);
-DEF_REG_BIT(profile_0_no_dwell_high, prof0, 1, 5);
-DEF_REG_BIT(profile_0_zero_crossing, prof0, 1, 3);
-DEF_REG_BIT(profile_0_ram_mode_control, prof0, 3, 0);
+DEF_REG_BIT(profile_amplitude, prof0, 14, 48);
+DEF_REG_BIT(profile_phase, prof0, 16, 32);
+DEF_REG_BIT(profile_frequency, prof0, 32, 0);
+DEF_REG_BIT(profile_address_step_rate, prof0, 16, 40);
+DEF_REG_BIT(profile_waveform_end_address, prof0, 10, 30);
+DEF_REG_BIT(profile_waveform_start_address, prof0, 10, 14);
+DEF_REG_BIT(profile_no_dwell_high, prof0, 1, 5);
+DEF_REG_BIT(profile_zero_crossing, prof0, 1, 3);
+DEF_REG_BIT(profile_ram_mode_control, prof0, 3, 0);
 
 #undef DEF_REG_BIT
 
