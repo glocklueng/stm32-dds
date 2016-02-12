@@ -21,7 +21,8 @@ gpio_init()
   gpio_init_output(LED_BLUE);
   gpio_init_output(LED_GREEN);
 
-  gpio_init_input(USER_BUTTON);
+  gpio_init_output(RF_SWITCH);
+  gpio_init_output(DDS_RESET);
   gpio_init_input(EXTERNAL_TRIGGER);
 
   gpio_init_input(PLL_LOCK);
