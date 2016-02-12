@@ -113,7 +113,7 @@ INLINE
 int
 gpio_get(gpio_pin pin)
 {
-  return TM_GPIO_GetInputPinValue(pin.group, 1 << pin.pin);
+  return (volatile uint32_t)(pin.group->IDR) & ((uint16_t)1 << pin.pin);
 }
 
 #endif /* _GPIO_H */

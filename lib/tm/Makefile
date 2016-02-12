@@ -21,10 +21,7 @@ CPPFLAGS+=-I../../include -Iinclude
 #CPPFLAGS+=-I$(LWIP_DIR) -I$(LWIP_INCDIR) -I$(LWIP_INCDIR)/ipv4 -I$(LWIP_PORTDIR)/include
 
 LIB=libtm
-SRCS=src/tm_stm32f4_dma.c \
-     src/tm_stm32f4_gpio.c \
-     src/tm_stm32f4_spi.c \
-     src/tm_stm32f4_spi_dma.c
+SRCS=src/tm_stm32f4_gpio.c
 OBJS=$(SRCS:.c=.o)
 
 all: $(LIB).a

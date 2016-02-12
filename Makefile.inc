@@ -9,7 +9,7 @@ GDB=$(TOOLCHAIN_PATH)arm-none-eabi-gdb
 OBJCOPY=$(TOOLCHAIN_PATH)arm-none-eabi-objcopy
 
 CFLAGS+=-std=c99
-CFLAGS+=-Wall -Wextra -ggdb -O0
+CFLAGS+=-Wall -Wextra -ggdb -g3 -O0
 # processor settings for stm32f407
 CFLAGS+=-mthumb -mcpu=cortex-m4
 

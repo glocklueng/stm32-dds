@@ -24,6 +24,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "interrupts.h"
 
+#include "dma.h"
 #include "gpio.h"
 #include "timing.h"
 
@@ -77,9 +78,21 @@ EXTI0_IRQHandler()
   /* Make sure that interrupt flag is set */
   if (EXTI_GetITStatus(EXTI_Line0) != RESET) {
     gpio_toggle(LED_RED);
-    /* Clear interrupt flag */
-    EXTI_ClearITPendingBit(EXTI_Line0);
   }
+  /* Clear interrupt flag */
+  EXTI_ClearITPendingBit(EXTI_Line0);
+}
+
+void
+DMA2_Stream2_IRQHandler()
+{
+  dma_clear_flag(DMA2_Stream2, dma_flag_all);
+}
+
+void
+DMA2_Stream3_IRQHandler()
+{
+  dma_clear_flag(DMA2_Stream3, dma_flag_all);
 }
 
 /******************************************************************************/

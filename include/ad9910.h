@@ -13,12 +13,37 @@
 #define AD9910_INSTR_WRITE 0x00
 #define AD9910_INSTR_READ 0x80
 
+/**
+ * this data structure stores the register value of the DDS as a copy on
+ * the microprocessor. This is necessary, because it is not possible to
+ * change single bits on the microprocessor. Instead the full register is
+ * rewritten.
+ *
+ * The layout of the bits in value is in little endian, starting with the
+ * least significant byte first. Bit order inside the bytes is most
+ * significant bit first. This brings them in the correct order to send
+ * the value directly via SPI. The layout is as follows:
+ *
+ * +-------+-----------------+-------------------------+----------
+ * | bytes |        0        |            1            |         2
+ * +------ +-----------------+-------------------------+----------
+ * | bits  | 7 6 5 4 3 2 1 0 | 15 14 13 12 11 10  9  8 | 23 22 ..
+ * +------ +-----------------+-------------------------+----------
+ *
+ * If the register is smaller than 64 bit the structure remains unchanged,
+ * the higher bytes (on the right) are ignored.
+ *
+ * The address is additionally ORed with the write bit, which allows to
+ * send the register with one call to SPI. This starts reading at the
+ * address field and reads (size + 1) bytes, stopping after the last
+ * filled byte.
+ */
 typedef struct
 {
   /* the physical address in the chip */
-  const int address;
+  const uint8_t address;
   /* the current value stored locally for transmission */
-  uint64_t value;
+  uint8_t value[8];
   /* actual size of the register (may be smaller than 8 byte) */
   const int size;
 } ad9910_register;
@@ -300,15 +325,59 @@ ad9910_get_profile_reg(int profile)
   }
 }
 
+INLINE uint32_t
+reverse_bytes(uint32_t word)
+{
+  return (word << 24) | (word >> 24) | (word & 0x00FF0000 >> 8) |
+         (word & 0x0000FF00 << 8);
+}
+
+/* even though the function looks massive we force inlining. The reasoning
+ * behind this is that all the values are known at compile time and the
+ * compiler should be able to eliminate most of the code. */
 INLINE void
 ad9910_set_value(ad9910_register_bit field, uint64_t value)
 {
-  /* convert the numbers of bits in a mask with matching length */
-  const uint64_t mask = (1 << field.bits) - 1;
-  /* clear affected bits */
-  field.reg->value &= ~(mask << field.offset);
-  /* set affected bits */
-  field.reg->value |= ((value & mask) << field.offset);
+  /* if you're wondering why this is so complicated look at the
+   * explanation of ad9910_register */
+
+  /* shift the output value at the position the bits belong to */
+  value <<= field.offset;
+
+  /* we have to distinguish between changes that cross a byte boundary and
+   * those who don't */
+  if (field.offset % 8 + field.bits > 8) {
+    /* in this case we span multiple bytes */
+
+    uint32_t* w_value = (uint32_t*)field.reg->value;
+    const uint64_t mask = (((uint64_t)1 << field.bits) - 1) << field.offset;
+
+    /* change first 32 bits if necessary */
+    if ((field.reg->size <= 4) | (field.offset < 32)) {
+      int rev_value = reverse_bytes(*w_value);
+      rev_value = (rev_value & ~((uint32_t)mask)) | (uint32_t)value;
+      *w_value = reverse_bytes(rev_value);
+    }
+
+    /* change second 32 bits if necessary */
+    if (field.offset + field.bits >= 32) {
+      w_value++;
+      int rev_value = reverse_bytes(*w_value);
+      rev_value =
+        (rev_value & ~((uint32_t)(mask >> 32))) | (uint32_t)(value >> 32);
+      *w_value = reverse_bytes(rev_value);
+    }
+  } else { /* here we're only within one byte */
+    /* convert the numbers of bits in a mask with matching length */
+    const uint8_t mask = (1 << field.bits) - 1;
+    const unsigned int byte = field.offset / 8;
+    const unsigned int byte_offset = field.reg->size - 1 - byte;
+    const unsigned int shift = field.offset % 8;
+
+    field.reg->value[byte_offset] =
+      (field.reg->value[byte_offset] & ~(mask << shift)) |
+      ((value >> (8 * byte)) & (mask << shift));
+  }
 }
 
 INLINE void
@@ -319,9 +388,9 @@ ad9910_set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
   /* get correct profile register */
   ad9910_register* reg = field.reg + profile;
   /* clear affected bits */
-  reg->value &= ~(mask << field.offset);
+  //  reg->value &= ~(mask << field.offset);
   /* set affected bits */
-  reg->value |= ((value & mask) << field.offset);
+  //  reg->value |= ((value & mask) << field.offset);
 }
 
 INLINE void
