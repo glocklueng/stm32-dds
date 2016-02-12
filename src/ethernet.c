@@ -317,6 +317,15 @@ lwip_init()
   /* Initializes the memory pools defined by MEMP_NUM_x.*/
   memp_init();
 
+  /* Initializes the pbuf memory pool defined by PBUF_POOL_SIZE */
+  pbuf_init();
+
+  /* Initializes the ARP table and queue. */
+  etharp_init();
+
+  ip_init();
+  tcp_init();
+
   IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
   IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2,
            NETMASK_ADDR3);
