@@ -2,6 +2,7 @@
 
 #include "gpio.h"
 #include "timing.h"
+#include "protocol.h"
 
 #include <ethernetif.h>
 #include <lwip/stats.h>
@@ -15,10 +16,6 @@
 
 #define DP83848_PHY_ADDRESS 0x01 /* Relative to STM324xG-EVAL Board */
 
-static struct netif gnetif;
-static struct tcp_pcb* g_pcb;
-static ETH_InitTypeDef ETH_InitStructure;
-
 enum server_states
 {
   ES_NONE = 0,
@@ -29,14 +26,21 @@ enum server_states
 
 /**
  * custom structure containing all connection details. Gets passed to all
- * callback functions as first parameter (arg)
+ * callback functions as first parameter (arg). State information relevant
+ * for the protocol are stored in an extra struct which we reference here.
  */
 typedef struct
 {
   u8_t state;
   struct tcp_pcb* pcb;
-  struct pbuf* p;
+  struct pbuf* pin;
+  struct pbuf* pout;
+  struct protocol_state* protocol_struct;
 } server_struct;
+
+static struct netif gnetif;
+static struct tcp_pcb* g_pcb;
+static ETH_InitTypeDef ETH_InitStructure;
 
 static void ethernet_gpio_init(void);
 static void ethernet_dma_init(void);
@@ -449,15 +453,30 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
   LWIP_UNUSED_ARG(err);
 
   server_struct* es = mem_malloc(sizeof(server_struct));
-
   if (es == NULL) {
     server_connection_close(newpcb, es);
-    return ERR_MEM;
+    return ERR_ABRT;
+  }
+
+  /* let the protocol do it's part */
+  void* newarg = protocol_accept_connection();
+  if (newarg == NULL) {
+    mem_free(es);
+    tcp_abort(newpcb);
+    return ERR_ABRT;
+  }
+
+  if (es == NULL) {
+    protocol_remove_connection(es->protocol_struct);
+    server_connection_close(newpcb, es);
+    return ERR_ABRT;
   }
 
   es->state = ES_ACCEPTED;
   es->pcb = newpcb;
-  es->p = NULL;
+  es->pin = NULL;
+  es->pout = NULL;
+  es->protocol_struct = newarg;
 
   tcp_arg(newpcb, es);
 
@@ -490,7 +509,7 @@ server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
   if (p == NULL) {
     es->state = ES_CLOSING;
 
-    if (es->p == NULL) {
+    if (es->pout == NULL) {
       /* if we're done sending, we close connection */
       server_connection_close(pcb, es);
     } else {
@@ -506,7 +525,6 @@ server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
   /* a non empty frame was received, but for some reason err != ERR_OK */
   if (err != ERR_OK) {
     /* free received pbuf */
-    es->p = NULL;
     pbuf_free(p);
     return err;
   }
@@ -516,30 +534,36 @@ server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
     es->state = ES_RECEIVING;
 
     /* store reference to incoming pbuf (chain) */
-    es->p = p;
+    es->pin = p;
 
     /* initialize callback */
     tcp_sent(pcb, server_sent_callback);
 
-    /* send back received data (echo test) */
-    server_send(pcb, es);
+    /* hand data to the protocol layer */
+    uint16_t len = protocol_handle_packet(es->protocol_struct, &(es->pin));
+
+    /* update tcp window size to be advertized : should be called when
+     * received data (with the amount plen) has been processed by the
+     * application layer */
+    tcp_recved(pcb, len);
 
     return ERR_OK;
   }
 
   if (es->state == ES_RECEIVING) {
-    /* more data from client and previous data has already been sent */
-    if (es->p == NULL) {
-      es->p = p;
-
-      server_send(pcb, es);
-    } else {
-      /* there is still unsent data, chain both packets for sending */
-      struct pbuf* ptr;
-
-      ptr = es->p;
-      pbuf_chain(ptr, p);
+    /* more data from client and previous data has been processed */
+    if (es->pin != NULL) {
+      /* chain original and new data */
+      pbuf_chain(es->pin, p);
     }
+
+    /* hand data to the protocol layer */
+    uint16_t len = protocol_handle_packet(es->protocol_struct, &(es->pin));
+
+    /* update tcp window size to be advertized : should be called when
+    * received data (with the amount plen) has been processed by the
+    * application layer */
+    tcp_recved(pcb, len);
 
     return ERR_OK;
   }
@@ -548,7 +572,6 @@ server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
   tcp_recved(pcb, p->tot_len);
 
   /* free memory and do nothing */
-  es->p = NULL;
   pbuf_free(p);
   return ERR_OK;
 }
@@ -580,7 +603,7 @@ server_poll_callback(void* arg, struct tcp_pcb* pcb)
   server_struct* es = arg;
 
   if (es != NULL) {
-    if (es->p != NULL) {
+    if (es->pout != NULL) {
       /* there is remaining data to be send, try that */
       server_send(pcb, es);
     } else {
@@ -612,7 +635,7 @@ server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len)
 
   LWIP_UNUSED_ARG(len);
 
-  if (es->p != NULL) {
+  if (es->pout != NULL) {
     /* still got pbufs to send */
     server_send(pcb, es);
   } else {
@@ -636,40 +659,34 @@ server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len)
 static void
 server_send(struct tcp_pcb* pcb, server_struct* es)
 {
-  while ((es->p != NULL) && es->p->len <= tcp_sndbuf(pcb)) {
+  while ((es->pout != NULL) && es->pout->len <= tcp_sndbuf(pcb)) {
     /* get pointer on pbuf from structure */
-    struct pbuf* ptr = es->p;
+    struct pbuf* ptr = es->pout;
 
     /* enqueue data for transmission */
     err_t wr_err = tcp_write(pcb, ptr->payload, ptr->len, 1);
 
     if (wr_err == ERR_MEM) {
       /* we are low on memory, try later / harder, defer to poll */
-      es->p = ptr;
+      es->pout = ptr;
     }
 
     /* stop if we hit an error */
     if (wr_err != ERR_OK) {
       break;
     }
-    u16_t plen = ptr->len;
 
     /* continue with next pbuf in chain (if any) */
-    es->p = ptr->next;
+    es->pout = ptr->next;
 
-    if (es->p != NULL) {
+    if (es->pout != NULL) {
       /* increment reference count for es->p */
-      pbuf_ref(es->p);
+      pbuf_ref(es->pout);
     }
 
     /* free pbuf: will free pbufs up to es->p, because es->p has a
      * reference count > 0 (we just incremented it) */
     pbuf_free(ptr);
-
-    /* update tcp window size to be advertized : should be called when
-     * received data (with the amount plen) has been processed by the
-     * application layer */
-    tcp_recved(pcb, plen);
   }
 }
 
@@ -683,8 +700,10 @@ server_connection_close(struct tcp_pcb* pcb, server_struct* es)
   tcp_err(pcb, NULL);
   tcp_poll(pcb, NULL, 0);
 
-  /* delete es structure */
   if (es != NULL) {
+    if (es->protocol_struct != NULL) {
+      protocol_remove_connection(es->protocol_struct);
+    }
     mem_free(es);
   }
 
