@@ -460,7 +460,7 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
   }
 
   /* let the protocol do it's part */
-  void* newarg = protocol_accept_connection();
+  void* newarg = protocol_accept_connection(es);
   if (newarg == NULL) {
     mem_free(es);
     tcp_abort(newpcb);

@@ -4,8 +4,9 @@
 #include <stdint.h>
 
 /* struct forward declarations */
-struct protocol_state;
 struct pbuf;
+struct protocol_state;
+struct server_state;
 
 /** this sets up a newly received connection
  *
@@ -15,7 +16,7 @@ struct pbuf;
  *
  * @return a pointer to use as arg, NULL if rejected
  */
-struct protocol_state* protocol_accept_connection(void);
+struct protocol_state* protocol_accept_connection(struct server_state*);
 
 /* this function is called then the TCP connection got reset.
  * The protocol may no longer use the connection and should clean up all

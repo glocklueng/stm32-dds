@@ -17,6 +17,7 @@ typedef enum {
 
 struct protocol_state
 {
+  struct server_state* es;
   protocol_status status;
 };
 
@@ -29,7 +30,7 @@ static size_t protocol_switch_packet(struct protocol_state*, const char*,
                                      size_t);
 
 struct protocol_state*
-protocol_accept_connection()
+protocol_accept_connection(struct server_state* es)
 {
   /* we only accept one connection, if we're already connected we don't
    * accept the new connection */
@@ -37,6 +38,7 @@ protocol_accept_connection()
     return NULL;
   }
 
+  ps.es = es;
   ps.status = connecting;
 
   return &ps;
@@ -173,7 +175,7 @@ protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
         begin = buffer;
         end = begin;
 
-        ethernet_queue("protocol error: ethernet buffer full\n", 37);
+        ethernet_queue(ps->es, "protocol error: ethernet buffer full\n", 37);
         return;
       }
 
