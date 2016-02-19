@@ -44,6 +44,7 @@
 #include "stm32f4x7_eth.h"
 #include "main.h"
 #include <string.h>
+#include "stm32f4xx_hash.h"
 
 /* Network interface name */
 #define IFNAME0 's'
@@ -66,6 +67,28 @@ extern ETH_DMADESCTypeDef  *DMARxDescToGet;
 /* Global pointer for last received frame infos */
 extern ETH_DMA_Rx_Frame_infos *DMA_RX_FRAME_infos;
 
+static void
+set_mac_address(struct netif *netif)
+{
+  /* 16 byte buffer for MD5 hash */
+  uint8_t hash[16];
+
+  /* magic address at which the unique device ID can be found */
+  uint8_t* id_unique = (uint8_t*)0x1FFF7A10;
+
+  /* use md5 hash of unique device address */
+  HASH_MD5(id_unique, 12, hash);
+
+  /* specify as localy administrated address */
+  hash[0] |= 0x2;
+  /* specifiy as unicast address */
+  hash[0] &= ~0x1;
+
+  for (int i = 0; i < 6; ++i) {
+    netif->hwaddr[i] =  hash[i];
+  }
+}
+
 /**
  * In this function, the hardware should be initialized.
  * Called from ethernetif_init().
@@ -82,12 +105,7 @@ static void low_level_init(struct netif *netif)
   netif->hwaddr_len = ETHARP_HWADDR_LEN;
 
   /* set MAC hardware address */
-  netif->hwaddr[0] =  MAC_ADDR0;
-  netif->hwaddr[1] =  MAC_ADDR1;
-  netif->hwaddr[2] =  MAC_ADDR2;
-  netif->hwaddr[3] =  MAC_ADDR3;
-  netif->hwaddr[4] =  MAC_ADDR4;
-  netif->hwaddr[5] =  MAC_ADDR5;
+  set_mac_address(netif);
   
   /* initialize MAC address in ethernet MAC */ 
   ETH_MACAddressConfig(ETH_MAC_Address0, netif->hwaddr); 

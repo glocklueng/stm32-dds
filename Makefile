@@ -25,8 +25,8 @@ HDRS=include/defines.h \
 OBJS=$(SRCS:.c=.o)
 
 LIBS=libtm.a \
-     libstm32f4.a \
-     liblwip.a
+     liblwip.a \
+     libstm32f4.a
 LIB_FILES=$(LIBS:%=lib/%)
 
 STM32_DIR=lib/stm32f4

@@ -5,13 +5,6 @@
 #define INLINE __attribute__((always_inline)) inline
 
 /* network configuration settings */
-#define MAC_ADDR0 02
-#define MAC_ADDR1 00
-#define MAC_ADDR2 00
-#define MAC_ADDR3 00
-#define MAC_ADDR4 00
-#define MAC_ADDR5 00
-
 #define IP_ADDR0 172
 #define IP_ADDR1 31
 #define IP_ADDR2 10
