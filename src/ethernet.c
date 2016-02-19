@@ -29,14 +29,14 @@ enum server_states
  * callback functions as first parameter (arg). State information relevant
  * for the protocol are stored in an extra struct which we reference here.
  */
-typedef struct
+struct server_state
 {
   u8_t state;
   struct tcp_pcb* pcb;
   struct pbuf* pin;
   struct pbuf* pout;
   struct protocol_state* protocol_struct;
-} server_struct;
+};
 
 static struct netif gnetif;
 static struct tcp_pcb* g_pcb;
@@ -56,8 +56,9 @@ static err_t server_recv_callback(void* arg, struct tcp_pcb* pcb,
 static void server_err_callback(void* arg, err_t err);
 static err_t server_poll_callback(void* arg, struct tcp_pcb* pcb);
 static err_t server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len);
-static void server_send(struct tcp_pcb* tpcb, server_struct* es);
-static void server_connection_close(struct tcp_pcb* pcb, server_struct* es);
+static void server_send(struct tcp_pcb* tpcb, struct server_state* es);
+static void server_connection_close(struct tcp_pcb* pcb,
+                                    struct server_state* es);
 
 void
 ethernet_init()
@@ -452,7 +453,7 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
   LWIP_UNUSED_ARG(arg);
   LWIP_UNUSED_ARG(err);
 
-  server_struct* es = mem_malloc(sizeof(server_struct));
+  struct server_state* es = mem_malloc(sizeof(struct server_state));
   if (es == NULL) {
     server_connection_close(newpcb, es);
     return ERR_ABRT;
@@ -493,7 +494,7 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
  * This function implements the tcp_recv LwIP callback. It get's called
  * every time a packet is received.
  *
- * @param arg: pointer on the self defined server_struct
+ * @param arg: pointer on the self defined struct server_state
  * @param pcb: pointer on the tcp_pcb connection
  * @param pbuf: pointer on the received pbuf
  * @param err: error information regarding the received pbuf
@@ -502,7 +503,7 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
 static err_t
 server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
 {
-  server_struct* es = arg;
+  struct server_state* es = arg;
 
   /* if we receive an empty tcp frame from the client we close the
    * connection */
@@ -593,14 +594,14 @@ server_err_callback(void* arg, err_t err)
 /**
  * This function implements the tcp_poll LwIP callback
  *
- * @param arg: pointer on the self defined server_struct
+ * @param arg: pointer on the self defined struct server_state
  * @param pcb: pointer on the tcp_pcb connection
  * @retval err_t: error code
  */
 static err_t
 server_poll_callback(void* arg, struct tcp_pcb* pcb)
 {
-  server_struct* es = arg;
+  struct server_state* es = arg;
 
   if (es != NULL) {
     if (es->pout != NULL) {
@@ -623,7 +624,7 @@ server_poll_callback(void* arg, struct tcp_pcb* pcb)
  * This function implements the tcp_sent LwIP callback. It is called every
  * time an ACK is received from the remote host for sent data.
  *
- * @param arg: pointer on the self defined server_struct
+ * @param arg: pointer on the self defined struct server_state
  * @param pcb: pointer on the tcp_pcb connection
  * @param len: reported lentgh of received data
  * @retval err_t: error code
@@ -631,7 +632,7 @@ server_poll_callback(void* arg, struct tcp_pcb* pcb)
 static err_t
 server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len)
 {
-  server_struct* es = arg;
+  struct server_state* es = arg;
 
   LWIP_UNUSED_ARG(len);
 
@@ -657,7 +658,7 @@ server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len)
  * @retval None
  */
 static void
-server_send(struct tcp_pcb* pcb, server_struct* es)
+server_send(struct tcp_pcb* pcb, struct server_state* es)
 {
   while ((es->pout != NULL) && es->pout->len <= tcp_sndbuf(pcb)) {
     /* get pointer on pbuf from structure */
@@ -691,7 +692,7 @@ server_send(struct tcp_pcb* pcb, server_struct* es)
 }
 
 static void
-server_connection_close(struct tcp_pcb* pcb, server_struct* es)
+server_connection_close(struct tcp_pcb* pcb, struct server_state* es)
 {
   /* remove all callbacks */
   tcp_arg(pcb, NULL);
