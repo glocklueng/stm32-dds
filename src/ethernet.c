@@ -153,6 +153,18 @@ ethernet_gpio_init()
   GPIO_PinAFConfig(GPIOC, GPIO_PinSource5, GPIO_AF_ETH);
 }
 
+err_t
+ethernet_queue(struct server_state* es, const char* data, uint16_t length)
+{
+  return tcp_write(es->pcb, data, length, 0);
+}
+
+err_t
+ethernet_copy_queue(struct server_state* es, const char* data, uint16_t length)
+{
+  return tcp_write(es->pcb, data, length, TCP_WRITE_FLAG_COPY);
+}
+
 static void
 ethernet_dma_init()
 {
