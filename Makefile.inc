@@ -7,8 +7,10 @@ AS=$(TOOLCHAIN_PATH)arm-none-eabi-as
 CC=$(TOOLCHAIN_PATH)arm-none-eabi-gcc
 GDB=$(TOOLCHAIN_PATH)arm-none-eabi-gdb
 OBJCOPY=$(TOOLCHAIN_PATH)arm-none-eabi-objcopy
+LEX=flex
+YACC=bison
 
-CFLAGS+=-std=c99
+CFLAGS+=-std=gnu99
 CFLAGS+=-Wall -Wextra -ggdb -O0
 # processor settings for stm32f407
 CFLAGS+=-mthumb -mcpu=cortex-m4
