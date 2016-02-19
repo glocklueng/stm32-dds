@@ -29,6 +29,6 @@ void protocol_remove_connection(struct protocol_state*);
  * the pbuf-pointer once it has handled the packet
  * @return the amount of bytes processed
  */
-uint16_t protocol_handle_packet(struct protocol_state* state,  struct pbuf** p);
+uint16_t protocol_handle_packet(struct protocol_state* state, struct pbuf** p);
 
 #endif /* _PROTOCOL_H */

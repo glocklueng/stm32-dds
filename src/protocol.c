@@ -25,7 +25,8 @@ static struct protocol_state ps;
 static void align_buffer(char* buffer, char** begin, char** end);
 static void protocol_assemble_packet(struct protocol_state*, struct pbuf*);
 static size_t protocol_data_transfer(struct protocol_state*, struct pbuf*);
-static size_t protocol_switch_packet(struct protocol_state*, const char*, size_t);
+static size_t protocol_switch_packet(struct protocol_state*, const char*,
+                                     size_t);
 
 struct protocol_state*
 protocol_accept_connection()
@@ -48,7 +49,7 @@ protocol_remove_connection(struct protocol_state* ps)
 }
 
 uint16_t
-protocol_handle_packet(struct protocol_state* ps,  struct pbuf** p)
+protocol_handle_packet(struct protocol_state* ps, struct pbuf** p)
 {
   uint16_t processed = 0;
 
@@ -75,14 +76,15 @@ protocol_handle_packet(struct protocol_state* ps,  struct pbuf** p)
 }
 
 static void
-align_buffer(char* buffer, char** begin, char** end) {
-    /* move the stored data to the beginning of the buffer */
-    if (*begin != buffer) {
-      const size_t length = *end - *begin;
-      memmove(buffer, *begin, length);
-      *begin = buffer;
-      *end = buffer + length;
-    }
+align_buffer(char* buffer, char** begin, char** end)
+{
+  /* move the stored data to the beginning of the buffer */
+  if (*begin != buffer) {
+    const size_t length = *end - *begin;
+    memmove(buffer, *begin, length);
+    *begin = buffer;
+    *end = buffer + length;
+  }
 }
 
 /**
@@ -103,7 +105,6 @@ protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
 
   size_t used = 0;
 
-
   /* if we are in a data transfer phase we don't parse the contents.
    * Being in that phase implies that the buffer is empty, but the
    * function may not consume all bytes.
@@ -114,21 +115,21 @@ protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
 
   /* if the buffer was empty we don't have to copy anything */
   if (begin == end) {
-        /* no previous data */
+    /* no previous data */
 
     while (used < p->len) {
-        const size_t pused = used;
-        const size_t remaining = p->len - used;
-        used += protocol_switch_packet(ps, p->payload + used, remaining);
+      const size_t pused = used;
+      const size_t remaining = p->len - used;
+      used += protocol_switch_packet(ps, p->payload + used, remaining);
 
-        /* if the last call didn't consume any data we stop and save the
-         * remaining bytes */
-        if (pused == used) {
-          memcpy(begin, p->payload + used, remaining);
-          end = begin + remaining;
-          align_buffer(buffer, &begin, &end);
-          return;
-        }
+      /* if the last call didn't consume any data we stop and save the
+       * remaining bytes */
+      if (pused == used) {
+        memcpy(begin, p->payload + used, remaining);
+        end = begin + remaining;
+        align_buffer(buffer, &begin, &end);
+        return;
+      }
     }
   } else {
     /* we do have data in the buffer and are not in the transfer phase */
@@ -140,18 +141,18 @@ protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
     /* as long as not all data is copied we copy as much as possible */
     while (len != 0) {
       const size_t buf_remaining = INPUT_BUFFER_SIZE - (end - buffer);
-        if (len < buf_remaining) {
-          /* whole package does fit in remaining buffer */
-          memcpy(end, payload, len);
-          end += len;
-          len = 0;
-        } else {
-          /* only parts of the buffer do fit */
-          memcpy(end, payload, buf_remaining);
-          end += buf_remaining;
-          payload += buf_remaining;
-          len -= buf_remaining;
-        }
+      if (len < buf_remaining) {
+        /* whole package does fit in remaining buffer */
+        memcpy(end, payload, len);
+        end += len;
+        len = 0;
+      } else {
+        /* only parts of the buffer do fit */
+        memcpy(end, payload, buf_remaining);
+        end += buf_remaining;
+        payload += buf_remaining;
+        len -= buf_remaining;
+      }
 
       /* keep track of the start of the last round */
       char* last = NULL;
