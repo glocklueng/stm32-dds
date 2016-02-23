@@ -256,6 +256,8 @@ void ad9910_enable_parallel(int enable);
  */
 INLINE void ad9910_set_parallel(uint16_t port);
 
+void ad9910_set_frequency(uint8_t profile, double freq);
+
 /**
  * configures the specified profile to emit a sine with constant frequncy
  * and amplitude.
