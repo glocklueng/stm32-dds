@@ -9,6 +9,7 @@ SRCS=src/main.c \
      src/interrupts.c \
      src/ethernet.c \
      src/protocol.c \
+     src/syscalls.c \
      src/spi.c \
      src/timing.c
 HDRS=include/defines.h \
@@ -22,8 +23,9 @@ HDRS=include/defines.h \
      include/spi.h \
      include/stm32f4x7_eth_conf.h \
      include/timing.h
-OBJS=$(SRCS:.c=.o)
-
+OBJS=$(SRCS:.c=.o) \
+    src/lex.yy.o \
+    src/parser.tab.o
 LIBS=libtm.a \
      liblwip.a \
      libstm32f4.a
@@ -33,11 +35,14 @@ STM32_DIR=lib/stm32f4
 LWIP_DIR=lib/lwip
 TM_DIR=lib/tm
 
+LEX_OPTS+=-i -B -R --bison-bridge
+YACC_OPTS+=-d
+
 #CFLAGS+=-Wmissing-declarations -Werror=implicit-function-declaration
 CFLAGS+=-Wno-unused-parameter -Winline
 
 # set search path for include files
-CPPFLAGS+=-Iinclude
+CPPFLAGS+=-Iinclude -I.
 CPPFLAGS+=-I$(STM32_DIR)/include -I$(STM32_DIR)/include/core -I$(STM32_DIR)/include/peripherals
 CPPFLAGS+=-I$(LWIP_DIR) -I$(LWIP_DIR)/src/include -I$(LWIP_DIR)/src/include/ipv4
 CPPFLAGS+=-I$(LWIP_DIR)/port/STM32F4x7/Standalone/include
@@ -52,6 +57,15 @@ all: proj
 
 lib/%.a:
 	$(MAKE) -C lib $(@:lib/%=%)
+
+src/lex.yy.c: src/scanner.l src/parser.tab.h
+	$(LEX) $(LEX_OPTS) -o $@ $<
+
+src/%.tab.c: src/%.y
+	cd src ; $(YACC) $(YACC_OPTS) ../$<
+
+src/%.tab.h: src/%.y
+	cd src ; $(YACC) $(YACC_OPTS) ../$<
 
 proj: $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin
 
@@ -78,5 +92,5 @@ format:
 	clang-format -i $(SRCS) $(HDRS)
 
 clean:
-	rm -f $(OBJS) $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin
+	rm -f $(OBJS) $(PROJECT_NAME).elf $(PROJECT_NAME).hex $(PROJECT_NAME).bin src/lex.yy.c src/parser.tab.h src/parser.tab.c
 	$(MAKE) -C lib clean

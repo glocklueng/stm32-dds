@@ -5,3 +5,6 @@
 *.bin
 core
 *.swp
+*.tab.h
+*.tab.c
+lex.yy.c
