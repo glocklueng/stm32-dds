@@ -44,7 +44,6 @@
 #include "stm32f4x7_eth.h"
 #include "main.h"
 #include <string.h>
-#include "stm32f4xx_hash.h"
 
 /* Network interface name */
 #define IFNAME0 's'
@@ -70,22 +69,23 @@ extern ETH_DMA_Rx_Frame_infos *DMA_RX_FRAME_infos;
 static void
 set_mac_address(struct netif *netif)
 {
-  /* 16 byte buffer for MD5 hash */
-  uint8_t hash[16];
+  uint8_t mac[6];
 
   /* magic address at which the unique device ID can be found */
-  uint8_t* id_unique = (uint8_t*)0x1FFF7A10;
+  const uint8_t*const  id_unique = (const uint8_t*)0x1FFF7A10;
 
-  /* use md5 hash of unique device address */
-  HASH_MD5(id_unique, 12, hash);
+  // use the last 6 UID bytes as mac
+  for (int i = 0; i < 6; ++i) {
+    mac[i] = *(id_unique + i) ^ *(id_unique + i + 6);
+  }
 
   /* specify as localy administrated address */
-  hash[0] |= 0x2;
+  mac[0] |= 0x2;
   /* specifiy as unicast address */
-  hash[0] &= ~0x1;
+  mac[0] &= ~0x1;
 
   for (int i = 0; i < 6; ++i) {
-    netif->hwaddr[i] =  hash[i];
+    netif->hwaddr[i] =  mac[i];
   }
 }
 
