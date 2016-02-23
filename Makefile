@@ -9,6 +9,7 @@ SRCS=src/main.c \
      src/interrupts.c \
      src/ethernet.c \
      src/protocol.c \
+     src/syscalls.c \
      src/spi.c \
      src/timing.c
 HDRS=include/defines.h \
