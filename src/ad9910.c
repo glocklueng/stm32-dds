@@ -4,6 +4,8 @@
 #include "spi.h"
 #include <math.h>
 
+static const int ad9910_pll_lock_timeout = 10000000; // ~1s
+
 /* define registers with their values after bootup */
 ad9910_register ad9910_reg_cfr1 = {.address = 0x00, .value = 0x0, .size = 4 };
 ad9910_register ad9910_reg_cfr2 = {.address = 0x01,
@@ -87,7 +89,9 @@ ad9910_init()
 
   /* wait for PLL lock signal */
   gpio_set_high(LED_RED);
-  while (gpio_get(PLL_LOCK) == 0) {
+  int i = 0;
+  while (gpio_get(PLL_LOCK) == 0 && i < ad9910_pll_lock_timeout) {
+    ++i;
   }
   gpio_set_low(LED_RED);
 
