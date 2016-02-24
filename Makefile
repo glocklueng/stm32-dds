@@ -88,7 +88,7 @@ gdb: $(PROJECT_NAME).elf
 stlink:
 	st-util -p 4242 -s 2 -m
 
-%.elf: $(OBJS) $(LIB_FILES)
+$(PROJECT_NAME).elf: $(OBJS) $(LIB_FILES)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@ $(LDFLAGS)
 
 %.hex: %.elf
