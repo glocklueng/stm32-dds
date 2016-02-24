@@ -306,7 +306,7 @@ INLINE void
 ad9910_set_value(ad9910_register_bit field, uint64_t value)
 {
   /* convert the numbers of bits in a mask with matching length */
-  const uint64_t mask = (1 << field.bits) - 1;
+  const uint64_t mask = ((uint64_t)1 << field.bits) - 1;
   /* clear affected bits */
   field.reg->value &= ~(mask << field.offset);
   /* set affected bits */
@@ -317,7 +317,7 @@ INLINE void
 ad9910_set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
 {
   /* convert the numbers of bits in a mask with matching length */
-  const uint64_t mask = (1 << field.bits) - 1;
+  const uint64_t mask = ((uint64_t)1 << field.bits) - 1;
   /* get correct profile register */
   ad9910_register* reg = field.reg + profile;
   /* clear affected bits */
