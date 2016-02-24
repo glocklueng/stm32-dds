@@ -188,7 +188,8 @@ ad9910_convert_frequency(double f)
 }
 
 void
-ad9910_set_frequency(uint8_t profile, double freq) {
+ad9910_set_frequency(uint8_t profile, double freq)
+{
   uint32_t f = ad9910_convert_frequency(freq);
 
   ad9910_set_profile_value(profile, ad9910_profile_frequency, f);

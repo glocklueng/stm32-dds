@@ -37,10 +37,12 @@ static int protocol_data_transfer(struct protocol_state*, struct pbuf*);
 static int protocol_switch_packet(struct protocol_state*, const char*, size_t);
 
 static const char* generic_switch_packet(struct protocol_handler*,
-                                 struct protocol_state*, const char*, size_t);
+                                         struct protocol_state*, const char*,
+                                         size_t);
 static const char* output_subsystem_handler(struct protocol_state*, const char*,
-                                    size_t);
-static const char* output_freq_handler(struct protocol_state*, const char*, size_t);
+                                            size_t);
+static const char* output_freq_handler(struct protocol_state*, const char*,
+                                       size_t);
 
 static const char* skip_till_end_of_line(const char*, size_t);
 
@@ -256,7 +258,7 @@ output_subsystem_handler(struct protocol_state* es, const char* data,
 static const char*
 output_freq_handler(struct protocol_state* es, const char* data, size_t len)
 {
-  char * endptr;
+  char* endptr;
   double freq = strtod(data, &endptr);
 
   ad9910_set_frequency(0, freq);
