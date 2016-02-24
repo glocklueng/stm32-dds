@@ -568,6 +568,8 @@ server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
     if (es->pin != NULL) {
       /* chain original and new data */
       pbuf_chain(es->pin, p);
+    } else {
+      es->pin = p;
     }
 
     /* hand data to the protocol layer */
