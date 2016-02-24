@@ -15,6 +15,7 @@ main(void)
 
   ad9910_set_single_tone(0, 80e6, 0x3FFF, 0);
   ad9910_select_profile(0);
+  ad9910_io_update();
 
   gpio_set_high(LED_ORANGE);
 
