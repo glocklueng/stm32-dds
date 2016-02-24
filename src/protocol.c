@@ -28,7 +28,7 @@ static struct protocol_state ps;
 struct protocol_handler
 {
   const char* id;
-  int (*parser)(struct protocol_state*, const char*, size_t);
+  const char* (*parser)(struct protocol_state*, const char*, size_t);
 };
 
 static void align_buffer(char* buffer, char** begin, char** end);
@@ -36,11 +36,13 @@ static void protocol_assemble_packet(struct protocol_state*, struct pbuf*);
 static int protocol_data_transfer(struct protocol_state*, struct pbuf*);
 static int protocol_switch_packet(struct protocol_state*, const char*, size_t);
 
-static int generic_switch_packet(struct protocol_handler*,
+static const char* generic_switch_packet(struct protocol_handler*,
                                  struct protocol_state*, const char*, size_t);
-static int output_subsystem_handler(struct protocol_state*, const char*,
+static const char* output_subsystem_handler(struct protocol_state*, const char*,
                                     size_t);
-static int output_freq_handler(struct protocol_state*, const char*, size_t);
+static const char* output_freq_handler(struct protocol_state*, const char*, size_t);
+
+static const char* skip_till_end_of_line(const char*, size_t);
 
 struct protocol_state*
 protocol_accept_connection(struct server_state* es)
@@ -204,23 +206,20 @@ protocol_data_transfer(struct protocol_state* es, struct pbuf* p)
   return 0;
 }
 
-static int
+static const char*
 generic_switch_packet(struct protocol_handler* handler,
                       struct protocol_state* es, const char* data, size_t len)
 {
-  while (handler->parser != NULL) {
-    if (strncmp(data, handler->id, len) == 0) {
+  for (; handler->parser != NULL; handler++) {
+    const size_t slen = strlen(handler->id);
+
+    if (slen < len && strncmp(data, handler->id, slen) == 0) {
       const int header_len = strlen(handler->id);
-      int ret = handler->parser(es, data + header_len, len - header_len);
-      if (ret >= 0) {
-        return ret + header_len;
-      } else {
-        return ret;
-      }
+      return handler->parser(es, data + header_len, len - header_len);
     }
   }
 
-  return -1;
+  return NULL;
 }
 
 static int
@@ -230,10 +229,20 @@ protocol_switch_packet(struct protocol_state* es, const char* data, size_t len)
     { "OUTPUT:", output_subsystem_handler }, { NULL, NULL }
   };
 
-  return generic_switch_packet(subsystem_handler_list, es, data, len);
+  const char* end = data;
+
+  while (end && end < data + len) {
+    end = generic_switch_packet(subsystem_handler_list, es, data, len);
+    if (end == NULL) {
+      break;
+    }
+    end = skip_till_end_of_line(end, len - (end - data));
+  }
+
+  return end - data;
 }
 
-static int
+static const char*
 output_subsystem_handler(struct protocol_state* es, const char* data,
                          size_t len)
 {
@@ -244,13 +253,26 @@ output_subsystem_handler(struct protocol_state* es, const char* data,
   return generic_switch_packet(output_subsystem_handler_list, es, data, len);
 }
 
-static int
+static const char*
 output_freq_handler(struct protocol_state* es, const char* data, size_t len)
 {
   char * endptr;
   double freq = strtod(data, &endptr);
 
   ad9910_set_frequency(0, freq);
+  ad9910_io_update();
 
-  return endptr - data;
+  return endptr;
+}
+
+static const char*
+skip_till_end_of_line(const char* data, size_t len)
+{
+  for (size_t i = 0; i < len; ++i) {
+    if (data[i] == '\n') {
+      return data + i + 1;
+    }
+  }
+
+  return NULL;
 }
