@@ -217,6 +217,8 @@ INLINE void ad9910_set_profile_value(int profile, ad9910_register_bit,
  */
 void ad9910_update_reg(ad9910_register* reg);
 
+INLINE void ad9910_update_profile_reg(uint8_t profile);
+
 /* this function does update the register which contains the given bit
  * value. If you want to change multiple bits at once first set them and
  * then call ad9910_update_reg on that register directly */
@@ -324,6 +326,12 @@ ad9910_set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
   reg->value &= ~(mask << field.offset);
   /* set affected bits */
   reg->value |= ((value & mask) << field.offset);
+}
+
+INLINE void
+ad9910_update_profile_reg(uint8_t profile)
+{
+  ad9910_update_reg(&ad9910_reg_prof0 + profile);
 }
 
 INLINE void
