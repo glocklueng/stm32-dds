@@ -62,7 +62,7 @@ protocol_accept_connection(struct server_state* es)
 void
 protocol_remove_connection(struct protocol_state* ps)
 {
-  /* we don't remove ps since it is static */
+  ps->status = unconnected;
 }
 
 uint16_t
