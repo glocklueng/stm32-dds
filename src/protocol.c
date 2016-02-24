@@ -1,9 +1,11 @@
 #include "protocol.h"
 
+#include "ad9910.h"
 #include "ethernet.h"
 
 #include <lwip/pbuf.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define INPUT_BUFFER_SIZE (1024)
@@ -23,11 +25,22 @@ struct protocol_state
 
 static struct protocol_state ps;
 
+struct protocol_handler
+{
+  const char* id;
+  int (*parser)(struct protocol_state*, const char*, size_t);
+};
+
 static void align_buffer(char* buffer, char** begin, char** end);
 static void protocol_assemble_packet(struct protocol_state*, struct pbuf*);
-static size_t protocol_data_transfer(struct protocol_state*, struct pbuf*);
-static size_t protocol_switch_packet(struct protocol_state*, const char*,
-                                     size_t);
+static int protocol_data_transfer(struct protocol_state*, struct pbuf*);
+static int protocol_switch_packet(struct protocol_state*, const char*, size_t);
+
+static int generic_switch_packet(struct protocol_handler*,
+                                 struct protocol_state*, const char*, size_t);
+static int output_subsystem_handler(struct protocol_state*, const char*,
+                                    size_t);
+static int output_freq_handler(struct protocol_state*, const char*, size_t);
 
 struct protocol_state*
 protocol_accept_connection(struct server_state* es)
@@ -183,4 +196,61 @@ protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
       align_buffer(buffer, &begin, &end);
     }
   }
+}
+
+static int
+protocol_data_transfer(struct protocol_state* es, struct pbuf* p)
+{
+  return 0;
+}
+
+static int
+generic_switch_packet(struct protocol_handler* handler,
+                      struct protocol_state* es, const char* data, size_t len)
+{
+  while (handler->parser != NULL) {
+    if (strncmp(data, handler->id, len) == 0) {
+      const int header_len = strlen(handler->id);
+      int ret = handler->parser(es, data + header_len, len - header_len);
+      if (ret >= 0) {
+        return ret + header_len;
+      } else {
+        return ret;
+      }
+    }
+  }
+
+  return -1;
+}
+
+static int
+protocol_switch_packet(struct protocol_state* es, const char* data, size_t len)
+{
+  static struct protocol_handler subsystem_handler_list[] = {
+    { "OUTPUT:", output_subsystem_handler }, { NULL, NULL }
+  };
+
+  return generic_switch_packet(subsystem_handler_list, es, data, len);
+}
+
+static int
+output_subsystem_handler(struct protocol_state* es, const char* data,
+                         size_t len)
+{
+  static struct protocol_handler output_subsystem_handler_list[] = {
+    { "FREQ", output_freq_handler }, { NULL, NULL }
+  };
+
+  return generic_switch_packet(output_subsystem_handler_list, es, data, len);
+}
+
+static int
+output_freq_handler(struct protocol_state* es, const char* data, size_t len)
+{
+  char * endptr;
+  double freq = strtod(data, &endptr);
+
+  ad9910_set_frequency(0, freq);
+
+  return endptr - data;
 }
