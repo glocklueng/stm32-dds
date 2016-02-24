@@ -196,6 +196,20 @@ ad9910_set_frequency(uint8_t profile, double freq) {
 }
 
 void
+ad9910_set_amplitude(uint8_t profile, uint16_t ampl)
+{
+  ad9910_set_profile_value(profile, ad9910_profile_amplitude, ampl);
+  ad9910_update_profile_reg(profile);
+}
+
+void
+ad9910_set_phase(uint8_t profile, uint16_t phase)
+{
+  ad9910_set_profile_value(profile, ad9910_profile_phase, phase);
+  ad9910_update_profile_reg(profile);
+}
+
+void
 ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
                        uint16_t phase)
 {
