@@ -206,11 +206,10 @@ ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
   /* amplitude is only 14 bits, force the two upper bits to zero */
   ampl &= 0x3FFF;
 
-  uint64_t data =
-    (uint64_t)ftw | ((uint64_t)phase << 32) | ((uint64_t)ampl << 48);
-  ad9910_register* reg = ad9910_get_profile_reg(profile);
-  reg->value = data;
-  ad9910_update_reg(reg);
+  ad9910_set_profile_value(profile, ad9910_profile_frequency, ftw);
+  ad9910_set_profile_value(profile, ad9910_profile_phase, phase);
+  ad9910_set_profile_value(profile, ad9910_profile_amplitude, ampl);
+  ad9910_update_profile_reg(profile);
 }
 
 void
