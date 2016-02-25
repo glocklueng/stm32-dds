@@ -45,7 +45,7 @@ static const char* protocol_data_transfer(struct protocol_state*, struct pbuf*);
 static const char* protocol_switch_packet(struct protocol_state*, const char*,
                                           const char*);
 
-static const char* generic_switch_packet(struct protocol_handler*,
+static const char* generic_switch_packet(const struct protocol_handler*,
                                          struct protocol_state*, const char*,
                                          const char*);
 
@@ -255,7 +255,7 @@ protocol_data_transfer(struct protocol_state* es, struct pbuf* p)
 }
 
 static const char*
-generic_switch_packet(struct protocol_handler* handler,
+generic_switch_packet(const struct protocol_handler* handler,
                       struct protocol_state* es, const char* begin,
                       const char* end)
 {
@@ -274,7 +274,7 @@ static const char*
 protocol_switch_packet(struct protocol_state* es, const char* begin,
                        const char* end)
 {
-  static struct protocol_handler subsystem_handler_list[] = {
+  static const struct protocol_handler subsystem_handler_list[] = {
     { "OUTPUT:", output_subsystem_handler }, { NULL, NULL }
   };
 
@@ -290,7 +290,7 @@ static const char*
 output_subsystem_handler(struct protocol_state* es, const char* begin,
                          const char* end)
 {
-  static struct protocol_handler output_subsystem_handler_list[] = {
+  static const struct protocol_handler output_subsystem_handler_list[] = {
     { "FREQ", output_freq_handler },
     { "SINC", output_sinc_handler },
     { NULL, NULL }
