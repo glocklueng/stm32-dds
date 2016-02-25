@@ -302,6 +302,7 @@ skip_till_end_of_line(const char** pbegin, const char* end)
 {
   while (*pbegin < end) {
     if (**pbegin == '\n') {
+      *pbegin += 1;
       return;
     }
 
