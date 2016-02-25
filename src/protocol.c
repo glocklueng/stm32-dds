@@ -48,6 +48,8 @@ static const char* protocol_switch_packet(struct protocol_state*, const char*,
 static const char* generic_switch_packet(struct protocol_handler*,
                                          struct protocol_state*, const char*,
                                          const char*);
+
+/* output subsystem */
 static const char* output_subsystem_handler(struct protocol_state*, const char*,
                                             const char*);
 static const char* output_freq_handler(struct protocol_state*, const char*,
@@ -57,6 +59,7 @@ static const char* output_sinc_handler(struct protocol_state*, const char*,
 
 static inline size_t distance(const void*, const void*);
 
+/* parser helper functions */
 static void skip_whitespace(const char**, const char*);
 static void skip_till_end_of_line(const char**, const char*);
 static int parse_boolean(const char**, const char*);
