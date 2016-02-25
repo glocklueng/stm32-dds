@@ -188,11 +188,9 @@ ad9910_convert_frequency(double f)
 }
 
 void
-ad9910_set_frequency(uint8_t profile, double freq)
+ad9910_set_frequency(uint8_t profile, uint32_t freq)
 {
-  uint32_t f = ad9910_convert_frequency(freq);
-
-  ad9910_set_profile_value(profile, ad9910_profile_frequency, f);
+  ad9910_set_profile_value(profile, ad9910_profile_frequency, freq);
   ad9910_update_profile_reg(profile);
 }
 
@@ -211,17 +209,10 @@ ad9910_set_phase(uint8_t profile, uint16_t phase)
 }
 
 void
-ad9910_set_single_tone(uint8_t profile, double freq, uint16_t ampl,
+ad9910_set_single_tone(uint8_t profile, uint32_t freq, uint16_t ampl,
                        uint16_t phase)
 {
-  /* calculate matching frequency tuning word
-   * ftw = freq / clock speed * 2^32 */
-  uint32_t ftw = nearbyint(freq / 1e9 * 0xFFFFFFFF);
-
-  /* amplitude is only 14 bits, force the two upper bits to zero */
-  ampl &= 0x3FFF;
-
-  ad9910_set_profile_value(profile, ad9910_profile_frequency, ftw);
+  ad9910_set_profile_value(profile, ad9910_profile_frequency, freq);
   ad9910_set_profile_value(profile, ad9910_profile_phase, phase);
   ad9910_set_profile_value(profile, ad9910_profile_amplitude, ampl);
   ad9910_update_profile_reg(profile);

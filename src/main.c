@@ -13,7 +13,7 @@ main(void)
      */
   ad9910_init();
 
-  ad9910_set_single_tone(0, 80e6, 0x3FFF, 0);
+  ad9910_set_single_tone(0, ad9910_convert_frequency(80e6), 0x3FFF, 0);
   ad9910_select_profile(0);
   ad9910_io_update();
 
