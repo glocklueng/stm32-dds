@@ -101,6 +101,9 @@ ad9910_init()
   /* enable PDCLK line */
   ad9910_set_value(ad9910_pdclk_enable, 1);
 
+  /* enable inverse sinc filter */
+  ad9910_set_value(ad9910_inverse_sinc_filter_enable, 1);
+
   /* update all register. It might be that only the STM32F4 has been
    * resetet and there is still data in the registers. With these commands
    * we set them to the values we specified */
