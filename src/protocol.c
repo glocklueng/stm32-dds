@@ -3,6 +3,7 @@
 #include "ad9910.h"
 #include "ethernet.h"
 
+#include <ctype.h>
 #include <lwip/pbuf.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -44,6 +45,8 @@ static const char* output_subsystem_handler(struct protocol_state*, const char*,
 static const char* output_freq_handler(struct protocol_state*, const char*,
                                        size_t);
 
+static void skip_whitespace(const char*, size_t, char**);
+static uint32_t parse_frequency(const char*, size_t, char**);
 static const char* skip_till_end_of_line(const char*, size_t);
 
 struct protocol_state*
@@ -259,12 +262,44 @@ static const char*
 output_freq_handler(struct protocol_state* es, const char* data, size_t len)
 {
   char* endptr;
-  double freq = strtod(data, &endptr);
+  uint32_t freq = parse_frequency(data, len, &endptr);
 
   ad9910_set_frequency(0, freq);
   ad9910_io_update();
 
   return endptr;
+}
+
+static uint32_t
+parse_frequency(const char* data, size_t len, char** end)
+{
+  double freq = strtod(data, end);
+
+  char* tend = *end;
+
+  skip_whitespace(data, len, end);
+
+  size_t used = *end - data;
+  if (len - used >= 2 && strncasecmp("Hz", *end, 2) == 0) {
+    *end += 2;
+  } else {
+    *end = tend;
+  }
+
+  return ad9910_convert_frequency(freq);
+}
+
+static void
+skip_whitespace(const char* data, size_t len, char** end)
+{
+  *end = (char*)data;
+  for (; len > 0; --len) {
+    if (!isspace(**end)) {
+      return;
+    }
+
+    *end += 1;
+  }
 }
 
 static const char*
