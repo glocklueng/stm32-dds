@@ -22,11 +22,15 @@ struct protocol_state
 {
   struct server_state* es;
   protocol_status status;
+  char* binary_target;
+  size_t binary_remaining;
 };
 
 static struct protocol_state ps = {
   .es = NULL,
   .status = unconnected,
+  .binary_target = NULL,
+  .binary_remaining = 0,
 };
 
 struct protocol_handler
@@ -219,7 +223,32 @@ protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
 static const char*
 protocol_data_transfer(struct protocol_state* es, struct pbuf* p)
 {
-  return p->payload;
+  /* if the binary_target is NULL something failed earlier (most likely
+   * out of mem). We just throw away the matching amount of bytes */
+  if (es->binary_target == NULL) {
+    if (p->len <= es->binary_remaining) {
+      es->binary_remaining -= p->len;
+      return p->payload + p->len;
+    } else {
+      char* endptr = p->payload + es->binary_remaining;
+      es->binary_remaining = 0;
+      return endptr;
+    }
+  } else {
+    /* normal data transfer */
+    if (p->len <= es->binary_remaining) {
+      memcpy(es->binary_target, p->payload, p->len);
+      es->binary_target += p->len;
+      es->binary_remaining -= p->len;
+      return p->payload + p->len;
+    } else {
+      memcpy(es->binary_target, p->payload, es->binary_remaining);
+      es->binary_target += es->binary_remaining;
+      char* endptr = p->payload + es->binary_remaining;
+      es->binary_remaining = 0;
+      return endptr;
+    }
+  }
 }
 
 static const char*
