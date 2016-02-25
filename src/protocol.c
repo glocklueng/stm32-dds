@@ -45,11 +45,14 @@ static const char* output_subsystem_handler(struct protocol_state*, const char*,
                                             const char*);
 static const char* output_freq_handler(struct protocol_state*, const char*,
                                        const char*);
+static const char* output_sinc_handler(struct protocol_state*, const char*,
+                                       const char*);
 
 static inline size_t distance(const void*, const void*);
 
 static void skip_whitespace(const char**, const char*);
 static void skip_till_end_of_line(const char**, const char*);
+static int parse_boolean(const char**, const char*);
 static uint32_t parse_frequency(const char**, const char*);
 static uint16_t parse_amplitude(const char**, const char*);
 
@@ -253,7 +256,9 @@ output_subsystem_handler(struct protocol_state* es, const char* begin,
                          const char* end)
 {
   static struct protocol_handler output_subsystem_handler_list[] = {
-    { "FREQ", output_freq_handler }, { NULL, NULL }
+    { "FREQ", output_freq_handler },
+    { "SINC", output_sinc_handler },
+    { NULL, NULL }
   };
 
   return generic_switch_packet(output_subsystem_handler_list, es, begin, end);
@@ -266,6 +271,20 @@ output_freq_handler(struct protocol_state* es, const char* begin,
   uint32_t freq = parse_frequency(&begin, end);
 
   ad9910_set_frequency(0, freq);
+  ad9910_io_update();
+
+  return begin;
+}
+
+static const char*
+output_sinc_handler(struct protocol_state* es, const char* begin,
+                    const char* end)
+{
+  skip_whitespace(&begin, end);
+  int v = parse_boolean(&begin, end);
+
+  ad9910_set_value(ad9910_inverse_sinc_filter_enable, v);
+  ad9910_update_matching_reg(ad9910_inverse_sinc_filter_enable);
   ad9910_io_update();
 
   return begin;
@@ -308,4 +327,36 @@ skip_till_end_of_line(const char** pbegin, const char* end)
 
     *pbegin += 1;
   }
+}
+
+static int
+parse_boolean(const char** pbegin, const char* end)
+{
+  if (*pbegin == end) {
+    return 0;
+  } else if (**pbegin == '1') {
+    *pbegin += 1;
+    return 1;
+  } else if (**pbegin == '0') {
+    *pbegin += 1;
+    return 0;
+  } else if (distance(*pbegin, end) >= 5 &&
+             strncasecmp(*pbegin, "false", 5) == 0) {
+    *pbegin += 5;
+    return 0;
+  } else if (distance(*pbegin, end) >= 4 &&
+             strncasecmp(*pbegin, "true", 4) == 0) {
+    *pbegin += 4;
+    return 1;
+  } else if (distance(*pbegin, end) >= 3 &&
+             strncasecmp(*pbegin, "off", 3) == 0) {
+    *pbegin += 3;
+    return 0;
+  } else if (distance(*pbegin, end) >= 2 &&
+             strncasecmp(*pbegin, "on", 2) == 0) {
+    *pbegin += 2;
+    return 1;
+  }
+
+  return 0;
 }
