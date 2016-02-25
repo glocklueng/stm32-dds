@@ -24,7 +24,10 @@ struct protocol_state
   protocol_status status;
 };
 
-static struct protocol_state ps;
+static struct protocol_state ps = {
+  .es = NULL,
+  .status = unconnected,
+};
 
 struct protocol_handler
 {
