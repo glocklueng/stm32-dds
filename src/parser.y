@@ -1,4 +1,7 @@
 %{
+#include "ad9910.h"
+#include "ethernet.h"
+
 int yylex(void);
 void yyerror(const char*);
 
@@ -7,34 +10,66 @@ yyerror(const char* s)
 {
   /* we could write a proper error message here */
 }
+
 %}
 
 %error-verbose
 %debug
+%output "build/parser.tab.c"
+%defines "build/parser.tab.h"
+
+%union {
+  uint32_t integer;
+  double floating;
+}
+
 %start ROOT
 
 %token COLON
+%token DOUBLECOLON
 %token EOL
 %token FREQ
-%token NUMBER
+%token INTEGER
 %token OUTPUT
+%token FLOAT
 %token QUESTIONMARK
-%token RESET
+%token RST
+%token WHITESPACE
+%token UNIT_HZ
+
+%type <floating> double
+%type <floating> frequency
 
 %%
 
-ROOT:
-  command
+ROOT
+  : command_list
+  ;
 
+command_list
+  : command EOL { ethernet_cmd_done(); } command_list
+  | command EOL { ethernet_cmd_done(); } endcmd
+  ;
 
-command:
-  system QUESTIONMARK
-| system arg
-;
+endcmd
+  : QUESTIONMARK QUESTIONMARK
+  ;
 
-system:
-  OUTPUT COLON FREQ
+command
+  : OUTPUT COLON FREQ WHITESPACE frequency[F]
+    {
+      ad9910_set_frequency(0, $F);
+      ad9910_io_update();
+    }
+  ;
 
-arg:
-  NUMBER
+frequency
+  : double UNIT_HZ { $$ = $1; }
+  | double WHITESPACE UNIT_HZ { $$ = $1; }
+  | double { $$ = $1; }
+  ;
 
+double
+  : FLOAT { $$ = yylval.floating; }
+  | INTEGER { $$ = yylval.integer; }
+  ;

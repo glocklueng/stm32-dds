@@ -194,7 +194,6 @@ _sbrk(int incr)
 int
 _read(int file, char* ptr, int len)
 {
-  int n;
   int num = 0;
   switch (file) {
     case STDIN_FILENO:
@@ -262,7 +261,6 @@ _wait(int* status)
 int
 _write(int file, char* ptr, int len)
 {
-  int n;
   switch (file) {
     case STDOUT_FILENO: /*stdout*/
       /* we could write to USART here */

@@ -10,7 +10,6 @@ SRCS=src/main.c \
      src/gpio.c \
      src/interrupts.c \
      src/ethernet.c \
-     src/protocol.c \
      src/syscalls.c \
      src/spi.c \
      src/timing.c
@@ -21,10 +20,10 @@ HDRS=include/defines.h \
      include/gpio.h \
      include/interrupts.h \
      include/main.h \
-     include/protocol.h \
      include/spi.h \
      include/stm32f4x7_eth_conf.h \
-     include/timing.h
+     include/timing.h \
+     include/util.h
 OBJS=$(patsubst src/%.c,$(BUILDDIR)/%.o, $(SRCS)) \
     $(BUILDDIR)/lex.yy.o \
     $(BUILDDIR)/parser.tab.o
@@ -36,9 +35,6 @@ LIB_FILES=$(LIBS:%=lib/%)
 STM32_DIR=lib/stm32f4
 LWIP_DIR=lib/lwip
 TM_DIR=lib/tm
-
-LEX_OPTS+=-i -B -R --bison-bridge
-YACC_OPTS+=-d
 
 #CFLAGS+=-Wmissing-declarations -Werror=implicit-function-declaration
 CFLAGS+=-Wno-unused-parameter -Winline
@@ -66,13 +62,13 @@ $(BUILDDIR)/lex.yy.c: src/scanner.l $(BUILDDIR)/parser.tab.h
 
 $(BUILDDIR)/%.tab.c: src/%.y
 	@mkdir -p $(@D)
-	cd $(BUILDDIR) ; $(YACC) $(YACC_OPTS) ../$<
+	$(YACC) $(YACC_OPTS) $<
 
 $(BUILDDIR)/%.tab.h: src/%.y
 	@mkdir -p $(@D)
-	cd $(BUILDDIR) ; $(YACC) $(YACC_OPTS) ../$<
+	$(YACC) $(YACC_OPTS) $<
 
-$(BUILDDIR)/%.o: src/%.c
+$(BUILDDIR)/%.o: src/%.c $(BUILDDIR)/parser.tab.h
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
