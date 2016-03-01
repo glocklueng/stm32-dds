@@ -46,6 +46,9 @@ CPPFLAGS+=-I$(LWIP_DIR) -I$(LWIP_DIR)/src/include -I$(LWIP_DIR)/src/include/ipv4
 CPPFLAGS+=-I$(LWIP_DIR)/port/STM32F4x7/Standalone/include
 CPPFLAGS+=-I$(TM_DIR)/include
 
+# reduce flex buffer sizes. defines in lexer file are added to late
+CPPFLAGS+=-DYY_BUF_SIZE=128 -DYY_READ_BUF_SIZE=64
+
 ## use custom linker script
 LDFLAGS+=-Tsrc/stm32_flash.ld
 
