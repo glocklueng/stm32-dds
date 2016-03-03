@@ -18,12 +18,6 @@ static char buffer[INPUT_BUFFER_SIZE + 1];
 static char* buffer_begin = buffer;
 static char* buffer_end = buffer;
 
-/* allocate a common buffer which can be used by parsing functions.
- * The size is INPUT_BUFFER_SIZE + 1 to always fit the whole input string
- * including a zero termination */
-#define PARSER_BUFFER_SIZE (INPUT_BUFFER_SIZE + 1)
-static char parser_buffer[PARSER_BUFFER_SIZE];
-
 typedef enum {
   unconnected,
   connecting,
@@ -79,6 +73,8 @@ static double parse_double(const char**, const char*);
 static int parse_boolean(const char**, const char*);
 static uint32_t parse_frequency(const char**, const char*);
 static uint16_t parse_amplitude(const char**, const char*);
+
+static int is_buffered(const char* p);
 
 static inline size_t
 distance(const void* fst, const void* snd)
@@ -146,6 +142,8 @@ align_buffer(char* buffer, char** begin, char** end)
     memmove(buffer, *begin, length);
     *begin = buffer;
     *end = buffer + length;
+    /* ensure zero termination */
+    buffer[length] = '\0';
   }
 }
 
@@ -184,6 +182,7 @@ protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
       if (temp_begin == data_begin) {
         memcpy(buffer_begin, data_begin, distance(data_begin, data_end));
         buffer_end = buffer_begin + distance(data_begin, data_end);
+        *buffer_end = '\0';
         align_buffer(buffer, &buffer_begin, &buffer_end);
         return;
       }
@@ -198,11 +197,13 @@ protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
         /* whole package does fit in remaining buffer */
         memcpy(buffer_end, data_begin, distance(data_begin, data_end));
         buffer_end += distance(data_begin, data_end);
+        *buffer_end = '\0';
         data_begin = data_end;
       } else {
         /* only parts of the buffer do fit */
         memcpy(buffer_end, data_begin, buf_remaining);
         buffer_end += buf_remaining;
+        *buffer_end = '\0';
         data_begin += buf_remaining;
       }
 
@@ -378,21 +379,22 @@ parse_double(const char** pbegin, const char* end)
 {
   skip_whitespace(pbegin, end);
 
-  // strtod assumes the strings are zero terminated, however ours aren't
-  const char* p = *pbegin;
-  char* b = parser_buffer;
-  while (p < end && (isdigit(*p) || *p == 'e' || *p == 'E' || *p == '.' ||
-                     *p == '+' || *p == '-')) {
-    *b++ = *p++;
+  const char* p = *pbegin;;
+
+  if (!is_buffered(p)) {
+    /* we need zero terminated data, copy it into the buffer */
+    memcpy(buffer, *pbegin, distance(*pbegin, end));
+    buffer[distance(*pbegin, end)] = '\0';
+
+    p = buffer;
   }
 
-  *b = '\0';
+  char* endptr = (char*)p;
 
-  double out = strtod(parser_buffer, &b);
+  double out = strtod(p, &endptr);
 
   /* increment position pointer */
-  size_t used = b - parser_buffer;
-  *pbegin += used;
+  *pbegin += distance(p, endptr);
 
   return out;
 }
@@ -427,4 +429,14 @@ parse_boolean(const char** pbegin, const char* end)
   }
 
   return 0;
+}
+
+static int
+is_buffered(const char* p)
+{
+  if (p >= buffer && p < buffer + INPUT_BUFFER_SIZE) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
