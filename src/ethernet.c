@@ -408,12 +408,12 @@ lwip_periodic_handle(uint32_t localtime)
     }
   }
 
-  if (localtime - tcp_timer >= TCP_TMR_INTERVAL) {
+  if (localtime - tcp_timer >= TCP_TMR_INTERVAL / 10) {
     tcp_timer = localtime;
     tcp_tmr();
   }
 
-  if (localtime - arp_timer >= ARP_TMR_INTERVAL) {
+  if (localtime - arp_timer >= ARP_TMR_INTERVAL / 10) {
     arp_timer = localtime;
     etharp_tmr();
   }
