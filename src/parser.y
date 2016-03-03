@@ -47,12 +47,16 @@ ROOT
   ;
 
 command_list
-  : command EOL { ethernet_cmd_done(); } command_list
-  | command EOL { ethernet_cmd_done(); } endcmd
+  : commandline command_list
+  | commandline endcmd
   ;
 
 endcmd
-  : QUESTIONMARK QUESTIONMARK
+  : QUESTIONMARK QUESTIONMARK { YYACCEPT; }
+  ;
+
+commandline
+  : command EOL { ethernet_cmd_done(); }
   ;
 
 command

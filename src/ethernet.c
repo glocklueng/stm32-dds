@@ -184,10 +184,6 @@ ethernet_get_data(char* buf, size_t len)
     lwip_periodic_handle(LocalTime);
   } while (!es.parsing && es.pin == NULL);
 
-  if (es.parsing) {
-    return 0;
-  }
-
   es.parsing = 1;
 
   while (i < len) {
