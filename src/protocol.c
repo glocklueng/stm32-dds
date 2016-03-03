@@ -9,7 +9,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INPUT_BUFFER_SIZE (1024)
+#define INPUT_BUFFER_SIZE (1023)
+
+/* we use a static memory array for intermediate data storage.
+  * We add an extra byte which we can use to store a terminating zero
+  * byte */
+static char buffer[INPUT_BUFFER_SIZE + 1];
+static char* buffer_begin = buffer;
+static char* buffer_end = buffer;
+
 /* allocate a common buffer which can be used by parsing functions.
  * The size is INPUT_BUFFER_SIZE + 1 to always fit the whole input string
  * including a zero termination */
@@ -152,11 +160,6 @@ align_buffer(char* buffer, char** begin, char** end)
 static void
 protocol_assemble_packet(struct protocol_state* ps, struct pbuf* p)
 {
-  /* we use a static memory array for intermediate data storage */
-  static char buffer[INPUT_BUFFER_SIZE];
-  static char* buffer_begin = buffer;
-  static char* buffer_end = buffer;
-
   const char* data_begin = p->payload;
   const char* data_end = p->payload + p->len;
 
