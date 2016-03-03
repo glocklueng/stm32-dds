@@ -10,6 +10,11 @@
 #include <string.h>
 
 #define INPUT_BUFFER_SIZE (1024)
+/* allocate a common buffer which can be used by parsing functions.
+ * The size is INPUT_BUFFER_SIZE + 1 to always fit the whole input string
+ * including a zero termination */
+#define PARSER_BUFFER_SIZE (INPUT_BUFFER_SIZE + 1)
+static char parser_buffer[PARSER_BUFFER_SIZE];
 
 typedef enum {
   unconnected,
@@ -62,6 +67,7 @@ static inline size_t distance(const void*, const void*);
 /* parser helper functions */
 static void skip_whitespace(const char**, const char*);
 static void skip_till_end_of_line(const char**, const char*);
+static double parse_double(const char**, const char*);
 static int parse_boolean(const char**, const char*);
 static uint32_t parse_frequency(const char**, const char*);
 static uint16_t parse_amplitude(const char**, const char*);
@@ -328,7 +334,7 @@ output_sinc_handler(struct protocol_state* es, const char* begin,
 static uint32_t
 parse_frequency(const char** pbegin, const char* end)
 {
-  double freq = strtod(*pbegin, (char**)pbegin);
+  double freq = parse_double(pbegin, end);
 
   skip_whitespace(pbegin, end);
 
@@ -362,6 +368,30 @@ skip_till_end_of_line(const char** pbegin, const char* end)
 
     *pbegin += 1;
   }
+}
+
+static double
+parse_double(const char** pbegin, const char* end)
+{
+  skip_whitespace(pbegin, end);
+
+  // strtod assumes the strings are zero terminated, however ours aren't
+  const char* p = *pbegin;
+  char* b = parser_buffer;
+  while (p < end && (isdigit(*p) || *p == 'e' || *p == 'E' || *p == '.' ||
+                     *p == '+' || *p == '-')) {
+    *b++ = *p++;
+  }
+
+  *b = '\0';
+
+  double out = strtod(parser_buffer, &b);
+
+  /* increment position pointer */
+  size_t used = b - parser_buffer;
+  *pbegin += used;
+
+  return out;
 }
 
 static int
