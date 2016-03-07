@@ -356,7 +356,7 @@ static double
 parse_metric_prefix(const char** pbegin, const char* end)
 {
   if (*pbegin >= end)
-    return;
+    return 1;
 
   switch (**pbegin) {
     default:
