@@ -59,6 +59,8 @@ static const char* generic_switch_packet(const struct protocol_handler*,
 /* output subsystem */
 static const char* output_subsystem_handler(struct protocol_state*, const char*,
                                             const char*);
+static const char* output_ampl_handler(struct protocol_state*, const char*,
+                                       const char*);
 static const char* output_freq_handler(struct protocol_state*, const char*,
                                        const char*);
 static const char* output_sinc_handler(struct protocol_state*, const char*,
@@ -302,12 +304,25 @@ output_subsystem_handler(struct protocol_state* es, const char* begin,
                          const char* end)
 {
   static const struct protocol_handler output_subsystem_handler_list[] = {
+    { "AMPL", output_ampl_handler },
     { "FREQ", output_freq_handler },
     { "SINC", output_sinc_handler },
     { NULL, NULL }
   };
 
   return generic_switch_packet(output_subsystem_handler_list, es, begin, end);
+}
+
+static const char*
+output_ampl_handler(struct protocol_state* es, const char* begin,
+                    const char* end)
+{
+  uint16_t ampl = parse_amplitude(&begin, end);
+
+  ad9910_set_amplitude(0, ampl);
+  ad9910_io_update();
+
+  return begin;
 }
 
 static const char*
@@ -335,6 +350,18 @@ output_sinc_handler(struct protocol_state* es, const char* begin,
 
   return begin;
 }
+
+static uint16_t
+parse_amplitude(const char** pbegin, const char* end)
+{
+  double ampl = parse_double(pbegin, end);
+
+  skip_whitespace(pbegin, end);
+
+  /* TODO implement proper parsing for dBm values, etc. */
+  return ampl;
+}
+
 
 static uint32_t
 parse_frequency(const char** pbegin, const char* end)
