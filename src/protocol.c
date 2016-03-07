@@ -407,7 +407,7 @@ parse_double(const char** pbegin, const char* end)
 {
   skip_whitespace(pbegin, end);
 
-  const char* p = *pbegin;;
+  const char* p = *pbegin;
 
   if (!is_buffered(p)) {
     /* we need zero terminated data, copy it into the buffer */
