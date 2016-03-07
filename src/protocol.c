@@ -71,6 +71,7 @@ static void skip_whitespace(const char**, const char*);
 static void skip_till_end_of_line(const char**, const char*);
 static double parse_double(const char**, const char*);
 static int parse_boolean(const char**, const char*);
+static double parse_metric_prefix(const char**, const char*);
 static uint32_t parse_frequency(const char**, const char*);
 static uint16_t parse_amplitude(const char**, const char*);
 
@@ -342,11 +343,38 @@ parse_frequency(const char** pbegin, const char* end)
 
   skip_whitespace(pbegin, end);
 
+  freq *= parse_metric_prefix(pbegin, end);
+
   if (distance(*pbegin, end) >= 2 && strncasecmp("Hz", *pbegin, 2) == 0) {
     *pbegin += 2;
   }
 
   return ad9910_convert_frequency(freq);
+}
+
+static double
+parse_metric_prefix(const char** pbegin, const char* end)
+{
+  if (*pbegin >= end)
+    return;
+
+  switch (**pbegin) {
+    default:
+      /* standard is a multiplier of 1 (not 0) */
+      return 1;
+    case 'k':
+      *pbegin += 1;
+      return 1e3;
+    case 'M':
+      *pbegin += 1;
+      return 1e6;
+    case 'G':
+      *pbegin += 1;
+      return 1e9;
+    case 'm':
+      *pbegin += 1;
+      return 1e-3;
+  }
 }
 
 static void
