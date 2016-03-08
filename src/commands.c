@@ -46,6 +46,8 @@ static void
 wait_for_trigger(ad9910_trigger_mode trigger)
 {
   switch (trigger) {
+    case ad9910_trigger_none:
+      break;
     case ad9910_trigger_io_update:
       /* make sure IO_UPDATE is configured as an input pin */
       gpio_set_pin_mode_input(IO_UPDATE);

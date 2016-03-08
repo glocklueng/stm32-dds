@@ -14,6 +14,7 @@ typedef enum {
 } ad9910_command_type;
 
 typedef enum {
+  ad9910_trigger_none = 0,
   ad9910_trigger_extern,
   ad9910_trigger_io_update,
 } ad9910_trigger_mode;
