@@ -46,7 +46,7 @@ CPPFLAGS+=-I$(LWIP_DIR)/port/STM32F4x7/Standalone/include
 CPPFLAGS+=-I$(TM_DIR)/include
 
 ## use custom linker script
-LDFLAGS+=-Tsrc/stm32_flash.ld
+LDFLAGS+=-Tsrc/stm32_flash.ld -lm
 
 .PHONY: all lib proj clean flash stlink gdb
 

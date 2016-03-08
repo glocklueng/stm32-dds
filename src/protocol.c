@@ -5,6 +5,7 @@
 
 #include <ctype.h>
 #include <lwip/pbuf.h>
+#include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -358,8 +359,13 @@ parse_amplitude(const char** pbegin, const char* end)
 
   skip_whitespace(pbegin, end);
 
-  /* TODO implement proper parsing for dBm values, etc. */
-  return ampl;
+  if (distance(*pbegin, end) >= 3 && strncasecmp("dBm", *pbegin, 3) == 0) {
+    *pbegin += 3;
+
+    ampl = 0x3FFF * pow(10, ampl / 20);
+  }
+
+  return nearbyint(ampl);
 }
 
 
