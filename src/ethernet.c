@@ -3,6 +3,7 @@
 #include "gpio.h"
 #include "timing.h"
 #include "util.h"
+#include "parser.tab.h"
 
 #include <ethernetif.h>
 #include <lwip/stats.h>
@@ -24,6 +25,12 @@ enum server_states
   ES_CLOSING
 };
 
+enum server_flags
+{
+  ES_ENDOFLINE = 0x01,
+  ES_DONE = 0x02,
+};
+
 /**
  * custom structure containing all connection details. Gets passed to all
  * callback functions as first parameter (arg). State information relevant
@@ -31,21 +38,21 @@ enum server_states
  */
 struct server_state
 {
-  u8_t state;
+  uint8_t state;
+  uint8_t flags;
   struct tcp_pcb* pcb;
   struct pbuf* pin;
   size_t pin_offset;
   struct pbuf* pout;
-  uint8_t parsing;
 };
 
 static struct server_state es = {
   .state = ES_NONE,
+  .flags = 0,
   .pcb = NULL,
   .pin = NULL,
   .pin_offset = 0,
   .pout = NULL,
-  .parsing = 0,
 };
 
 static struct netif gnetif;
@@ -161,7 +168,16 @@ ethernet_copy_queue(const char* data, uint16_t length)
 void
 ethernet_cmd_done()
 {
-  es.parsing = 0;
+  /* clear endofline flag */
+  es.flags &= ~ES_ENDOFLINE;
+}
+
+void
+ethernet_loop()
+{
+  while (!(es.flags & ES_DONE)) {
+    yyparse();
+  }
 }
 
 size_t
@@ -182,9 +198,13 @@ ethernet_get_data(char* buf, size_t len)
     }
 
     lwip_periodic_handle(LocalTime);
-  } while (!es.parsing && es.pin == NULL);
 
-  es.parsing = 1;
+    /* if we already found the end of the current command the don't return
+     * any new data */
+    if (es.flags & ES_ENDOFLINE) {
+      return 0;
+    }
+  } while (es.pin == NULL);
 
   while (i < len) {
 
@@ -198,6 +218,7 @@ ethernet_get_data(char* buf, size_t len)
 
       /* if we parsed an end of line character we say the buffer has ended */
       if (p[es.pin_offset - 1] == '\n') {
+        es.flags |= ES_ENDOFLINE;
         break;
       }
     }
@@ -223,7 +244,6 @@ ethernet_get_data(char* buf, size_t len)
     }
   }
 
-end:
   tcp_recved(es.pcb, i);
 
   return i;

@@ -1,7 +1,6 @@
 #include "ad9910.h"
 #include "gpio.h"
 #include "ethernet.h"
-#include "parser.tab.h"
 
 int
 main(void)
@@ -22,7 +21,7 @@ main(void)
 
   ethernet_init();
 
-  yyparse();
+  ethernet_loop();
 
   gpio_blink_forever_slow(LED_RED);
 }
