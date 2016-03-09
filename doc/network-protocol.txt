@@ -1,0 +1,59 @@
+maybe use syntax like SCPI
+
+Functions:
+ - Reset
+ - Set output mode
+ - write data to RAM
+ - Disable Network and start playback
+
+Commands:
+ - reset
+ - access dds registers (low level)
+ - save functions to mem
+ - write to spi
+ - change trigger mode
+*RST
+REGISTER
+
+OUTPUT:
+  FREQ <freq>
+  AMPL <ampl>
+  SINC <bool>
+
+DATA:
+  ADD <dataname> <datablock>
+  DEL <dataname>
+  DEL ALL
+  LIST
+
+CMD:
+  ADD <cmdname> <frequency_cmd>,<amplitude_cmd>
+  ADD <cmdname> <frequency_cmd>,<amplitude_cmd>,<phase_cmd>
+  DEL <cmdname>
+  DEL ALL
+  LIST
+
+RAM:
+  WRITE [1-7] <datablock>
+  READ [1-7]
+
+SEQ:
+  <seqlist>
+
+<frequency_cmd>: <cmd>
+<amplitude_cmd>: <cmd>
+<phase_cmd>: <cmd>
+
+<cmd>:
+  NONE
+  FIXED <value>
+  PARALLEL
+  RAM [1-7]
+  RAMP <ramp_settings>
+
+<seqlist>   <seqblock>,<seqlist> | <seqblock>
+<seqblock>  <cmdname> | <cmdname>:<repitions>
+<dataname>  <name>
+<cmdname>   <name>
+<name>      [a-zA-Z0-9_-]{1,7}
+<datablk>   #([0-9])([0-9]{\1}).{\2}
