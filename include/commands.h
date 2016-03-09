@@ -4,49 +4,55 @@
 #include <stdint.h>
 
 typedef enum {
-  ad9910_command_end = 0,
-  ad9910_command_parallel,
-  ad9910_command_ram,
-  ad9910_command_frequeny_ramp,
-  ad9910_command_amplitude_ramp,
-  ad9910_command_phase_ramp,
-  ad9910_command_single_tone,
+  ad9910_command_none = 0x00,
+  ad9910_command_fixed = 0x01,
+  ad9910_command_parallel = 0x02,
+  ad9910_command_ram = 0x04,
+  ad9910_command_ramp = 0x08,
 } ad9910_command_type;
 
 typedef enum {
-  ad9910_trigger_none = 0,
+  ad9910_end_of_sequence = 0,
+  ad9910_trigger_none,
   ad9910_trigger_extern,
   ad9910_trigger_io_update,
 } ad9910_trigger_mode;
 
 typedef struct
 {
-  uint16_t command_type;
-  uint16_t trigger;
+  uint8_t trigger;
+  uint8_t frequency;
+  uint8_t amplitude;
+  uint8_t phase;
 } ad9910_command;
 
 typedef struct
 {
-  ad9910_command command;
-  double frequency;
-  uint16_t amplitude;
-  uint16_t phase;
-} ad9910_single_tone_command;
+  uint32_t value;
+} ad9910_fixed_command;
 
 typedef struct
 {
-  ad9910_command command;
-  uint16_t amplitude;
-  uint16_t phase;
+  char data_block[8];
+  uint32_t delay;
+} ad9910_parallel_command;
+
+typedef struct
+{
+  uint8_t profile;
+} ad9910_ram_command;
+
+typedef struct
+{
   uint32_t upper_limit;
   uint32_t lower_limit;
   uint32_t decrement_step;
   uint32_t increment_step;
   uint16_t negative_slope;
   uint16_t positive_slope;
-  int no_dwell_high;
-  int no_dwell_low;
-} ad9910_frequency_ramp_command;
+  uint8_t no_dwell_high;
+  uint8_t no_dwell_low;
+} ad9910_ramp_command;
 
 /** this function takes a list of commands and works through that list
  * command by command. It waits until the corresponding trigger is

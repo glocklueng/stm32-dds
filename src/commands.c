@@ -3,42 +3,72 @@
 #include "ad9910.h"
 #include "gpio.h"
 
-static uint32_t execute_command(const ad9910_command*);
+typedef enum {
+  ad9910_frequency,
+  ad9910_amplitude,
+  ad9910_phase,
+} ad9910_target;
+
+static uint32_t prepare_command(ad9910_target, ad9910_command_type,
+                                const void*);
+static void prepare_fixed_command(ad9910_target, const ad9910_fixed_command*);
+static void prepare_parallel_command(ad9910_target,
+                                     const ad9910_parallel_command*);
+static void prepare_ram_command(ad9910_target, const ad9910_ram_command*);
+static void prepare_ramp_command(ad9910_target, const ad9910_ramp_command*);
 static void wait_for_trigger(ad9910_trigger_mode);
-static void execute_single_tone(const ad9910_single_tone_command*);
-static void execute_frequency_ramp(const ad9910_frequency_ramp_command*);
+
+static int any_output_is(ad9910_command_type);
+
+static ad9910_command command_state = {
+  .trigger = ad9910_trigger_none,
+  .frequency = 0,
+  .amplitude = 0,
+  .phase = 0,
+};
 
 void
 ad9910_process_commands(const ad9910_command* commands)
 {
   for (;;) {
-    uint32_t length = execute_command(commands);
-
-    /* the special length of -1 means that the end command has been
-     * encountered. This stops execution */
-    if (length == (uint32_t)-1) {
+    /* a trigger value of 0 marks the end of the sequence */
+    if (commands->trigger == ad9910_end_of_sequence) {
       break;
     }
+
+    uint32_t length = sizeof(ad9910_command);
+    length +=
+      prepare_command(ad9910_frequency, commands->frequency, commands + length);
+    length +=
+      prepare_command(ad9910_amplitude, commands->amplitude, commands + length);
+    length += prepare_command(ad9910_phase, commands->phase, commands + length);
+
+    wait_for_trigger(commands->trigger);
 
     commands += length;
   }
 }
 
 static uint32_t
-execute_command(const ad9910_command* command)
+prepare_command(ad9910_target tgt, ad9910_command_type cmd, const void* data)
 {
-  switch ((ad9910_command_type)command->command_type) {
+  switch (cmd) {
     /* this case shouldn't happen, but just in case we stop execution */
     default:
-      return -1;
-    case ad9910_command_end:
-      return -1;
-    case ad9910_command_single_tone:
-      execute_single_tone((const ad9910_single_tone_command*)command);
-      return sizeof(ad9910_single_tone_command) / 4;
-    case ad9910_command_frequeny_ramp:
-      execute_frequency_ramp((const ad9910_frequency_ramp_command*)command);
-      return sizeof(ad9910_frequency_ramp_command) / 4;
+    case ad9910_command_none:
+      return 0;
+    case ad9910_command_fixed:
+      prepare_fixed_command(tgt, data);
+      return sizeof(ad9910_fixed_command);
+    case ad9910_command_parallel:
+      prepare_parallel_command(tgt, data);
+      return sizeof(ad9910_parallel_command);
+    case ad9910_command_ram:
+      prepare_ram_command(tgt, data);
+      return sizeof(ad9910_ram_command);
+    case ad9910_command_ramp:
+      prepare_ramp_command(tgt, data);
+      return sizeof(ad9910_ramp_command);
   }
 }
 
@@ -46,6 +76,7 @@ static void
 wait_for_trigger(ad9910_trigger_mode trigger)
 {
   switch (trigger) {
+    case ad9910_end_of_sequence:
     case ad9910_trigger_none:
       break;
     case ad9910_trigger_io_update:
@@ -71,21 +102,56 @@ wait_for_trigger(ad9910_trigger_mode trigger)
 }
 
 static void
-execute_single_tone(const ad9910_single_tone_command* command)
+prepare_fixed_command(ad9910_target tgt, const ad9910_fixed_command* cmd)
 {
-  ad9910_set_single_tone(0, command->frequency, command->amplitude,
-                         command->phase);
-
-  /* wait for the trigger before we execute the next command */
-  wait_for_trigger(command->command.trigger);
+  switch (tgt) {
+    case ad9910_frequency:
+      if (!any_output_is(ad9910_command_ram)) {
+        ad9910_set_profile_value(0, ad9910_profile_frequency, cmd->value);
+        ad9910_update_profile_reg(0);
+      }
+      ad9910_set_value(ad9910_ftw, cmd->value);
+      ad9910_update_matching_reg(ad9910_ftw);
+      break;
+    case ad9910_amplitude:
+      if (any_output_is(ad9910_command_ram)) {
+        /* if ram is used we use the parallel port to set the constant
+         * amplitude */
+        ad9910_select_parallel(ad9910_parallel_amplitude);
+        /* TODO this doesn't work if parallel was in use previously */
+        ad9910_set_parallel(cmd->value);
+        ad9910_enable_parallel(1);
+      } else {
+        ad9910_set_profile_value(0, ad9910_profile_amplitude, cmd->value);
+        ad9910_update_profile_reg(0);
+      }
+      break;
+    case ad9910_phase:
+      /* TODO this doesn't work if ram is used somewhere else */
+      ad9910_set_phase(0, cmd->value);
+      break;
+  }
 }
 
 static void
-execute_frequency_ramp(const ad9910_frequency_ramp_command* command)
+prepare_parallel_command(ad9910_target tgt, const ad9910_parallel_command* cmd)
 {
-  ad9910_set_single_tone(0, 0, command->amplitude, command->phase);
-  ad9910_program_ramp(
-    ad9910_ramp_dest_frequency, command->upper_limit, command->lower_limit,
-    command->decrement_step, command->increment_step, command->negative_slope,
-    command->positive_slope, command->no_dwell_high, command->no_dwell_low);
+}
+
+static void
+prepare_ram_command(ad9910_target tgt, const ad9910_ram_command* cmd)
+{
+}
+
+static void
+prepare_ramp_command(ad9910_target tgt, const ad9910_ramp_command* cmd)
+{
+}
+
+static int
+any_output_is(ad9910_command_type type)
+{
+  return (command_state.frequency | command_state.amplitude |
+          command_state.phase) &
+         type;
 }
