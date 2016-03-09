@@ -26,19 +26,20 @@ DATA:
   DEL ALL
   LIST
 
-CMD:
-  ADD <cmdname> <frequency_cmd>,<amplitude_cmd>
-  ADD <cmdname> <frequency_cmd>,<amplitude_cmd>,<phase_cmd>
-  DEL <cmdname>
-  DEL ALL
-  LIST
-
 RAM:
   WRITE [1-7] <datablock>
   READ [1-7]
 
-SEQ:
+SEQ
   <seqlist>
+
+<seqlist>
+  : <seqblock>;<seqlist>
+  | <seqblock>
+
+<seqblock>
+  : <frequency_cmd>,<aplitude_cmd>
+  | <frequency_cmd>,<aplitude_cmd>,<phase_cmd>
 
 <frequency_cmd>: <cmd>
 <amplitude_cmd>: <cmd>
@@ -47,11 +48,11 @@ SEQ:
 <cmd>:
   NONE
   FIXED <value>
-  PARALLEL
+  PARALLEL <dataname> <frequency>
   RAM [1-7]
   RAMP <ramp_settings>
 
-<seqlist>   <seqblock>,<seqlist> | <seqblock>
+<seqlist>   <seqblock>;<seqlist> | <seqblock>
 <seqblock>  <cmdname> | <cmdname>:<repitions>
 <dataname>  <name>
 <cmdname>   <name>
