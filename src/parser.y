@@ -53,7 +53,11 @@ ROOT
   ;
 
 command
-  : OUTPUT COLON FREQ WHITESPACE frequency[F]
+  : OUTPUT COLON output_cmd
+  ;
+
+output_cmd
+  : FREQ WHITESPACE frequency[F]
     {
       ad9910_set_frequency(0, $F);
       ad9910_io_update();
