@@ -39,6 +39,7 @@ yyerror(const char* s)
 %token FLOAT
 %token QUESTIONMARK
 %token RST
+%token SINC
 %token WHITESPACE
 %token UNIT_DBM
 %token UNIT_HZ
@@ -69,6 +70,12 @@ output_cmd
   | FREQ WHITESPACE frequency[F]
     {
       ad9910_set_frequency(0, ad9910_convert_frequency($F));
+      ad9910_io_update();
+    }
+  | SINC WHITESPACE boolean[B]
+    {
+      ad9910_set_value(ad9910_inverse_sinc_filter_enable, $B);
+      ad9910_update_matching_reg(ad9910_inverse_sinc_filter_enable);
       ad9910_io_update();
     }
   ;

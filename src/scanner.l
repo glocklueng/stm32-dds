@@ -25,6 +25,7 @@ EXP         [eE]{INTEGER}
 "OUTPUT"    { return OUTPUT; }
 "FREQ"      { return FREQ; }
 "AMPL"      { return AMPL; }
+"SINC"      { return SINC; }
 "\r\n"      { return EOL; }
 \n          { return EOL; }
 
