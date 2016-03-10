@@ -8,3 +8,4 @@ core
 *.tab.h
 *.tab.c
 lex.yy.c
+build
