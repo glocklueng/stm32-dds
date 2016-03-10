@@ -2,13 +2,15 @@
 #include "ad9910.h"
 #include "ethernet.h"
 
+#include <string.h>
+
 int yylex(void);
 void yyerror(const char*);
 
 void
 yyerror(const char* s)
 {
-  /* we could write a proper error message here */
+  ethernet_copy_queue(s, strlen(s));
 }
 
 %}
