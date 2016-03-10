@@ -2,6 +2,7 @@
 #include "ad9910.h"
 #include "ethernet.h"
 
+#include <math.h>
 #include <string.h>
 
 int yylex(void);
@@ -21,12 +22,13 @@ yyerror(const char* s)
 %defines "build/parser.tab.h"
 
 %union {
-  uint32_t integer;
-  double floating;
+  int integer;
+  float floating;
 }
 
 %start ROOT
 
+%token AMPL
 %token BOOLEAN
 %token COLON
 %token DOUBLECOLON
@@ -38,10 +40,12 @@ yyerror(const char* s)
 %token QUESTIONMARK
 %token RST
 %token WHITESPACE
+%token UNIT_DBM
 %token UNIT_HZ
 
 %type <integer>  boolean
-%type <floating> double
+%type <floating> float
+%type <integer>  amplitude
 %type <floating> frequency
 %type <floating> unit_hz
 
@@ -57,19 +61,38 @@ command
   ;
 
 output_cmd
-  : FREQ WHITESPACE frequency[F]
+  : AMPL WHITESPACE amplitude[A]
     {
-      ad9910_set_frequency(0, $F);
+      ad9910_set_amplitude(0, $A);
+      ad9910_io_update();
+    }
+  | FREQ WHITESPACE frequency[F]
+    {
+      ad9910_set_frequency(0, ad9910_convert_frequency($F));
       ad9910_io_update();
     }
   ;
 
-frequency
-  : double unit_hz { $$ = $1 * $2; }
-  | double { $$ = $1; }
+amplitude
+  : float WHITESPACE UNIT_DBM
+    {
+      float temp = powf(10, $1 / 20) * 0x3FFF;
+      $$ = nearbyint(temp);
+    }
+  | float UNIT_DBM
+    {
+      float temp = powf(10, $1 / 20) * 0x3FFF;
+      $$ = nearbyint(temp);
+    }
+  | INTEGER { $$ = yylval.integer; }
   ;
 
-double
+frequency
+  : float unit_hz { $$ = $1 * $2; }
+  | float { $$ = $1; }
+  ;
+
+float
   : FLOAT { $$ = yylval.floating; }
   | INTEGER { $$ = yylval.integer; }
   ;

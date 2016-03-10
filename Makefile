@@ -51,6 +51,7 @@ CPPFLAGS+=-DYY_BUF_SIZE=128 -DYY_READ_BUF_SIZE=64
 
 ## use custom linker script
 LDFLAGS+=-Tsrc/stm32_flash.ld
+LDFLAGS+=-lm
 
 .PHONY: all lib proj clean flash stlink gdb
 

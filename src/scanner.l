@@ -24,9 +24,11 @@ EXP         [eE]{INTEGER}
 ":"         { return COLON; }
 "OUTPUT"    { return OUTPUT; }
 "FREQ"      { return FREQ; }
+"AMPL"      { return AMPL; }
 "\r\n"      { return EOL; }
 \n          { return EOL; }
 
+"dBm"       { return UNIT_DBM; }
 "Hz"        { yylval.floating = 1; return UNIT_HZ; }
 "mHz"       { yylval.floating = 1e-3; return UNIT_HZ; }
 "kHz"       { yylval.floating = 1e3; return UNIT_HZ; }
@@ -38,11 +40,11 @@ EXP         [eE]{INTEGER}
 "on"        { yylval.integer = 1; return BOOLEAN; }
 "off"       { yylval.integer = 0; return BOOLEAN; }
 
-{FLOAT}{EXP}   { yylval.floating = atof(yytext); return FLOAT; }
-{FLOAT}        { yylval.floating = atof(yytext); return FLOAT; }
-\.[0-9]{EXP}   { yylval.floating = atof(yytext); return FLOAT; }
-\.[0-9]        { yylval.floating = atof(yytext); return FLOAT; }
-{INTEGER}{EXP} { yylval.floating = atof(yytext); return FLOAT; }
+{FLOAT}{EXP}   { yylval.floating = strtof(yytext, NULL); return FLOAT; }
+{FLOAT}        { yylval.floating = strtof(yytext, NULL); return FLOAT; }
+\.[0-9]{EXP}   { yylval.floating = strtof(yytext, NULL); return FLOAT; }
+\.[0-9]        { yylval.floating = strtof(yytext, NULL); return FLOAT; }
+{INTEGER}{EXP} { yylval.floating = strtof(yytext, NULL); return FLOAT; }
 {INTEGER}      { yylval.integer = atoi(yytext); return INTEGER; }
 [0-9a-f]+      { yylval.integer = strtol(yytext, NULL, 16); return INTEGER; }
 
