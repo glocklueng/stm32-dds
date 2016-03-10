@@ -43,6 +43,7 @@ yyerror(const char* s)
 %type <integer>  boolean
 %type <floating> double
 %type <floating> frequency
+%type <floating> unit_hz
 
 %%
 
@@ -60,8 +61,7 @@ command
   ;
 
 frequency
-  : double UNIT_HZ { $$ = $1; }
-  | double WHITESPACE UNIT_HZ { $$ = $1; }
+  : double unit_hz { $$ = $1 * $2; }
   | double { $$ = $1; }
   ;
 
@@ -73,4 +73,9 @@ double
 boolean
   : BOOLEAN { $$ = yylval.integer; }
   | INTEGER { $$ = !!yylval.integer; }
+  ;
+
+unit_hz
+  : WHITESPACE unit_hz { $$ = $2; }
+  | UNIT_HZ { $$ = yylval.floating; }
   ;

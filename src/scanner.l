@@ -24,9 +24,14 @@ EXP         [eE]{INTEGER}
 ":"         { return COLON; }
 "OUTPUT"    { return OUTPUT; }
 "FREQ"      { return FREQ; }
-"Hz"        { return UNIT_HZ; }
 "\r\n"      { return EOL; }
 \n          { return EOL; }
+
+"Hz"        { yylval.floating = 1; return UNIT_HZ; }
+"mHz"       { yylval.floating = 1e-3; return UNIT_HZ; }
+"kHz"       { yylval.floating = 1e3; return UNIT_HZ; }
+"MHz"       { yylval.floating = 1e6; return UNIT_HZ; }
+"GHz"       { yylval.floating = 1e9; return UNIT_HZ; }
 
 "true"      { yylval.integer = 1; return BOOLEAN; }
 "false"     { yylval.integer = 0; return BOOLEAN; }
