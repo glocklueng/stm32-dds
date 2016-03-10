@@ -28,6 +28,11 @@ EXP         [eE]{INTEGER}
 "\r\n"      { return EOL; }
 \n          { return EOL; }
 
+"true"      { yylval.integer = 1; return BOOLEAN; }
+"false"     { yylval.integer = 0; return BOOLEAN; }
+"on"        { yylval.integer = 1; return BOOLEAN; }
+"off"       { yylval.integer = 0; return BOOLEAN; }
+
 {FLOAT}{EXP}   { yylval.floating = atof(yytext); return FLOAT; }
 {FLOAT}        { yylval.floating = atof(yytext); return FLOAT; }
 \.[0-9]{EXP}   { yylval.floating = atof(yytext); return FLOAT; }

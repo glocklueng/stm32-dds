@@ -27,6 +27,7 @@ yyerror(const char* s)
 
 %start ROOT
 
+%token BOOLEAN
 %token COLON
 %token DOUBLECOLON
 %token EOL
@@ -39,6 +40,7 @@ yyerror(const char* s)
 %token WHITESPACE
 %token UNIT_HZ
 
+%type <integer>  boolean
 %type <floating> double
 %type <floating> frequency
 
@@ -65,4 +67,9 @@ frequency
 double
   : FLOAT { $$ = yylval.floating; }
   | INTEGER { $$ = yylval.integer; }
+  ;
+
+boolean
+  : BOOLEAN { $$ = yylval.integer; }
+  | INTEGER { $$ = !!yylval.integer; }
   ;
