@@ -166,17 +166,13 @@ ethernet_copy_queue(const char* data, uint16_t length)
 }
 
 void
-ethernet_cmd_done()
-{
-  /* clear endofline flag */
-  es.flags &= ~ES_ENDOFLINE;
-}
-
-void
 ethernet_loop()
 {
   while (!(es.flags & ES_DONE)) {
     yyparse();
+
+    /* clear end of line flag */
+    es.flags &= ~ES_ENDOFLINE;
   }
 }
 

@@ -47,7 +47,8 @@ yyerror(const char* s)
 %%
 
 ROOT
-  : command EOL { ethernet_cmd_done(); }
+  : command EOL
+  | EOL
   ;
 
 command

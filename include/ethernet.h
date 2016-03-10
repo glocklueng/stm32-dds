@@ -19,6 +19,4 @@ err_t ethernet_copy_queue(const char*, uint16_t length);
  */
 size_t ethernet_get_data(char* buf, size_t len);
 
-void ethernet_cmd_done(void);
-
 #endif /* __ETHERNET_H */
