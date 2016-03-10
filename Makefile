@@ -10,7 +10,6 @@ SRCS=src/main.c \
      src/gpio.c \
      src/interrupts.c \
      src/ethernet.c \
-     src/protocol.c \
      src/syscalls.c \
      src/spi.c \
      src/timing.c
@@ -21,11 +20,13 @@ HDRS=include/defines.h \
      include/gpio.h \
      include/interrupts.h \
      include/main.h \
-     include/protocol.h \
      include/spi.h \
      include/stm32f4x7_eth_conf.h \
-     include/timing.h
-OBJS=$(patsubst src/%.c,$(BUILDDIR)/%.o, $(SRCS))
+     include/timing.h \
+     include/util.h
+OBJS=$(patsubst src/%.c,$(BUILDDIR)/%.o, $(SRCS)) \
+    $(BUILDDIR)/lex.yy.o \
+    $(BUILDDIR)/parser.tab.o
 LIBS=libtm.a \
      liblwip.a \
      libstm32f4.a
@@ -45,8 +46,12 @@ CPPFLAGS+=-I$(LWIP_DIR) -I$(LWIP_DIR)/src/include -I$(LWIP_DIR)/src/include/ipv4
 CPPFLAGS+=-I$(LWIP_DIR)/port/STM32F4x7/Standalone/include
 CPPFLAGS+=-I$(TM_DIR)/include
 
+# reduce flex buffer sizes. defines in lexer file are added to late
+CPPFLAGS+=-DYY_BUF_SIZE=128 -DYY_READ_BUF_SIZE=64
+
 ## use custom linker script
-LDFLAGS+=-Tsrc/stm32_flash.ld -lm
+LDFLAGS+=-Tsrc/stm32_flash.ld
+LDFLAGS+=-lm
 
 .PHONY: all lib proj clean flash stlink gdb
 
@@ -55,7 +60,19 @@ all: proj
 lib/%.a:
 	$(MAKE) -C lib $(@:lib/%=%)
 
-$(BUILDDIR)/%.o: src/%.c
+$(BUILDDIR)/lex.yy.c: src/scanner.l $(BUILDDIR)/parser.tab.h
+	@mkdir -p $(@D)
+	$(LEX) $(LEX_OPTS) -o $@ $<
+
+$(BUILDDIR)/%.tab.c: src/%.y
+	@mkdir -p $(@D)
+	$(YACC) $(YACC_OPTS) $<
+
+$(BUILDDIR)/%.tab.h: src/%.y
+	@mkdir -p $(@D)
+	$(YACC) $(YACC_OPTS) $<
+
+$(BUILDDIR)/%.o: src/%.c $(BUILDDIR)/parser.tab.h
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 

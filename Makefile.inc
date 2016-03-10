@@ -13,7 +13,7 @@ YACC=bison
 CFLAGS+=-std=gnu99
 CFLAGS+=-Wall -Wextra -ggdb -g3 -O0
 # processor settings for stm32f407
-CFLAGS+=-mthumb -mcpu=cortex-m4
+CFLAGS+=-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
 CFLAGS+=-Werror=missing-prototypes -Werror=implicit-function-declaration
 

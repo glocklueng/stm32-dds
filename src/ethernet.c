@@ -2,7 +2,8 @@
 
 #include "gpio.h"
 #include "timing.h"
-#include "protocol.h"
+#include "util.h"
+#include "parser.tab.h"
 
 #include <ethernetif.h>
 #include <lwip/stats.h>
@@ -24,6 +25,12 @@ enum server_states
   ES_CLOSING
 };
 
+enum server_flags
+{
+  ES_ENDOFLINE = 0x01,
+  ES_DONE = 0x02,
+};
+
 /**
  * custom structure containing all connection details. Gets passed to all
  * callback functions as first parameter (arg). State information relevant
@@ -31,11 +38,21 @@ enum server_states
  */
 struct server_state
 {
-  u8_t state;
+  uint8_t state;
+  uint8_t flags;
   struct tcp_pcb* pcb;
   struct pbuf* pin;
+  size_t pin_offset;
   struct pbuf* pout;
-  struct protocol_state* protocol_struct;
+};
+
+static struct server_state es = {
+  .state = ES_NONE,
+  .flags = 0,
+  .pcb = NULL,
+  .pin = NULL,
+  .pin_offset = 0,
+  .pout = NULL,
 };
 
 static struct netif gnetif;
@@ -56,9 +73,8 @@ static err_t server_recv_callback(void* arg, struct tcp_pcb* pcb,
 static void server_err_callback(void* arg, err_t err);
 static err_t server_poll_callback(void* arg, struct tcp_pcb* pcb);
 static err_t server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len);
-static void server_send(struct tcp_pcb* tpcb, struct server_state* es);
-static void server_connection_close(struct tcp_pcb* pcb,
-                                    struct server_state* es);
+static void server_send(struct tcp_pcb* tpcb);
+static void server_connection_close(struct tcp_pcb* pcb);
 
 void
 ethernet_init()
@@ -94,22 +110,6 @@ ethernet_init()
   lwip_init();
 
   server_init();
-}
-
-void
-ethernet_loop()
-{
-  for (;;) {
-    if (ETH_CheckFrameReceived()) {
-      TM_GPIO_TogglePinValue(GPIOD, GPIO_PIN_12);
-      /* Read a received packet from the Ethernet buffers and send it to the
-       * lwIP
-       * for handling */
-      ethernetif_input(&gnetif);
-    }
-
-    lwip_periodic_handle(LocalTime);
-  }
 }
 
 static void
@@ -154,15 +154,95 @@ ethernet_gpio_init()
 }
 
 err_t
-ethernet_queue(struct server_state* es, const char* data, uint16_t length)
+ethernet_queue(const char* data, uint16_t length)
 {
-  return tcp_write(es->pcb, data, length, 0);
+  return tcp_write(es.pcb, data, length, 0);
 }
 
 err_t
-ethernet_copy_queue(struct server_state* es, const char* data, uint16_t length)
+ethernet_copy_queue(const char* data, uint16_t length)
 {
-  return tcp_write(es->pcb, data, length, TCP_WRITE_FLAG_COPY);
+  return tcp_write(es.pcb, data, length, TCP_WRITE_FLAG_COPY);
+}
+
+void
+ethernet_loop()
+{
+  while (!(es.flags & ES_DONE)) {
+    yyparse();
+
+    /* clear end of line flag */
+    es.flags &= ~ES_ENDOFLINE;
+  }
+}
+
+size_t
+ethernet_get_data(char* buf, size_t len)
+{
+  size_t i = 0;
+
+  /* this is our main ethernet loop. This will be called by the parser if
+   * it needs more data and we will be stuck here until that data is
+   * available.
+   */
+  do {
+    if (ETH_CheckFrameReceived()) {
+      TM_GPIO_TogglePinValue(GPIOD, GPIO_PIN_12);
+      /* Read a received packet from the Ethernet buffers and send it to the
+       * lwIP for handling */
+      ethernetif_input(&gnetif);
+    }
+
+    lwip_periodic_handle(LocalTime);
+
+    /* if we already found the end of the current command the don't return
+     * any new data */
+    if (es.flags & ES_ENDOFLINE) {
+      return 0;
+    }
+  } while (es.pin == NULL);
+
+  while (i < len && !(es.flags & ES_ENDOFLINE)) {
+
+    const char* p = es.pin->payload;
+
+    size_t max = min(len, es.pin->len - es.pin_offset);
+    while (i < max) {
+      buf[i] = p[es.pin_offset];
+      i++;
+      es.pin_offset++;
+
+      /* if we parsed an end of line character we say the buffer has ended */
+      if (p[es.pin_offset - 1] == '\n') {
+        es.flags |= ES_ENDOFLINE;
+        break;
+      }
+    }
+
+    if (es.pin->len == es.pin_offset) {
+      /* we parsed every byte in that buffer */
+      struct pbuf* ptr = es.pin;
+
+      es.pin = es.pin->next;
+      es.pin_offset = 0;
+
+      if (es.pin != NULL) {
+        /* increment reference count */
+        pbuf_ref(es.pin);
+      }
+
+      /* free old buffer */
+      pbuf_free(ptr);
+
+      if (es.pin == NULL) {
+        break;
+      }
+    }
+  }
+
+  tcp_recved(es.pcb, i);
+
+  return i;
 }
 
 static void
@@ -465,33 +545,18 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
   LWIP_UNUSED_ARG(arg);
   LWIP_UNUSED_ARG(err);
 
-  struct server_state* es = mem_malloc(sizeof(struct server_state));
-  if (es == NULL) {
-    server_connection_close(newpcb, es);
+  if (es.state != ES_NONE) {
+    tcp_close(newpcb);
     return ERR_ABRT;
   }
 
-  /* let the protocol do it's part */
-  void* newarg = protocol_accept_connection(es);
-  if (newarg == NULL) {
-    mem_free(es);
-    tcp_abort(newpcb);
-    return ERR_ABRT;
-  }
+  es.state = ES_ACCEPTED;
+  es.pcb = newpcb;
+  es.pin = NULL;
+  es.pin_offset = 0;
+  es.pout = NULL;
 
-  if (es == NULL) {
-    protocol_remove_connection(es->protocol_struct);
-    server_connection_close(newpcb, es);
-    return ERR_ABRT;
-  }
-
-  es->state = ES_ACCEPTED;
-  es->pcb = newpcb;
-  es->pin = NULL;
-  es->pout = NULL;
-  es->protocol_struct = newarg;
-
-  tcp_arg(newpcb, es);
+  tcp_arg(newpcb, &es);
 
   tcp_recv(newpcb, server_recv_callback);
 
@@ -515,21 +580,19 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
 static err_t
 server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
 {
-  struct server_state* es = arg;
-
   /* if we receive an empty tcp frame from the client we close the
    * connection */
   if (p == NULL) {
-    es->state = ES_CLOSING;
+    es.state = ES_CLOSING;
 
-    if (es->pout == NULL) {
+    if (es.pout == NULL) {
       /* if we're done sending, we close connection */
-      server_connection_close(pcb, es);
+      server_connection_close(pcb);
     } else {
       /* if we're not done with sending we acknoledge the send packet and
        * send remaining data */
       tcp_sent(pcb, server_sent_callback);
-      server_send(pcb, es);
+      server_send(pcb);
     }
 
     return ERR_OK;
@@ -542,49 +605,30 @@ server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
     return err;
   }
 
-  if (es->state == ES_ACCEPTED) {
+  if (es.state == ES_ACCEPTED) {
     /* first data chunk in p->payload */
-    es->state = ES_RECEIVING;
+    es.state = ES_RECEIVING;
 
     /* store reference to incoming pbuf (chain) */
-    es->pin = p;
+    es.pin = p;
 
     /* initialize callback */
     tcp_sent(pcb, server_sent_callback);
 
-    /* hand data to the protocol layer */
-    uint16_t len = protocol_handle_packet(es->protocol_struct, &(es->pin));
-
-    /* update tcp window size to be advertized : should be called when
-     * received data (with the amount plen) has been processed by the
-     * application layer */
-    tcp_recved(pcb, len);
-
     return ERR_OK;
   }
 
-  if (es->state == ES_RECEIVING) {
+  if (es.state == ES_RECEIVING) {
     /* more data from client and previous data has been processed */
-    if (es->pin != NULL) {
+    if (es.pin != NULL) {
       /* chain original and new data */
-      pbuf_chain(es->pin, p);
+      pbuf_chain(es.pin, p);
     } else {
-      es->pin = p;
+      es.pin = p;
     }
 
-    /* hand data to the protocol layer */
-    uint16_t len = protocol_handle_packet(es->protocol_struct, &(es->pin));
-
-    /* update tcp window size to be advertized : should be called when
-    * received data (with the amount plen) has been processed by the
-    * application layer */
-    tcp_recved(pcb, len);
-
     return ERR_OK;
   }
-
-  /* if we end up here we received data on an already closed connection */
-  tcp_recved(pcb, p->tot_len);
 
   /* free memory and do nothing */
   pbuf_free(p);
@@ -615,23 +659,15 @@ server_err_callback(void* arg, err_t err)
 static err_t
 server_poll_callback(void* arg, struct tcp_pcb* pcb)
 {
-  struct server_state* es = arg;
-
-  if (es != NULL) {
-    if (es->pout != NULL) {
-      /* there is remaining data to be send, try that */
-      server_send(pcb, es);
-    } else {
-      if (es->state == ES_CLOSING) {
-        server_connection_close(pcb, es);
-      }
+  if (es.pout != NULL) {
+    /* there is remaining data to be send, try that */
+    server_send(pcb);
+  } else {
+    if (es.state == ES_CLOSING) {
+      server_connection_close(pcb);
     }
-    return ERR_OK;
   }
-
-  /* if es==NULL there is nothing we can do */
-  tcp_abort(pcb);
-  return ERR_ABRT;
+  return ERR_OK;
 }
 
 /**
@@ -646,18 +682,16 @@ server_poll_callback(void* arg, struct tcp_pcb* pcb)
 static err_t
 server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len)
 {
-  struct server_state* es = arg;
-
   LWIP_UNUSED_ARG(len);
 
-  if (es->pout != NULL) {
+  if (es.pout != NULL) {
     /* still got pbufs to send */
-    server_send(pcb, es);
+    server_send(pcb);
   } else {
     /* if we have nothing to send and client closed connection we close
      * too */
-    if (es->state == ES_CLOSING) {
-      server_connection_close(pcb, es);
+    if (es.state == ES_CLOSING) {
+      server_connection_close(pcb);
     }
   }
 
@@ -672,18 +706,18 @@ server_sent_callback(void* arg, struct tcp_pcb* pcb, u16_t len)
  * @retval None
  */
 static void
-server_send(struct tcp_pcb* pcb, struct server_state* es)
+server_send(struct tcp_pcb* pcb)
 {
-  while ((es->pout != NULL) && es->pout->len <= tcp_sndbuf(pcb)) {
+  while ((es.pout != NULL) && es.pout->len <= tcp_sndbuf(pcb)) {
     /* get pointer on pbuf from structure */
-    struct pbuf* ptr = es->pout;
+    struct pbuf* ptr = es.pout;
 
     /* enqueue data for transmission */
     err_t wr_err = tcp_write(pcb, ptr->payload, ptr->len, 1);
 
     if (wr_err == ERR_MEM) {
       /* we are low on memory, try later / harder, defer to poll */
-      es->pout = ptr;
+      es.pout = ptr;
     }
 
     /* stop if we hit an error */
@@ -692,21 +726,21 @@ server_send(struct tcp_pcb* pcb, struct server_state* es)
     }
 
     /* continue with next pbuf in chain (if any) */
-    es->pout = ptr->next;
+    es.pout = ptr->next;
 
-    if (es->pout != NULL) {
-      /* increment reference count for es->p */
-      pbuf_ref(es->pout);
+    if (es.pout != NULL) {
+      /* increment reference count for es.p */
+      pbuf_ref(es.pout);
     }
 
-    /* free pbuf: will free pbufs up to es->p, because es->p has a
+    /* free pbuf: will free pbufs up to es.p, because es.p has a
      * reference count > 0 (we just incremented it) */
     pbuf_free(ptr);
   }
 }
 
 static void
-server_connection_close(struct tcp_pcb* pcb, struct server_state* es)
+server_connection_close(struct tcp_pcb* pcb)
 {
   /* remove all callbacks */
   tcp_arg(pcb, NULL);
@@ -715,13 +749,8 @@ server_connection_close(struct tcp_pcb* pcb, struct server_state* es)
   tcp_err(pcb, NULL);
   tcp_poll(pcb, NULL, 0);
 
-  if (es != NULL) {
-    if (es->protocol_struct != NULL) {
-      protocol_remove_connection(es->protocol_struct);
-    }
-    mem_free(es);
-  }
-
   /* close connection */
   tcp_close(pcb);
+
+  es.state = ES_NONE;
 }

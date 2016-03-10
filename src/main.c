@@ -22,4 +22,6 @@ main(void)
   ethernet_init();
 
   ethernet_loop();
+
+  gpio_blink_forever_slow(LED_RED);
 }
