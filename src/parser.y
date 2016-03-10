@@ -43,19 +43,6 @@ yyerror(const char* s)
 %%
 
 ROOT
-  : command_list
-  ;
-
-command_list
-  : commandline command_list
-  | commandline endcmd
-  ;
-
-endcmd
-  : QUESTIONMARK QUESTIONMARK { YYACCEPT; }
-  ;
-
-commandline
   : command EOL { ethernet_cmd_done(); }
   ;
 
