@@ -202,7 +202,7 @@ ethernet_get_data(char* buf, size_t len)
     }
   } while (es.pin == NULL);
 
-  while (i < len) {
+  while (i < len && !(es.flags & ES_ENDOFLINE)) {
 
     const char* p = es.pin->payload;
 
