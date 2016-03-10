@@ -254,6 +254,9 @@ SystemInit(void)
   SCB->VTOR = FLASH_BASE |
               VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
 #endif
+
+  /* enable the floating point unit */
+  SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));    /* set CP10 and CP11 Full Access */
 }
 
 /**

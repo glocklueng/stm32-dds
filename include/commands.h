@@ -27,7 +27,7 @@ typedef struct
 typedef struct
 {
   ad9910_command command;
-  double frequency;
+  float frequency;
   uint16_t amplitude;
   uint16_t phase;
 } ad9910_single_tone_command;
