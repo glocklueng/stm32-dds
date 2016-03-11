@@ -1,5 +1,6 @@
 %{
 #include "ad9910.h"
+#include "commands.h"
 #include "ethernet.h"
 
 #include <math.h>
@@ -14,6 +15,21 @@ yyerror(const char* s)
   ethernet_copy_queue(s, strlen(s));
 }
 
+#define SEQ_BUFFER_SIZE 2048
+/* this assumes that ad9910_ramp_command is the longest command */
+#define SEQ_PARSE_BUFFER_SIZE (sizeof(ad9910_ramp_command))
+
+/* TODO maybe it's better to allocate that dynamically */
+struct sequence_buffer {
+  char begin[SEQ_BUFFER_SIZE];
+  void* current;
+};
+
+static struct sequence_buffer seq_buffer;
+static char freq_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
+static char ampl_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
+static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
+
 %}
 
 %error-verbose
@@ -24,6 +40,7 @@ yyerror(const char* s)
 %union {
   int integer;
   float floating;
+  uint8_t cmd_type;
 }
 
 %start ROOT
@@ -31,24 +48,34 @@ yyerror(const char* s)
 %token AMPL
 %token BOOLEAN
 %token COLON
-%token DOUBLECOLON
+%token COMMA
 %token EOL
+%token FIXED
+%token FLOAT
 %token FREQ
 %token INTEGER
+%token NONE
 %token OUTPUT
-%token FLOAT
+%token PARALLEL
 %token QUESTIONMARK
+%token RAM
+%token RAMP
 %token RST
+%token SEMICOLON
+%token SEQ
 %token SINC
-%token WHITESPACE
 %token UNIT_DBM
 %token UNIT_HZ
+%token WHITESPACE
 
 %type <integer>  boolean
 %type <floating> float
 %type <integer>  amplitude
 %type <floating> frequency
 %type <floating> unit_hz
+%type <cmd_type> freq_cmd
+%type <cmd_type> ampl_cmd
+%type <cmd_type> phase_cmd
 
 %%
 
@@ -59,6 +86,7 @@ ROOT
 
 command
   : OUTPUT COLON output_cmd
+  | SEQ WHITESPACE seqlist
   ;
 
 output_cmd
@@ -78,6 +106,83 @@ output_cmd
       ad9910_update_matching_reg(ad9910_inverse_sinc_filter_enable);
       ad9910_io_update();
     }
+  ;
+
+seqlist
+  : seqblock
+    {
+      /* add to list and add end block */
+    }
+  | seqblock SEMICOLON seqlist
+    {
+      /* add to list and continue */
+    }
+  ;
+
+seqblock
+  : freq_cmd[F] COMMA ampl_cmd[A] COMMA phase_cmd[P]
+    {
+      ad9910_command* cmd = seq_buffer.current;
+      /* TODO set trigger */
+      seq_buffer.current += sizeof(ad9910_command);
+
+      cmd->frequency = $F;
+      memcpy(seq_buffer.current, freq_parse_buffer,
+             get_command_size($F));
+      seq_buffer.current += get_command_size($F);
+
+      cmd->amplitude = $A;
+      memcpy(seq_buffer.current, ampl_parse_buffer,
+             get_command_size($A));
+      seq_buffer.current += get_command_size($A);
+
+      cmd->phase = $P;
+      memcpy(seq_buffer.current, phase_parse_buffer,
+             get_command_size($P));
+      seq_buffer.current += get_command_size($P);
+    }
+  | freq_cmd[F] COMMA ampl_cmd[A]
+    {
+      ad9910_command* cmd = seq_buffer.current;
+      /* TODO set trigger */
+      seq_buffer.current += sizeof(ad9910_command);
+
+      cmd->frequency = $F;
+      memcpy(seq_buffer.current, freq_parse_buffer,
+             get_command_size($F));
+      seq_buffer.current += get_command_size($F);
+
+      cmd->amplitude = $A;
+      memcpy(seq_buffer.current, ampl_parse_buffer,
+             get_command_size($A));
+      seq_buffer.current += get_command_size($A);
+
+      cmd->phase = ad9910_command_none;
+    }
+  ;
+
+freq_cmd
+  : NONE { $$ = ad9910_command_none; }
+  | FIXED WHITESPACE frequency[F]
+    {
+      ad9910_fixed_command* cmd = (ad9910_fixed_command*)freq_parse_buffer;
+      cmd->value = ad9910_convert_frequency($F);
+      $$ = ad9910_command_fixed;
+    }
+  ;
+
+ampl_cmd
+  : NONE { $$ = ad9910_command_none; }
+  | FIXED WHITESPACE amplitude[A]
+    {
+      ad9910_fixed_command* cmd = (ad9910_fixed_command*)ampl_parse_buffer;
+      cmd->value = $A;
+      $$ = ad9910_command_fixed;
+    }
+  ;
+
+phase_cmd
+  : NONE { $$ = ad9910_command_none; }
   ;
 
 amplitude

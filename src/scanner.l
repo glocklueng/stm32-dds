@@ -22,12 +22,22 @@ EXP         [eE]{INTEGER}
 {WS}        { return WHITESPACE; }
 "?"         { return QUESTIONMARK; }
 ":"         { return COLON; }
-"OUTPUT"    { return OUTPUT; }
-"FREQ"      { return FREQ; }
-"AMPL"      { return AMPL; }
-"SINC"      { return SINC; }
+","         { return COMMA; }
+";"         { return SEMICOLON; }
+
 "\r\n"      { return EOL; }
 \n          { return EOL; }
+
+"AMPL"      { return AMPL; }
+"FIXED"     { return FIXED; }
+"FREQ"      { return FREQ; }
+"NONE"      { return NONE; }
+"OUTPUT"    { return OUTPUT; }
+"PARALLEL"  { return PARALLEL; }
+"RAM"       { return RAM; }
+"RAMP"      { return RAMP; }
+"SEQ"       { return SEQ; }
+"SINC"      { return SINC; }
 
 "dBm"       { return UNIT_DBM; }
 "Hz"        { yylval.floating = 1; return UNIT_HZ; }
