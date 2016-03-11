@@ -1,6 +1,7 @@
 #ifndef _COMMANDS_H
 #define _COMMANDS_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 typedef enum {
@@ -61,6 +62,8 @@ typedef struct
  * that command.
  */
 void ad9910_process_commands(const ad9910_command* commands);
+
+size_t get_command_size(ad9910_command_type);
 
 /*
  - single tone

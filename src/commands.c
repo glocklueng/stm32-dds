@@ -49,6 +49,25 @@ ad9910_process_commands(const ad9910_command* commands)
   }
 }
 
+size_t
+get_command_size(ad9910_command_type type)
+{
+  switch (type) {
+    case ad9910_command_none:
+      return 0;
+    case ad9910_command_fixed:
+      return sizeof(ad9910_fixed_command);
+    case ad9910_command_parallel:
+      return sizeof(ad9910_parallel_command);
+    case ad9910_command_ram:
+      return sizeof(ad9910_ram_command);
+    case ad9910_command_ramp:
+      return sizeof(ad9910_ramp_command);
+  }
+
+  return 0;
+}
+
 static uint32_t
 prepare_command(ad9910_target tgt, ad9910_command_type cmd, const void* data)
 {
