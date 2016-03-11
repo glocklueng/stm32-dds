@@ -28,7 +28,9 @@ EXP         [eE]{INTEGER}
 "\r\n"      { return EOL; }
 \n          { return EOL; }
 
+"ADD"       { return ADD; }
 "AMPL"      { return AMPL; }
+"CLEAR"     { return CLEAR; }
 "FIXED"     { return FIXED; }
 "FREQ"      { return FREQ; }
 "NONE"      { return NONE; }
@@ -38,6 +40,7 @@ EXP         [eE]{INTEGER}
 "RAMP"      { return RAMP; }
 "SEQ"       { return SEQ; }
 "SINC"      { return SINC; }
+"START"     { return START; }
 
 "dBm"       { return UNIT_DBM; }
 "Hz"        { yylval.floating = 1; return UNIT_HZ; }

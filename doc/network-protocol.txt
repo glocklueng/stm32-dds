@@ -23,15 +23,17 @@ OUTPUT:
 DATA:
   ADD <dataname> <datablock>
   DEL <dataname>
-  DEL ALL
+  CLEAR
   LIST
 
 RAM:
   WRITE [1-7] <datablock>
   READ [1-7]
 
-SEQ
-  <seqlist>
+SEQ:
+  ADD <seqlist>
+  CLEAR
+  START
 
 <seqlist>
   : <seqblock>;<seqlist>

@@ -45,8 +45,10 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 
 %start ROOT
 
+%token ADD
 %token AMPL
 %token BOOLEAN
+%token CLEAR
 %token COLON
 %token COMMA
 %token EOL
@@ -64,6 +66,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token SEMICOLON
 %token SEQ
 %token SINC
+%token START
 %token UNIT_DBM
 %token UNIT_HZ
 %token WHITESPACE
@@ -86,7 +89,7 @@ ROOT
 
 command
   : OUTPUT COLON output_cmd
-  | SEQ WHITESPACE seqlist
+  | SEQ COLON seq_cmd
   ;
 
 output_cmd
@@ -108,6 +111,19 @@ output_cmd
     }
   ;
 
+seq_cmd
+  : START
+    {
+      seq_buffer.current = ad9910_end_of_sequence;
+      ad9910_process_commands((ad9910_command*)seq_buffer.begin);
+    }
+  | ADD seqlist
+  | CLEAR
+    {
+      seq_buffer.current = seq_buffer.begin;
+    }
+  ;
+
 seqlist
   : seqblock
     {
@@ -124,6 +140,7 @@ seqblock
     {
       ad9910_command* cmd = seq_buffer.current;
       /* TODO set trigger */
+      /* TODO RANGE CHECKS! */
       seq_buffer.current += sizeof(ad9910_command);
 
       cmd->frequency = $F;
@@ -145,6 +162,7 @@ seqblock
     {
       ad9910_command* cmd = seq_buffer.current;
       /* TODO set trigger */
+      /* TODO RANGE CHECKS! */
       seq_buffer.current += sizeof(ad9910_command);
 
       cmd->frequency = $F;
