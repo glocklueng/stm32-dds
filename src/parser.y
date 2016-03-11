@@ -39,6 +39,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 
 %union {
   int integer;
+  uint32_t uinteger;
   float floating;
   uint8_t cmd_type;
 }
@@ -76,8 +77,8 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 
 %type <integer>  boolean
 %type <floating> float
-%type <integer>  amplitude
-%type <floating> frequency
+%type <uinteger> amplitude
+%type <uinteger> frequency
 %type <floating> unit_hz
 %type <cmd_type> freq_cmd
 %type <cmd_type> ampl_cmd
@@ -103,7 +104,7 @@ output_cmd
     }
   | FREQ WHITESPACE frequency[F]
     {
-      ad9910_set_frequency(0, ad9910_convert_frequency($F));
+      ad9910_set_frequency(0, $F);
       ad9910_io_update();
     }
   | SINC WHITESPACE boolean[B]
@@ -187,7 +188,7 @@ freq_cmd
   | FIXED WHITESPACE frequency[F]
     {
       ad9910_fixed_command* cmd = (ad9910_fixed_command*)freq_parse_buffer;
-      cmd->value = ad9910_convert_frequency($F);
+      cmd->value = $F;
       $$ = ad9910_command_fixed;
     }
   | RAMP COLON SINGLE WHITESPACE frequency[start] COMMA frequency[stop]
@@ -197,17 +198,17 @@ freq_cmd
 
       if ($start < $stop) {
         /* positive slope */
-        cmd->upper_limit = ad9910_convert_frequency($stop);
-        cmd->lower_limit = ad9910_convert_frequency($start);
-        cmd->increment_step = ad9910_convert_frequency($step);
-        cmd->positive_slope = ad9910_convert_frequency($slope);
+        cmd->upper_limit = $stop;
+        cmd->lower_limit = $start;
+        cmd->increment_step = $step;
+        cmd->positive_slope = $slope;
         cmd->flags = ad9910_ramp_direction_up;
       } else {
         /* negative slope */
-        cmd->upper_limit = ad9910_convert_frequency($start);
-        cmd->lower_limit = ad9910_convert_frequency($stop);
-        cmd->decrement_step = ad9910_convert_frequency($step);
-        cmd->negative_slope = ad9910_convert_frequency($slope);
+        cmd->upper_limit = $start;
+        cmd->lower_limit = $stop;
+        cmd->decrement_step = $step;
+        cmd->negative_slope = $slope;
         cmd->flags = ad9910_ramp_direction_down;
       }
 
@@ -220,17 +221,17 @@ freq_cmd
 
       if ($start < $stop) {
         /* positive slope */
-        cmd->upper_limit = ad9910_convert_frequency($stop);
-        cmd->lower_limit = ad9910_convert_frequency($start);
-        cmd->increment_step = ad9910_convert_frequency($step);
-        cmd->positive_slope = ad9910_convert_frequency($slope);
+        cmd->upper_limit = $stop;
+        cmd->lower_limit = $start;
+        cmd->increment_step = $step;
+        cmd->positive_slope = $slope;
         cmd->flags = ad9910_ramp_direction_up | ad9910_ramp_no_dwell_high;
       } else {
         /* negative slope */
-        cmd->upper_limit = ad9910_convert_frequency($start);
-        cmd->lower_limit = ad9910_convert_frequency($stop);
-        cmd->decrement_step = ad9910_convert_frequency($step);
-        cmd->negative_slope = ad9910_convert_frequency($slope);
+        cmd->upper_limit = $start;
+        cmd->lower_limit = $stop;
+        cmd->decrement_step = $step;
+        cmd->negative_slope = $slope;
         cmd->flags = ad9910_ramp_direction_down | ad9910_ramp_no_dwell_low;
       }
 
@@ -244,20 +245,20 @@ freq_cmd
 
       if ($start < $stop) {
         /* positive slope */
-        cmd->upper_limit = ad9910_convert_frequency($stop);
-        cmd->lower_limit = ad9910_convert_frequency($start);
+        cmd->upper_limit = $stop;
+        cmd->lower_limit = $start;
         cmd->flags = ad9910_ramp_direction_up;
       } else {
         /* negative slope */
-        cmd->upper_limit = ad9910_convert_frequency($start);
-        cmd->lower_limit = ad9910_convert_frequency($stop);
+        cmd->upper_limit = $start;
+        cmd->lower_limit = $stop;
         cmd->flags = ad9910_ramp_direction_down;
       }
 
-      cmd->increment_step = ad9910_convert_frequency($upstep);
-      cmd->positive_slope = ad9910_convert_frequency($upslope);
-      cmd->decrement_step = ad9910_convert_frequency($downstep);
-      cmd->negative_slope = ad9910_convert_frequency($downslope);
+      cmd->increment_step = $upstep;
+      cmd->positive_slope = $upslope;
+      cmd->decrement_step = $downstep;
+      cmd->negative_slope = $downslope;
       cmd->flags |= ad9910_ramp_no_dwell_high | ad9910_ramp_no_dwell_low;
 
       $$ = ad9910_command_ramp;
@@ -293,8 +294,8 @@ amplitude
   ;
 
 frequency
-  : float unit_hz { $$ = $1 * $2; }
-  | float { $$ = $1; }
+  : float unit_hz { $$ = ad9910_convert_frequency($1 * $2); }
+  | float { $$ = ad9910_convert_frequency($1); }
   ;
 
 float
