@@ -19,6 +19,13 @@ typedef enum {
   ad9910_trigger_io_update,
 } ad9910_trigger_mode;
 
+typedef enum {
+  ad9910_ramp_no_dwell_high = 0x01,
+  ad9910_ramp_no_dwell_low = 0x02,
+  ad9910_ramp_direction_down = 0x04,
+  ad9910_ramp_direction_up = 0x08,
+} ad9910_ramp_flags;
+
 typedef struct
 {
   uint8_t trigger;
@@ -51,8 +58,7 @@ typedef struct
   uint32_t increment_step;
   uint16_t negative_slope;
   uint16_t positive_slope;
-  uint8_t no_dwell_high;
-  uint8_t no_dwell_low;
+  uint8_t flags;
 } ad9910_ramp_command;
 
 /** this function takes a list of commands and works through that list

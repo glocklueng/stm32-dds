@@ -57,15 +57,18 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token FREQ
 %token INTEGER
 %token NONE
+%token OSC
 %token OUTPUT
 %token PARALLEL
 %token QUESTIONMARK
 %token RAM
 %token RAMP
 %token RST
+%token SAWTOOTH
 %token SEMICOLON
 %token SEQ
 %token SINC
+%token SINGLE
 %token START
 %token UNIT_DBM
 %token UNIT_HZ
@@ -186,6 +189,78 @@ freq_cmd
       ad9910_fixed_command* cmd = (ad9910_fixed_command*)freq_parse_buffer;
       cmd->value = ad9910_convert_frequency($F);
       $$ = ad9910_command_fixed;
+    }
+  | RAMP COLON SINGLE WHITESPACE frequency[start] COMMA frequency[stop]
+    COMMA frequency [step] COMMA frequency[slope]
+    {
+      ad9910_ramp_command* cmd = (ad9910_ramp_command*)freq_parse_buffer;
+
+      if ($start < $stop) {
+        /* positive slope */
+        cmd->upper_limit = ad9910_convert_frequency($stop);
+        cmd->lower_limit = ad9910_convert_frequency($start);
+        cmd->increment_step = ad9910_convert_frequency($step);
+        cmd->positive_slope = ad9910_convert_frequency($slope);
+        cmd->flags = ad9910_ramp_direction_up;
+      } else {
+        /* negative slope */
+        cmd->upper_limit = ad9910_convert_frequency($start);
+        cmd->lower_limit = ad9910_convert_frequency($stop);
+        cmd->decrement_step = ad9910_convert_frequency($step);
+        cmd->negative_slope = ad9910_convert_frequency($slope);
+        cmd->flags = ad9910_ramp_direction_down;
+      }
+
+      $$ = ad9910_command_ramp;
+    }
+  | RAMP COLON SAWTOOTH WHITESPACE frequency[start] COMMA frequency[stop]
+    COMMA frequency [step] COMMA frequency[slope]
+    {
+      ad9910_ramp_command* cmd = (ad9910_ramp_command*)freq_parse_buffer;
+
+      if ($start < $stop) {
+        /* positive slope */
+        cmd->upper_limit = ad9910_convert_frequency($stop);
+        cmd->lower_limit = ad9910_convert_frequency($start);
+        cmd->increment_step = ad9910_convert_frequency($step);
+        cmd->positive_slope = ad9910_convert_frequency($slope);
+        cmd->flags = ad9910_ramp_direction_up | ad9910_ramp_no_dwell_high;
+      } else {
+        /* negative slope */
+        cmd->upper_limit = ad9910_convert_frequency($start);
+        cmd->lower_limit = ad9910_convert_frequency($stop);
+        cmd->decrement_step = ad9910_convert_frequency($step);
+        cmd->negative_slope = ad9910_convert_frequency($slope);
+        cmd->flags = ad9910_ramp_direction_down | ad9910_ramp_no_dwell_low;
+      }
+
+      $$ = ad9910_command_ramp;
+    }
+  | RAMP COLON OSC WHITESPACE frequency[start] COMMA frequency[stop]
+    COMMA frequency[upstep] COMMA frequency[upslope]
+    COMMA frequency[downstep] COMMA frequency[downslope]
+    {
+      ad9910_ramp_command* cmd = (ad9910_ramp_command*)freq_parse_buffer;
+
+      if ($start < $stop) {
+        /* positive slope */
+        cmd->upper_limit = ad9910_convert_frequency($stop);
+        cmd->lower_limit = ad9910_convert_frequency($start);
+        cmd->flags = ad9910_ramp_direction_up;
+      } else {
+        /* negative slope */
+        cmd->upper_limit = ad9910_convert_frequency($start);
+        cmd->lower_limit = ad9910_convert_frequency($stop);
+        cmd->flags = ad9910_ramp_direction_down;
+      }
+
+      cmd->increment_step = ad9910_convert_frequency($upstep);
+      cmd->positive_slope = ad9910_convert_frequency($upslope);
+      cmd->decrement_step = ad9910_convert_frequency($downstep);
+      cmd->negative_slope = ad9910_convert_frequency($downslope);
+      cmd->flags |= ad9910_ramp_no_dwell_high | ad9910_ramp_no_dwell_low;
+
+      $$ = ad9910_command_ramp;
     }
   ;
 

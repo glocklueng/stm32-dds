@@ -52,7 +52,10 @@ SEQ:
   FIXED <value>
   PARALLEL <dataname> <frequency>
   RAM [1-7]
-  RAMP <ramp_settings>
+  RAMP:
+    SINGLE from to step slope
+    SAWTOOTH from to step slope
+    OSC min max upstep upslope downstep downlope
 
 <seqlist>   <seqblock>;<seqlist> | <seqblock>
 <seqblock>  <cmdname> | <cmdname>:<repitions>

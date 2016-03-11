@@ -34,12 +34,15 @@ EXP         [eE]{INTEGER}
 "FIXED"     { return FIXED; }
 "FREQ"      { return FREQ; }
 "NONE"      { return NONE; }
+"OSC"       { return OSC; }
 "OUTPUT"    { return OUTPUT; }
 "PARALLEL"  { return PARALLEL; }
 "RAM"       { return RAM; }
 "RAMP"      { return RAMP; }
+"SAWTOOTH"  { return SAWTOOTH; }
 "SEQ"       { return SEQ; }
 "SINC"      { return SINC; }
+"SINGLE"    { return SINGLE; }
 "START"     { return START; }
 
 "dBm"       { return UNIT_DBM; }
