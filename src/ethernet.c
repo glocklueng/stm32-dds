@@ -5,12 +5,15 @@
 #include "util.h"
 #include "parser.tab.h"
 
+#include <ctype.h>
 #include <ethernetif.h>
 #include <lwip/stats.h>
 #include <lwip/tcp.h>
 #include <lwip/tcp_impl.h>
 #include <misc.h>
 #include <netif/etharp.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stm32f4x7_eth.h>
 #include <stm32f4xx_rcc.h>
 #include <stm32f4xx_syscfg.h>
@@ -29,6 +32,14 @@ enum server_flags
 {
   ES_ENDOFLINE = 0x01,
   ES_DONE = 0x02,
+  ES_DATA = 0x04,
+};
+
+struct binary_data
+{
+  char name[8];
+  void* begin;
+  void* end;
 };
 
 /**
@@ -44,6 +55,7 @@ struct server_state
   struct pbuf* pin;
   size_t pin_offset;
   struct pbuf* pout;
+  struct binary_data* binary_target;
 };
 
 static struct server_state es = {
@@ -53,6 +65,7 @@ static struct server_state es = {
   .pin = NULL,
   .pin_offset = 0,
   .pout = NULL,
+  .binary_target = NULL,
 };
 
 static struct netif gnetif;
@@ -64,6 +77,11 @@ static void ethernet_dma_init(void);
 static void ethernet_link_callback(struct netif*);
 static void lwip_init(void);
 static void lwip_periodic_handle(uint32_t localtime);
+
+static void ethernet_read_data(void);
+static void ethernet_next_packet(void);
+
+static void ethernet_error(const char*);
 
 static int server_init(void);
 static err_t server_accept_callback(void* arg, struct tcp_pcb* newpcb,
@@ -169,10 +187,14 @@ void
 ethernet_loop()
 {
   while (!(es.flags & ES_DONE)) {
+    /* clear flags */
+    es.flags = 0;
+
     yyparse();
 
-    /* clear end of line flag */
-    es.flags &= ~ES_ENDOFLINE;
+    if (es.flags & ES_DATA) {
+      ethernet_read_data();
+    }
   }
 }
 
@@ -213,7 +235,7 @@ ethernet_get_data(char* buf, size_t len)
       es.pin_offset++;
 
       /* if we parsed an end of line character we say the buffer has ended */
-      if (p[es.pin_offset - 1] == '\n') {
+      if (p[es.pin_offset - 1] == '\n' || p[es.pin_offset - 1] == '#') {
         es.flags |= ES_ENDOFLINE;
         break;
       }
@@ -753,4 +775,111 @@ server_connection_close(struct tcp_pcb* pcb)
   tcp_close(pcb);
 
   es.state = ES_NONE;
+}
+
+void
+ethernet_data_next()
+{
+  es.flags |= ES_DATA;
+}
+
+/** read binary data from the ethernet
+ *
+ * The begin and the end of the data segment will be stored in the pbegin
+ * and pend locations
+ */
+static void
+ethernet_read_data()
+{
+  if (es.pin->len - es.pin_offset < 1) {
+    ethernet_next_packet();
+  }
+
+  /* skip # at the beginning */
+  es.pin_offset += 1;
+
+  if (es.pin->len - es.pin_offset < 1) {
+    ethernet_next_packet();
+  }
+
+  char len_len = *(char*)(es.pin->payload + es.pin_offset);
+
+  if (!isdigit(len_len)) {
+    ethernet_error("data command with invalid length header\n");
+    return;
+  }
+
+  len_len -= '0';
+
+  size_t len = 0;
+
+  for (int i = 0; i < len_len; i++) {
+    if (es.pin->len - es.pin_offset < 1) {
+      ethernet_next_packet();
+    }
+    if (!isdigit(*(char*)(es.pin->payload + es.pin_offset))) {
+      ethernet_error("data command with invalid length header\n");
+      return;
+    }
+    len *= 10;
+    len += *(char*)(es.pin->payload + es.pin_offset) - '0';
+  }
+
+  tcp_recved(es.pcb, len_len + 2);
+
+  es.binary_target->begin = malloc(len);
+
+  if (es.binary_target->begin == NULL) {
+    ethernet_error("not enough memory for binary data\n");
+    return;
+  }
+
+  es.binary_target->end = es.binary_target->begin + len;
+
+  for (void* tgt = es.binary_target->begin; tgt < es.binary_target->end;) {
+    len =
+      min(es.pin->len - es.pin_offset, (size_t)(es.binary_target->end - tgt));
+    memcpy(tgt, es.pin->payload + es.pin_offset, len);
+    tgt += len;
+    tcp_recved(es.pcb, len);
+
+    if (tgt < es.binary_target->end) {
+      ethernet_next_packet();
+    }
+  }
+}
+
+static void
+ethernet_next_packet()
+{
+  /* first free the previous packet */
+  struct pbuf* ptr = es.pin;
+
+  es.pin = es.pin->next;
+  es.pin_offset = 0;
+
+  if (es.pin != NULL) {
+    pbuf_ref(es.pin);
+  }
+
+  pbuf_free(ptr);
+
+  do {
+    if (ETH_CheckFrameReceived()) {
+      /* Read a received packet from the Ethernet buffers and send it to the
+       * lwIP for handling */
+      ethernetif_input(&gnetif);
+    }
+
+    lwip_periodic_handle(LocalTime);
+  } while (es.pin == NULL);
+}
+
+static void
+ethernet_error(const char* err)
+{
+  ethernet_copy_queue(err, strlen(err));
+  /* dump input buffer */
+  pbuf_free(es.pin);
+  es.pin = NULL;
 }

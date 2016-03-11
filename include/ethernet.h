@@ -19,4 +19,7 @@ err_t ethernet_copy_queue(const char*, uint16_t length);
  */
 size_t ethernet_get_data(char* buf, size_t len);
 
+/* signals the parser that it should handle binary data next */
+void ethernet_data_next(void);
+
 #endif /* __ETHERNET_H */
