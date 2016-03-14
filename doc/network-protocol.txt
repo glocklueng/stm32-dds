@@ -55,7 +55,7 @@ SEQ:
   RAMP:
     SINGLE from to step slope
     SAWTOOTH from to step slope
-    OSC min max upstep upslope downstep downlope
+    OSC min max upstep upslope downstep downslope
 
 <seqlist>   <seqblock>;<seqlist> | <seqblock>
 <seqblock>  <cmdname> | <cmdname>:<repitions>
