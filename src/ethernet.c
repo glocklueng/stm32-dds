@@ -79,6 +79,7 @@ static void lwip_init(void);
 static void lwip_periodic_handle(uint32_t localtime);
 
 static void ethernet_read_data(void);
+static void ethernet_clear_packet(void);
 static void ethernet_next_packet(void);
 
 static void ethernet_error(const char*);
@@ -795,14 +796,12 @@ ethernet_read_data()
     ethernet_next_packet();
   }
 
-  /* skip # at the beginning */
-  es.pin_offset += 1;
-
   if (es.pin->len - es.pin_offset < 1) {
     ethernet_next_packet();
   }
 
   char len_len = *(char*)(es.pin->payload + es.pin_offset);
+  es.pin_offset += 1;
 
   if (!isdigit(len_len)) {
     ethernet_error("data command with invalid length header\n");
@@ -821,8 +820,10 @@ ethernet_read_data()
       ethernet_error("data command with invalid length header\n");
       return;
     }
+
     len *= 10;
     len += *(char*)(es.pin->payload + es.pin_offset) - '0';
+    es.pin_offset += 1;
   }
 
   tcp_recved(es.pcb, len_len + 2);
@@ -841,18 +842,45 @@ ethernet_read_data()
       min(es.pin->len - es.pin_offset, (size_t)(es.binary_target->end - tgt));
     memcpy(tgt, es.pin->payload + es.pin_offset, len);
     tgt += len;
+    es.pin_offset += len;
     tcp_recved(es.pcb, len);
 
     if (tgt < es.binary_target->end) {
       ethernet_next_packet();
     }
   }
+
+  if (es.pin->len - es.pin_offset < 1) {
+    ethernet_next_packet();
+  }
+
+  if (*(char*)(es.pin->payload + es.pin_offset) == '\r') {
+    es.pin_offset += 1;
+
+    tcp_recved(es.pcb, 1);
+
+    if (es.pin->len - es.pin_offset < 1) {
+      ethernet_next_packet();
+    }
+  }
+
+  if (*(char*)(es.pin->payload + es.pin_offset) == '\n') {
+    es.pin_offset += 1;
+    tcp_recved(es.pcb, 1);
+  } else {
+    ethernet_error("synax error: missing end of line after binary data\n");
+    return;
+  }
+
+  if (es.pin->len == es.pin_offset) {
+    ethernet_clear_packet();
+  }
 }
 
 static void
-ethernet_next_packet()
+ethernet_clear_packet()
 {
-  /* first free the previous packet */
+  /* free the previous packet */
   struct pbuf* ptr = es.pin;
 
   es.pin = es.pin->next;
@@ -863,6 +891,12 @@ ethernet_next_packet()
   }
 
   pbuf_free(ptr);
+}
+
+static void
+ethernet_next_packet()
+{
+  ethernet_clear_packet();
 
   do {
     if (ETH_CheckFrameReceived()) {
