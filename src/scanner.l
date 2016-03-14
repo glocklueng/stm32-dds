@@ -18,12 +18,16 @@ INTEGER     [+-]?[0-9]+
 FLOAT       {INTEGER}\.[0-9]*
 EXP         [eE]{INTEGER}
 
+%x          STRING
+
 %%
 {WS}        { return WHITESPACE; }
 "?"         { return QUESTIONMARK; }
 ":"         { return COLON; }
 ","         { return COMMA; }
 ";"         { return SEMICOLON; }
+<INITIAL>\" { BEGIN(STRING); }
+<STRING>\"  { BEGIN(INITIAL); }
 
 "\r\n"      { return EOL; }
 \n          { return EOL; }
@@ -31,6 +35,7 @@ EXP         [eE]{INTEGER}
 "ADD"       { return ADD; }
 "AMPL"      { return AMPL; }
 "CLEAR"     { return CLEAR; }
+"DATA"      { return DATA; }
 "FIXED"     { return FIXED; }
 "FREQ"      { return FREQ; }
 "NONE"      { return NONE; }
@@ -64,5 +69,11 @@ EXP         [eE]{INTEGER}
 {INTEGER}{EXP} { yylval.floating = strtof(yytext, NULL); return FLOAT; }
 {INTEGER}      { yylval.integer = atoi(yytext); return INTEGER; }
 [0-9a-f]+      { yylval.integer = strtol(yytext, NULL, 16); return INTEGER; }
+
+<STRING>[a-zA-Z0-9]{1,7} {
+                 memcpy(yylval.string, yytext, yyleng);
+                 yylval.string[yyleng] = '\0';
+                 return NAME;
+               }
 
 %%

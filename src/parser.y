@@ -42,6 +42,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
   uint32_t uinteger;
   float floating;
   uint8_t cmd_type;
+  char string[8];
 }
 
 %start ROOT
@@ -52,11 +53,13 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token CLEAR
 %token COLON
 %token COMMA
+%token DATA
 %token EOL
 %token FIXED
 %token FLOAT
 %token FREQ
 %token INTEGER
+%token NAME
 %token NONE
 %token OSC
 %token OUTPUT
@@ -83,6 +86,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %type <cmd_type> freq_cmd
 %type <cmd_type> ampl_cmd
 %type <cmd_type> phase_cmd
+%type <string>   NAME
 
 %%
 
@@ -94,6 +98,7 @@ ROOT
 command
   : OUTPUT COLON output_cmd
   | SEQ COLON seq_cmd
+  | DATA COLON data_cmd
   ;
 
 output_cmd
@@ -256,6 +261,17 @@ freq_cmd
       cmd->flags |= ad9910_ramp_no_dwell_high | ad9910_ramp_no_dwell_low;
 
       $$ = ad9910_command_ramp;
+    }
+  ;
+
+data_cmd
+  : ADD WHITESPACE NAME[name] WHITESPACE
+    {
+      /* TODO setup properly */
+      static struct binary_data bin_data;
+      memcpy(bin_data.name, $name, 8);
+      ethernet_data_next(&bin_data);
+      YYACCEPT;
     }
   ;
 
