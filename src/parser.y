@@ -130,13 +130,7 @@ seq_cmd
 
 seqlist
   : seqblock
-    {
-      /* add to list and add end block */
-    }
   | seqblock SEMICOLON seqlist
-    {
-      /* add to list and continue */
-    }
   ;
 
 seqblock
