@@ -35,13 +35,6 @@ enum server_flags
   ES_DATA = 0x04,
 };
 
-struct binary_data
-{
-  char name[8];
-  void* begin;
-  void* end;
-};
-
 /**
  * custom structure containing all connection details. Gets passed to all
  * callback functions as first parameter (arg). State information relevant
@@ -779,8 +772,9 @@ server_connection_close(struct tcp_pcb* pcb)
 }
 
 void
-ethernet_data_next()
+ethernet_data_next(struct binary_data* data)
 {
+  es.binary_target = data;
   es.flags |= ES_DATA;
 }
 

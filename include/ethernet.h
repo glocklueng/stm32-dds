@@ -5,6 +5,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+struct binary_data
+{
+  char name[8];
+  void* begin;
+  void* end;
+};
+
 void ethernet_init(void);
 void ethernet_loop(void);
 
@@ -20,6 +27,6 @@ err_t ethernet_copy_queue(const char*, uint16_t length);
 size_t ethernet_get_data(char* buf, size_t len);
 
 /* signals the parser that it should handle binary data next */
-void ethernet_data_next(void);
+void ethernet_data_next(struct binary_data*);
 
 #endif /* __ETHERNET_H */
