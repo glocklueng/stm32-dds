@@ -768,6 +768,8 @@ server_connection_close(struct tcp_pcb* pcb)
   /* close connection */
   tcp_close(pcb);
 
+  /* TODO free binary_target if it is in use */
+
   es.state = ES_NONE;
 }
 
