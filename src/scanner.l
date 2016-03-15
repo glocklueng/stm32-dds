@@ -36,6 +36,7 @@ EXP         [eE]{INTEGER}
 "AMPL"      { return AMPL; }
 "CLEAR"     { return CLEAR; }
 "DATA"      { return DATA; }
+"DEL"       { return DEL; }
 "FIXED"     { return FIXED; }
 "FREQ"      { return FREQ; }
 "NONE"      { return NONE; }

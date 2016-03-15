@@ -24,7 +24,6 @@ DATA:
   ADD <dataname> <datablock>
   DEL <dataname>
   CLEAR
-  LIST
 
 RAM:
   WRITE [1-7] <datablock>

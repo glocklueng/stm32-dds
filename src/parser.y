@@ -55,6 +55,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token COLON
 %token COMMA
 %token DATA
+%token DEL
 %token EOL
 %token FIXED
 %token FLOAT
@@ -268,11 +269,18 @@ freq_cmd
 data_cmd
   : ADD WHITESPACE NAME[name] WHITESPACE
     {
-      /* TODO setup properly */
-      static struct binary_data bin_data;
-      memcpy(bin_data.name, $name, 8);
-      ethernet_data_next(&bin_data);
+      struct binary_data* bin_data = new_data_segment();
+      memcpy(bin_data->name, $name, 8);
+      ethernet_data_next(bin_data);
       YYACCEPT;
+    }
+  | DEL WHITESPACE NAME[name]
+    {
+      delete_data_segment($name);
+    }
+  | CLEAR
+    {
+      free_all_data_segments();
     }
   ;
 
