@@ -8,6 +8,7 @@ SRCS=src/main.c \
      src/ad9910.c \
      src/commands.c \
      src/data.c \
+     src/eeprom.c \
      src/gpio.c \
      src/interrupts.c \
      src/ethernet.c \
@@ -18,6 +19,7 @@ HDRS=include/defines.h \
      include/ad9910.h \
      include/commands.h \
      include/data.h \
+     include/eeprom.h \
      include/ethernet.h \
      include/gpio.h \
      include/interrupts.h \
