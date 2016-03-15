@@ -8,10 +8,14 @@ _estack = 0x20020000;    /* end of 128K RAM on AHB bus*/
 _Min_Heap_Size = 0x2000; /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
-/* Specify the memory areas */
+/* Specify the memory areas
+ * block 0 contains the startup code, blocks 1 to 3 are used as virtual
+ * EEPROM */
 MEMORY
 {
-  FLASH (rx)      : ORIGIN = 0x08000000, LENGTH = 1024K
+  SECTOR0 (rx)    : ORIGIN = 0x08000000, LENGTH = 16K
+  EEPROM (rx)     : ORIGIN = 0x08004000, LENGTH = 48K
+  ROM (rx)        : ORIGIN = 0x08010000, LENGTH = 960K
   RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 192K
   MEMORY_B1 (rx)  : ORIGIN = 0x60000000, LENGTH = 0K
 }
@@ -19,13 +23,13 @@ MEMORY
 /* Define output sections */
 SECTIONS
 {
-  /* The startup code goes first into FLASH */
+  /* The startup code goes into first flash sector*/
   .isr_vector :
   {
     . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
-  } >FLASH
+  } >SECTOR0
 
   /* The program code and other data goes into FLASH */
   .text :
@@ -45,36 +49,36 @@ SECTIONS
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
     _exit = .;
-  } >FLASH
+  } >ROM
 
 
-   .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
+   .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >ROM
     .ARM : {
     __exidx_start = .;
       *(.ARM.exidx*)
       __exidx_end = .;
-    } >FLASH
+    } >ROM
 
   .preinit_array     :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
-  } >FLASH
+  } >ROM
   .init_array :
   {
     PROVIDE_HIDDEN (__init_array_start = .);
     KEEP (*(SORT(.init_array.*)))
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
-  } >FLASH
+  } >ROM
   .fini_array :
   {
     PROVIDE_HIDDEN (__fini_array_start = .);
     KEEP (*(.fini_array*))
     KEEP (*(SORT(.fini_array.*)))
     PROVIDE_HIDDEN (__fini_array_end = .);
-  } >FLASH
+  } >ROM
 
   /* used by the startup to initialize data */
   _sidata = .;
