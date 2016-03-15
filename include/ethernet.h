@@ -1,16 +1,11 @@
 #ifndef __ETHERNET_H
 #define __ETHERNET_H
 
+#include "data.h"
+
 #include <lwip/err.h>
 #include <stddef.h>
 #include <stdint.h>
-
-struct binary_data
-{
-  char name[8];
-  void* begin;
-  void* end;
-};
 
 void ethernet_init(void);
 void ethernet_loop(void);

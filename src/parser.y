@@ -1,6 +1,7 @@
 %{
 #include "ad9910.h"
 #include "commands.h"
+#include "data.h"
 #include "ethernet.h"
 
 #include <math.h>

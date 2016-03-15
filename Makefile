@@ -7,6 +7,7 @@ BUILDDIR=build
 SRCS=src/main.c \
      src/ad9910.c \
      src/commands.c \
+     src/data.c \
      src/gpio.c \
      src/interrupts.c \
      src/ethernet.c \
@@ -16,6 +17,7 @@ SRCS=src/main.c \
 HDRS=include/defines.h \
      include/ad9910.h \
      include/commands.h \
+     include/data.h \
      include/ethernet.h \
      include/gpio.h \
      include/interrupts.h \
