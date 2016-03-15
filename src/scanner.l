@@ -32,6 +32,7 @@ EXP         [eE]{INTEGER}
 "\r\n"      { return EOL; }
 \n          { return EOL; }
 
+"*RST"      { return RST; }
 "ADD"       { return ADD; }
 "AMPL"      { return AMPL; }
 "CLEAR"     { return CLEAR; }

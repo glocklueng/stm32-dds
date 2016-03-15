@@ -26,7 +26,7 @@ DATA:
   CLEAR
 
 RAM:
-  WRITE [1-7] <datablock>
+  ADD [1-7] <datablock>
   READ [1-7]
 
 SEQ:

@@ -101,6 +101,11 @@ command
   : OUTPUT COLON output_cmd
   | SEQ COLON seq_cmd
   | DATA COLON data_cmd
+  | RST
+    {
+      free_all_data_segments();
+      ad9910_init();
+    }
   ;
 
 output_cmd
