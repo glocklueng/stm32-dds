@@ -37,11 +37,12 @@ ad9910_process_commands(const ad9910_command* commands)
     }
 
     uint32_t length = sizeof(ad9910_command);
+    length += prepare_command(ad9910_frequency, commands->frequency,
+                              (char*)commands + length);
+    length += prepare_command(ad9910_amplitude, commands->amplitude,
+                              (char*)commands + length);
     length +=
-      prepare_command(ad9910_frequency, commands->frequency, commands + length);
-    length +=
-      prepare_command(ad9910_amplitude, commands->amplitude, commands + length);
-    length += prepare_command(ad9910_phase, commands->phase, commands + length);
+      prepare_command(ad9910_phase, commands->phase, (char*)commands + length);
 
     wait_for_trigger(commands->trigger);
 
@@ -53,9 +54,11 @@ void
 ad9910_execute_command(const ad9910_command* cmd)
 {
   uint32_t length = sizeof(ad9910_command);
-  length += prepare_command(ad9910_frequency, cmd->frequency, cmd + length);
-  length += prepare_command(ad9910_amplitude, cmd->amplitude, cmd + length);
-  length += prepare_command(ad9910_phase, cmd->phase, cmd + length);
+  length +=
+    prepare_command(ad9910_frequency, cmd->frequency, (char*)cmd + length);
+  length +=
+    prepare_command(ad9910_amplitude, cmd->amplitude, (char*)cmd + length);
+  length += prepare_command(ad9910_phase, cmd->phase, (char*)cmd + length);
   ad9910_io_update();
 }
 
