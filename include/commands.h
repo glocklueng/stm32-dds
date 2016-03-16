@@ -72,7 +72,10 @@ typedef struct
  */
 void ad9910_process_commands(const ad9910_command* commands);
 
+void ad9910_execute_command(const ad9910_command* command);
+
 size_t get_command_size(ad9910_command_type);
+size_t get_full_command_size(ad9910_command*);
 
 /*
  - single tone

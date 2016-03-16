@@ -49,6 +49,16 @@ ad9910_process_commands(const ad9910_command* commands)
   }
 }
 
+void
+ad9910_execute_command(const ad9910_command* cmd)
+{
+  uint32_t length = sizeof(ad9910_command);
+  length += prepare_command(ad9910_frequency, cmd->frequency, cmd + length);
+  length += prepare_command(ad9910_amplitude, cmd->amplitude, cmd + length);
+  length += prepare_command(ad9910_phase, cmd->phase, cmd + length);
+  ad9910_io_update();
+}
+
 size_t
 get_command_size(ad9910_command_type type)
 {
@@ -66,6 +76,16 @@ get_command_size(ad9910_command_type type)
   }
 
   return 0;
+}
+
+size_t
+get_full_command_size(ad9910_command* cmd)
+{
+  size_t ret = sizeof(ad9910_command);
+  ret += get_command_size(cmd->frequency);
+  ret += get_command_size(cmd->amplitude);
+  ret += get_command_size(cmd->phase);
+  return ret;
 }
 
 static uint32_t
