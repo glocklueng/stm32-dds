@@ -5,4 +5,7 @@
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
+#define _str(s) #s
+#define str(s) _str(s)
+
 #endif /* _UTIL_H */
