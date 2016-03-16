@@ -40,6 +40,7 @@ EXP         [eE]{INTEGER}
 "DEL"       { return DEL; }
 "FIXED"     { return FIXED; }
 "FREQ"      { return FREQ; }
+"INFO"      { return INFO; }
 "NONE"      { return NONE; }
 "OSC"       { return OSC; }
 "OUTPUT"    { return OUTPUT; }

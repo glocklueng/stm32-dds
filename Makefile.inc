@@ -17,5 +17,10 @@ CFLAGS+=-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
 CFLAGS+=-Werror=missing-prototypes -Werror=implicit-function-declaration
 
+# include the git revision if we have a git checkout available
+ifneq ("$(wildcard .git)","")
+    CPPFLAGS+=-DREF_ID=$(shell git rev-list --max-count=1 HEAD)
+endif
+
 # define constant for processor type
 CPPFLAGS+=-DSTM32F40_41xxx

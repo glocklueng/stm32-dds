@@ -3,6 +3,7 @@
 #include "commands.h"
 #include "data.h"
 #include "ethernet.h"
+#include "util.h"
 
 #include <math.h>
 #include <string.h>
@@ -60,6 +61,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token FIXED
 %token FLOAT
 %token FREQ
+%token INFO
 %token INTEGER
 %token NAME
 %token NONE
@@ -108,6 +110,7 @@ command
       ad9910_init();
     }
   | START COLON start_cmd
+  | info_cmd
   ;
 
 output_cmd
@@ -334,6 +337,18 @@ start_cmd
       ad9910_clear_startup_command();
     }
   ;
+
+info_cmd
+  : INFO
+    {
+      static const char info[] = "DDS control\n"
+        "Compiled: " __TIME__ " " __DATE__ "\n"
+#ifdef REF_ID
+        "Build ID: " str(REF_ID) "\n"
+#endif
+        ;
+      ethernet_queue(info, sizeof(info));
+    }
 
 ampl_cmd
   : NONE { $$ = ad9910_command_none; }
