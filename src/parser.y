@@ -297,6 +297,7 @@ start_cmd
       char buf[SEQ_PARSE_BUFFER_SIZE * 3 + sizeof(ad9910_command)];
 
       ad9910_command* cmd = (ad9910_command*)buf;
+      cmd->trigger = ad9910_trigger_none;
       cmd->frequency = $F;
       cmd->amplitude = $A;
       cmd->phase = $P;
