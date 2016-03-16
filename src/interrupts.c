@@ -27,6 +27,7 @@
 #include "gpio.h"
 #include "timing.h"
 
+#include <stddef.h>
 #include <stm32f4xx.h>
 #include <stm32f4xx_exti.h>
 #include <misc.h>
@@ -105,7 +106,23 @@ void
 HardFault_Handler(void)
 {
   /* Go to infinite loop when Hard Fault exception occurs */
+  const size_t cycles = 2 * 1000 * 1000;
   while (1) {
+    gpio_set_high(LED_RED);
+    gpio_set_high(LED_BLUE);
+    gpio_set_high(LED_GREEN);
+    gpio_set_high(LED_ORANGE);
+
+    for (volatile unsigned int i = 0; i < cycles; ++i) {
+    }
+
+    gpio_set_low(LED_RED);
+    gpio_set_low(LED_BLUE);
+    gpio_set_low(LED_GREEN);
+    gpio_set_low(LED_ORANGE);
+
+    for (volatile unsigned int i = 0; i < cycles; ++i) {
+    }
   }
 }
 
