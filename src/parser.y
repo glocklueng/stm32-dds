@@ -76,6 +76,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token SINC
 %token SINGLE
 %token START
+%token TSET
 %token UNIT_DBM
 %token UNIT_HZ
 %token WHITESPACE
@@ -106,6 +107,7 @@ command
       free_all_data_segments();
       ad9910_init();
     }
+  | START COLON start_cmd
   ;
 
 output_cmd
@@ -286,6 +288,49 @@ data_cmd
   | CLEAR
     {
       free_all_data_segments();
+    }
+  ;
+
+start_cmd
+  : TSET WHITESPACE freq_cmd[F] COMMA ampl_cmd[A] COMMA phase_cmd[P]
+    {
+      char buf[SEQ_PARSE_BUFFER_SIZE * 3 + sizeof(ad9910_command)];
+
+      ad9910_command* cmd = (ad9910_command*)buf;
+      cmd->frequency = $F;
+      cmd->amplitude = $A;
+      cmd->phase = $P;
+
+      char* cur = buf + sizeof(ad9910_command);
+      memcpy(cur, freq_parse_buffer, get_command_size(cmd->frequency));
+      cur += get_command_size(cmd->frequency);
+      memcpy(cur, ampl_parse_buffer, get_command_size(cmd->amplitude));
+      cur += get_command_size(cmd->amplitude);
+      memcpy(cur, phase_parse_buffer, get_command_size(cmd->phase));
+      cur += get_command_size(cmd->phase);
+
+      ad9910_set_startup_command((ad9910_command*)buf);
+    }
+  | TSET WHITESPACE freq_cmd[F] COMMA ampl_cmd[A]
+    {
+      char buf[SEQ_PARSE_BUFFER_SIZE * 3 + sizeof(ad9910_command)];
+
+      ad9910_command* cmd = (ad9910_command*)buf;
+      cmd->frequency = $F;
+      cmd->amplitude = $A;
+      cmd->phase = ad9910_command_none;
+
+      char* cur = buf + sizeof(ad9910_command);
+      memcpy(cur, freq_parse_buffer, get_command_size(cmd->frequency));
+      cur += get_command_size(cmd->frequency);
+      memcpy(cur, ampl_parse_buffer, get_command_size(cmd->amplitude));
+      cur += get_command_size(cmd->amplitude);
+
+      ad9910_set_startup_command((ad9910_command*)buf);
+    }
+  | CLEAR
+    {
+      ad9910_clear_startup_command();
     }
   ;
 

@@ -48,6 +48,7 @@ EXP         [eE]{INTEGER}
 "RAMP"      { return RAMP; }
 "SAWTOOTH"  { return SAWTOOTH; }
 "SEQ"       { return SEQ; }
+"SET"       { return TSET; }
 "SINC"      { return SINC; }
 "SINGLE"    { return SINGLE; }
 "START"     { return START; }

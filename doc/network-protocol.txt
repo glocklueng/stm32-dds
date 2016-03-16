@@ -34,6 +34,10 @@ SEQ:
   CLEAR
   START
 
+START:
+  SET <seqblock>
+  CLEAR
+
 <seqlist>
   : <seqblock>;<seqlist>
   | <seqblock>
