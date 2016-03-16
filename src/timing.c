@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#define SYSTEMTICK_PERIOD_MS 10
+#define SYSTEMTICK_PERIOD_MS 100
 /* this variable is used as time reference, incremented by 10ms */
 volatile uint32_t LocalTime = 0;
 

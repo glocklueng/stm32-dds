@@ -486,7 +486,7 @@ lwip_periodic_handle(uint32_t localtime)
   static uint32_t link_timer = 0;
   static int link_status = 0;
 
-  if (localtime - link_timer >= 100) {
+  if (localtime - link_timer >= 1000) {
     link_timer = localtime;
 
     /* the normal solution to detect link changes is via an extra line in
@@ -504,12 +504,12 @@ lwip_periodic_handle(uint32_t localtime)
     }
   }
 
-  if (localtime - tcp_timer >= TCP_TMR_INTERVAL / 10) {
+  if (localtime - tcp_timer >= TCP_TMR_INTERVAL) {
     tcp_timer = localtime;
     tcp_tmr();
   }
 
-  if (localtime - arp_timer >= ARP_TMR_INTERVAL / 10) {
+  if (localtime - arp_timer >= ARP_TMR_INTERVAL) {
     arp_timer = localtime;
     etharp_tmr();
   }
