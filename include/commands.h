@@ -43,11 +43,13 @@ typedef struct
 {
   char data_block[8];
   uint32_t delay;
+  char _alignment_buffer[3]; /* get size to multiple of 4 bytes */
 } ad9910_parallel_command;
 
 typedef struct
 {
   uint8_t profile;
+  char _alignment_buffer[3]; /* get size to multiple of 4 bytes */
 } ad9910_ram_command;
 
 typedef struct
@@ -59,6 +61,7 @@ typedef struct
   uint16_t negative_slope;
   uint16_t positive_slope;
   uint8_t flags;
+  char _alignment_buffer[3]; /* get size to multiple of 4 bytes */
 } ad9910_ramp_command;
 
 /** this function takes a list of commands and works through that list
