@@ -119,7 +119,9 @@ wait_for_trigger(ad9910_trigger_mode trigger)
 {
   switch (trigger) {
     case ad9910_end_of_sequence:
+      break;
     case ad9910_trigger_none:
+      ad9910_io_update();
       break;
     case ad9910_trigger_io_update:
       /* make sure IO_UPDATE is configured as an input pin */
