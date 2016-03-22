@@ -168,12 +168,20 @@ ethernet_gpio_init()
 err_t
 ethernet_queue(const char* data, uint16_t length)
 {
+  if (length == 0) {
+    length = strlen(data);
+  }
+
   return tcp_write(es.pcb, data, length, 0);
 }
 
 err_t
 ethernet_copy_queue(const char* data, uint16_t length)
 {
+  if (length == 0) {
+    length = strlen(data);
+  }
+
   return tcp_write(es.pcb, data, length, TCP_WRITE_FLAG_COPY);
 }
 
