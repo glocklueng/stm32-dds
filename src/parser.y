@@ -11,12 +11,24 @@
 int yylex(void);
 void yyerror(const char*);
 
+static void print_boolean(int);
+
 void
 yyerror(const char* s)
 {
   static const char msg[] = "Protocol error: ";
   ethernet_queue(msg, sizeof(msg));
   ethernet_copy_queue(s, strlen(s));
+}
+
+static void
+print_boolean(int value)
+{
+  if (value) {
+    ethernet_queue("on\n", 3);
+  } else {
+    ethernet_queue("off\n", 4);
+  }
 }
 
 #define SEQ_BUFFER_SIZE 2048
@@ -140,6 +152,11 @@ output_cmd
       ad9910_set_value(ad9910_inverse_sinc_filter_enable, $B);
       ad9910_update_matching_reg(ad9910_inverse_sinc_filter_enable);
       ad9910_io_update();
+    }
+  | SINC QUESTIONMARK
+    {
+      uint32_t value = ad9910_get_value(ad9910_inverse_sinc_filter_enable);
+      print_boolean(value);
     }
   ;
 
