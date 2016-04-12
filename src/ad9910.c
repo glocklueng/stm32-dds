@@ -55,6 +55,12 @@ ad9910_init()
 
   gpio_set_high(LED_ORANGE);
 
+  /* reset the DDS */
+  gpio_set_high(DDS_RESET);
+  for (volatile int i = 0; i < 1000; ++i) {
+  }
+  gpio_set_low(DDS_RESET);
+
   spi_init_slow();
 
   gpio_set_high(IO_RESET);
