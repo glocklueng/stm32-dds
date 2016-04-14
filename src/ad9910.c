@@ -163,6 +163,20 @@ ad9910_update_reg(ad9910_register* reg)
   }
 }
 
+uint64_t
+ad9910_read_register(ad9910_register* reg)
+{
+  spi_send_single(reg->address | AD9910_INSTR_READ);
+
+  uint64_t out = 0;
+  for (int i = 0; i < reg->size; ++i) {
+    out <<= 8;
+    out |= spi_send_single(0);
+  }
+
+  return out;
+}
+
 void
 ad9910_io_update()
 {

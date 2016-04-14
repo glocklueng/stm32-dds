@@ -227,6 +227,8 @@ INLINE void ad9910_update_profile_reg(uint8_t profile);
  * then call ad9910_update_reg on that register directly */
 INLINE void ad9910_update_matching_reg(ad9910_register_bit field);
 
+uint64_t ad9910_read_register(ad9910_register*);
+
 uint32_t ad9910_convert_frequency(float f);
 
 void ad9910_init(void);
