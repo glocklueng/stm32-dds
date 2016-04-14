@@ -236,7 +236,7 @@ void ad9910_init(void);
 void ad9910_io_update(void);
 
 /**
- * selects a previosly configured output buffer. Changing the profile
+ * selects a previously configured output buffer. Changing the profile
  * buffer writes all data to the registers like calling io update.
  */
 void ad9910_select_profile(uint8_t profile);
