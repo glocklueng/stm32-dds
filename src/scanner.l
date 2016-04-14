@@ -38,6 +38,7 @@ EXP         [eE]{INTEGER}
 "CLEAR"     { return CLEAR; }
 "DATA"      { return DATA; }
 "DEL"       { return DEL; }
+"EXT"       { return EXT; }
 "FIXED"     { return FIXED; }
 "FREQ"      { return FREQ; }
 "INFO"      { return INFO; }

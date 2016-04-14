@@ -242,6 +242,14 @@ void ad9910_io_update(void);
 void ad9910_select_profile(uint8_t profile);
 
 /**
+ * enables the output permanently or sets it to external triggered. If the
+ * value is true the output is on, independent of the signal on the output
+ * trigger. If the value is false the output is controlled by the external
+ * trigger. (not in revision 1)
+ */
+void ad9910_enable_output(int);
+
+/**
  * changes which registers are influenced by the parallel port. See table
  * 4 in the AD9910 data sheet for exact specification
  */

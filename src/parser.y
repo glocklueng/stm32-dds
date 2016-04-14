@@ -14,6 +14,8 @@ void yyerror(const char*);
 void
 yyerror(const char* s)
 {
+  static const char msg[] = "Protocol error: ";
+  ethernet_queue(msg, sizeof(msg));
   ethernet_copy_queue(s, strlen(s));
 }
 
@@ -58,6 +60,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token DATA
 %token DEL
 %token EOL
+%token EXT
 %token FIXED
 %token FLOAT
 %token FREQ
@@ -101,7 +104,7 @@ ROOT
   ;
 
 command
-  : OUTPUT COLON output_cmd
+  : OUTPUT output_cmd
   | SEQ COLON seq_cmd
   | DATA COLON data_cmd
   | RST
@@ -114,17 +117,25 @@ command
   ;
 
 output_cmd
-  : AMPL WHITESPACE amplitude[A]
+  : WHITESPACE boolean[B]
+    {
+      ad9910_enable_output($B);
+    }
+  | WHITESPACE EXT
+    {
+      ad9910_enable_output(0);
+    }
+  | COLON AMPL WHITESPACE amplitude[A]
     {
       ad9910_set_amplitude(0, $A);
       ad9910_io_update();
     }
-  | FREQ WHITESPACE frequency[F]
+  | COLON FREQ WHITESPACE frequency[F]
     {
       ad9910_set_frequency(0, $F);
       ad9910_io_update();
     }
-  | SINC WHITESPACE boolean[B]
+  | COLON SINC WHITESPACE boolean[B]
     {
       ad9910_set_value(ad9910_inverse_sinc_filter_enable, $B);
       ad9910_update_matching_reg(ad9910_inverse_sinc_filter_enable);

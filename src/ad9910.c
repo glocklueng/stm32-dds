@@ -137,6 +137,7 @@ ad9910_init()
   ad9910_select_profile(0);
   ad9910_select_parallel(0);
   ad9910_enable_parallel(0);
+  ad9910_enable_output(1);
 
   ad9910_execute_startup_command();
 
@@ -165,6 +166,12 @@ ad9910_io_update()
   /* no delay is needed here. We have to wait for at least 1 SYNC_CLK
    * cycle which is SYSCLK / 4 = 250MHz > STM32F4 CPU clock */
   gpio_set_low(IO_UPDATE);
+}
+
+void
+ad9910_enable_output(int v)
+{
+  gpio_set(RF_SWITCH, !!v);
 }
 
 void
