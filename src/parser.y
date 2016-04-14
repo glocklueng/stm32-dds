@@ -374,8 +374,46 @@ info_cmd
 #ifdef REF_ID
         "Build ID: " str(REF_ID) "\n"
 #endif
+        "\n"
+        "Register contents:\n"
         ;
       ethernet_queue(info, sizeof(info));
+
+      struct reg_print_helper {
+        ad9910_register* reg;
+        const char* name;
+      };
+
+      struct reg_print_helper print_helper[] = {
+        {&ad9910_reg_cfr1, "CFR1:"},
+        {&ad9910_reg_cfr2, "CFR2:"},
+        {&ad9910_reg_cfr3, "CFR3:"},
+        {&ad9910_reg_aux_dac_ctl, "AUX DAC CTL:"},
+        {&ad9910_reg_io_update_rate, "IO UPDATE RATE:"},
+        {&ad9910_reg_ftw, "FTW:"},
+        {&ad9910_reg_pow, "POW:"},
+        {&ad9910_reg_asf, "ASF:"},
+        {&ad9910_reg_multichip_sync, "MULTICHIP SYNC:"},
+        {&ad9910_reg_ramp_limit, "RAMP LIMIT:"},
+        {&ad9910_reg_ramp_step, "RAMP STEP:"},
+        {&ad9910_reg_ramp_rate, "RAMP RATE:"},
+        {&ad9910_reg_prof0, "PROFILE 0:"},
+        {&ad9910_reg_prof1, "PROFILE 1:"},
+        {&ad9910_reg_prof2, "PROFILE 2:"},
+        {&ad9910_reg_prof3, "PROFILE 3:"},
+        {&ad9910_reg_prof4, "PROFILE 4:"},
+        {&ad9910_reg_prof5, "PROFILE 5:"},
+        {&ad9910_reg_prof6, "PROFILE 6:"},
+        {&ad9910_reg_prof7, "PROFILE 7:"},
+        {NULL, NULL}
+      };
+      char buf[36];
+      for (struct reg_print_helper* helper = print_helper; helper->reg != NULL;
+           helper++) {
+        snprintf(buf, sizeof(buf), "%-16s0x%.16llx\n", helper->name,
+                 ad9910_read_register(helper->reg));
+        ethernet_copy_queue(buf, 0);
+      }
     }
 
 ampl_cmd
