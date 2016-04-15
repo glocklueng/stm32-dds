@@ -375,7 +375,7 @@ info_cmd
         "Build ID: " str(REF_ID) "\n"
 #endif
         "\n"
-        "Register contents:\n"
+        "Registers:              DDS              Shadow\n"
         ;
       ethernet_queue(info, sizeof(info));
 
@@ -407,11 +407,11 @@ info_cmd
         {&ad9910_reg_prof7, "PROFILE 7:"},
         {NULL, NULL}
       };
-      char buf[36];
+      char buf[60];
       for (struct reg_print_helper* helper = print_helper; helper->reg != NULL;
            helper++) {
-        snprintf(buf, sizeof(buf), "%-16s0x%.16llx\n", helper->name,
-                 ad9910_read_register(helper->reg));
+        snprintf(buf, sizeof(buf), "%-16s0x%.16llx 0x%.16llx\n", helper->name,
+                 ad9910_read_register(helper->reg), helper->reg->value);
         ethernet_copy_queue(buf, 0);
       }
     }
