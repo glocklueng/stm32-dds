@@ -525,7 +525,7 @@ lwip_periodic_handle(uint32_t localtime)
 
 /**
  * This function starts the server and causes the program to listen on
- * port 1234 waiting for incoming connections.
+ * port 21 waiting for incoming connections.
  */
 static int
 server_init()
@@ -537,7 +537,7 @@ server_init()
     return 1;
   }
 
-  err_t err = tcp_bind(g_pcb, IP_ADDR_ANY, 1234);
+  err_t err = tcp_bind(g_pcb, IP_ADDR_ANY, 21);
 
   if (err != ERR_OK) {
     memp_free(MEMP_TCP_PCB, g_pcb);
