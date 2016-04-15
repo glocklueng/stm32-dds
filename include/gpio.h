@@ -12,14 +12,16 @@ typedef struct
 } gpio_pin;
 
 /* definition of all used GPIO ports */
-/* TODO add remaining pins */
 #define DEF_GPIO(name, _group, _pin)                                           \
   static const gpio_pin name = {.group = GPIO##_group, .pin = _pin }
+
+DEF_GPIO(ETHERNET_RESET, A, 6);
 
 DEF_GPIO(IO_UPDATE, D, 11);
 DEF_GPIO(IO_RESET, B, 7);
 
 DEF_GPIO(RF_SWITCH, A, 4);
+DEF_GPIO(TRIGGER_SELECT, C, 0);
 DEF_GPIO(EXTERNAL_TRIGGER, B, 1);
 DEF_GPIO(PLL_LOCK, C, 15);
 DEF_GPIO(DDS_RESET, A, 0);
@@ -32,6 +34,7 @@ DEF_GPIO(LED_RED, D, 14);
 DEF_GPIO(LED_GREEN, D, 12);
 DEF_GPIO(LED_ORANGE, D, 13);
 DEF_GPIO(LED_BLUE, D, 15);
+DEF_GPIO(LED_FRONT, B, 9);
 
 DEF_GPIO(DRCTL, D, 2);
 DEF_GPIO(DRHOLD, D, 3);
