@@ -525,7 +525,8 @@ lwip_periodic_handle(uint32_t localtime)
 
 /**
  * This function starts the server and causes the program to listen on
- * port 21 waiting for incoming connections.
+ * port 5024 waiting for incoming connections.
+ * From 33500B: 5024 SCPI telnet, 5025 SCPI socket
  */
 static int
 server_init()
@@ -537,7 +538,7 @@ server_init()
     return 1;
   }
 
-  err_t err = tcp_bind(g_pcb, IP_ADDR_ANY, 21);
+  err_t err = tcp_bind(g_pcb, IP_ADDR_ANY, 5024);
 
   if (err != ERR_OK) {
     memp_free(MEMP_TCP_PCB, g_pcb);
