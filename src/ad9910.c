@@ -225,6 +225,12 @@ ad9910_convert_frequency(float f)
   return nearbyint(f / 1e9 * 0xFFFFFFFF);
 }
 
+float
+ad9910_backconvert_frequency(uint32_t f)
+{
+  return f * 1e9 / 0xFFFFFFFF;
+}
+
 void
 ad9910_set_frequency(uint8_t profile, uint32_t freq)
 {

@@ -230,6 +230,7 @@ INLINE void ad9910_update_matching_reg(ad9910_register_bit field);
 uint64_t ad9910_read_register(ad9910_register*);
 
 uint32_t ad9910_convert_frequency(float f);
+float ad9910_backconvert_frequency(uint32_t);
 
 void ad9910_init(void);
 
