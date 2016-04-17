@@ -153,7 +153,7 @@ output_cmd
       ad9910_update_matching_reg(ad9910_inverse_sinc_filter_enable);
       ad9910_io_update();
     }
-  | SINC QUESTIONMARK
+  | COLON SINC QUESTIONMARK
     {
       uint32_t value = ad9910_get_value(ad9910_inverse_sinc_filter_enable);
       print_boolean(value);
