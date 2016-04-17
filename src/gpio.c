@@ -2,6 +2,7 @@
 
 static void gpio_init_output(gpio_pin);
 static void gpio_init_output_pulldown(gpio_pin);
+static void gpio_init_output_pullup(gpio_pin);
 static void gpio_init_input(gpio_pin);
 static void gpio_change_pin_mode(uint8_t mode, GPIO_TypeDef* GPIOx,
                                  uint16_t pinpos);
@@ -25,6 +26,8 @@ gpio_init()
   gpio_init_output(RF_SWITCH);
   gpio_init_output_pulldown(DDS_RESET);
   gpio_init_input(EXTERNAL_TRIGGER);
+
+  gpio_init_output_pullup(ETHERNET_RESET);
 
   gpio_init_input(PLL_LOCK);
 
@@ -90,6 +93,12 @@ gpio_init_output_pulldown(gpio_pin pin)
                TM_GPIO_Speed_High, TM_GPIO_PuPd_DOWN);
 }
 
+static void
+gpio_init_output_pullup(gpio_pin pin)
+{
+  TM_GPIO_Init(pin.group, 1 << pin.pin, TM_GPIO_Mode_OUT, TM_GPIO_OType_PP,
+               TM_GPIO_Speed_High, TM_GPIO_PuPd_UP);
+}
 
 static void
 gpio_init_input(gpio_pin pin)

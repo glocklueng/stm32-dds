@@ -91,6 +91,9 @@ static void server_connection_close(struct tcp_pcb* pcb);
 void
 ethernet_init()
 {
+  /* reset pin is active low */
+  gpio_set_high(ETHERNET_RESET);
+
   /* enable systick interrupts */
   SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
 
