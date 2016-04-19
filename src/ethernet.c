@@ -92,6 +92,9 @@ void
 ethernet_init()
 {
   /* reset pin is active low */
+  gpio_set_low(ETHERNET_RESET);
+  for (volatile int i = 0; i < 1000; ++i) {
+  }
   gpio_set_high(ETHERNET_RESET);
 
   /* enable systick interrupts */
