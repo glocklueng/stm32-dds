@@ -24,6 +24,7 @@ gpio_init()
   gpio_init_output(LED_GREEN);
 
   gpio_init_output(RF_SWITCH);
+  gpio_init_output(TRIGGER_SELECT);
   gpio_init_output_pulldown(DDS_RESET);
   gpio_init_input(EXTERNAL_TRIGGER);
 
