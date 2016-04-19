@@ -73,7 +73,6 @@ EXP         [eE]{INTEGER}
 \.[0-9]        { yylval.floating = strtof(yytext, NULL); return FLOAT; }
 {INTEGER}{EXP} { yylval.floating = strtof(yytext, NULL); return FLOAT; }
 {INTEGER}      { yylval.integer = atoi(yytext); return INTEGER; }
-[0-9a-f]+      { yylval.integer = strtol(yytext, NULL, 16); return INTEGER; }
 
 <STRING>[a-zA-Z0-9]{1,7} {
                  memcpy(yylval.string, yytext, yyleng);
