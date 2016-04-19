@@ -434,12 +434,12 @@ amplitude
   : float WHITESPACE UNIT_DBM
     {
       float temp = powf(10, $1 / 20) * 0x3FFF;
-      $$ = nearbyint(temp);
+      $$ = nearbyintf(temp);
     }
   | float UNIT_DBM
     {
       float temp = powf(10, $1 / 20) * 0x3FFF;
-      $$ = nearbyint(temp);
+      $$ = nearbyintf(temp);
     }
   | INTEGER { $$ = yylval.integer; }
   ;

@@ -222,7 +222,7 @@ ad9910_enable_parallel(int mode)
 uint32_t
 ad9910_convert_frequency(float f)
 {
-  return nearbyint(f / 1e9 * 0xFFFFFFFF);
+  return nearbyintf(f / 1e9 * 0xFFFFFFFF);
 }
 
 float
