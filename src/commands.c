@@ -46,7 +46,7 @@ ad9910_process_commands(const ad9910_command* commands)
 
     wait_for_trigger(commands->trigger);
 
-    commands += length;
+    commands = (void*)commands + length;
   }
 }
 
