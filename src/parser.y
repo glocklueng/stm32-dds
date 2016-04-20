@@ -39,12 +39,15 @@ print_boolean(int value)
 struct sequence_buffer {
   char begin[SEQ_BUFFER_SIZE];
   void* current;
+  unsigned int repeat;
 };
 
 static struct sequence_buffer seq_buffer = {
   .begin = {0},
-  .current = &seq_buffer.begin
+  .current = &seq_buffer.begin,
+  .repeat = 0,
 };
+
 static char freq_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 static char ampl_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
@@ -89,6 +92,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token QUESTIONMARK
 %token RAM
 %token RAMP
+%token REPEAT
 %token RST
 %token SAWTOOTH
 %token SEMICOLON
@@ -102,6 +106,7 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token WHITESPACE
 
 %type <integer>  boolean
+%type <integer>  INTEGER
 %type <floating> float
 %type <uinteger> amplitude
 %type <uinteger> frequency
@@ -126,6 +131,7 @@ command
     {
       free_all_data_segments();
       seq_buffer.current = seq_buffer.begin;
+      seq_buffer.repeat = 0;
       ad9910_init();
     }
   | START COLON start_cmd
@@ -168,12 +174,21 @@ seq_cmd
   : START
     {
       ((ad9910_command*)seq_buffer.current)->trigger = ad9910_end_of_sequence;
-      ad9910_process_commands((ad9910_command*)seq_buffer.begin);
+      unsigned int i = 0;
+      do {
+        ad9910_process_commands((ad9910_command*)seq_buffer.begin);
+        i++;
+      } while (i < seq_buffer.repeat);
     }
   | ADD WHITESPACE seqlist
+  | REPEAT WHITESPACE INTEGER[i]
+    {
+      seq_buffer.repeat = $i;
+    }
   | CLEAR
     {
       seq_buffer.current = seq_buffer.begin;
+      seq_buffer.repeat = 0;
     }
   ;
 

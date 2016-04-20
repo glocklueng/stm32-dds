@@ -48,6 +48,7 @@ EXP         [eE]{INTEGER}
 "PARALLEL"  { return PARALLEL; }
 "RAM"       { return RAM; }
 "RAMP"      { return RAMP; }
+"REPEAT"    { return REPEAT; }
 "SAWTOOTH"  { return SAWTOOTH; }
 "SEQ"       { return SEQ; }
 "SET"       { return TSET; }
