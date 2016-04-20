@@ -185,7 +185,8 @@ seqblock
   : freq_cmd[F] COMMA ampl_cmd[A] COMMA phase_cmd[P]
     {
       ad9910_command* cmd = seq_buffer.current;
-      /* TODO set trigger */
+      /* TODO set trigger correctly */
+      cmd->trigger = ad9910_trigger_io_update;
       /* TODO RANGE CHECKS! */
       seq_buffer.current += sizeof(ad9910_command);
 
@@ -207,7 +208,8 @@ seqblock
   | freq_cmd[F] COMMA ampl_cmd[A]
     {
       ad9910_command* cmd = seq_buffer.current;
-      /* TODO set trigger */
+      /* TODO set trigger correctly */
+      cmd->trigger = ad9910_trigger_io_update;
       /* TODO RANGE CHECKS! */
       seq_buffer.current += sizeof(ad9910_command);
 
