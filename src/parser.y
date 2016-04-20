@@ -41,7 +41,10 @@ struct sequence_buffer {
   void* current;
 };
 
-static struct sequence_buffer seq_buffer;
+static struct sequence_buffer seq_buffer = {
+  .begin = {0},
+  .current = &seq_buffer.begin
+};
 static char freq_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 static char ampl_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
