@@ -125,6 +125,7 @@ command
   | RST
     {
       free_all_data_segments();
+      seq_buffer.current = seq_buffer.begin;
       ad9910_init();
     }
   | START COLON start_cmd
