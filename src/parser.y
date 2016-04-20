@@ -163,7 +163,7 @@ output_cmd
 seq_cmd
   : START
     {
-      seq_buffer.current = ad9910_end_of_sequence;
+      ((ad9910_command*)seq_buffer.current)->trigger = ad9910_end_of_sequence;
       ad9910_process_commands((ad9910_command*)seq_buffer.begin);
     }
   | ADD seqlist
