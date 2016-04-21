@@ -21,16 +21,16 @@ EXP         [eE]{INTEGER}
 %x          STRING
 
 %%
-{WS}        { return WHITESPACE; }
-"?"         { return QUESTIONMARK; }
-":"         { return COLON; }
-","         { return COMMA; }
-";"         { return SEMICOLON; }
+{WS}        { return ' '; }
+"?"         { return '?'; }
+":"         { return ':'; }
+","         { return ','; }
+";"         { return ';'; }
 <INITIAL>\" { BEGIN(STRING); }
 <STRING>\"  { BEGIN(INITIAL); }
 
-"\r\n"      { return EOL; }
-\n          { return EOL; }
+"\r\n"      { return '\n'; }
+\n          { return '\n'; }
 
 "*RST"      { return RST; }
 "ADD"       { return ADD; }

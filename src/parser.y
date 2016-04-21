@@ -73,11 +73,8 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token AMPL
 %token BOOLEAN
 %token CLEAR
-%token COLON
-%token COMMA
 %token DATA
 %token DEL
-%token EOL
 %token EXT
 %token FIXED
 %token FLOAT
@@ -89,13 +86,11 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token OSC
 %token OUTPUT
 %token PARALLEL
-%token QUESTIONMARK
 %token RAM
 %token RAMP
 %token REPEAT
 %token RST
 %token SAWTOOTH
-%token SEMICOLON
 %token SEQ
 %token SINC
 %token SINGLE
@@ -103,7 +98,6 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %token TSET
 %token UNIT_DBM
 %token UNIT_HZ
-%token WHITESPACE
 
 %type <integer>  boolean
 %type <integer>  INTEGER
@@ -119,14 +113,14 @@ static char phase_parse_buffer[SEQ_PARSE_BUFFER_SIZE];
 %%
 
 ROOT
-  : command EOL
-  | EOL
+  : command '\n'
+  | '\n'
   ;
 
 command
   : OUTPUT output_cmd
-  | SEQ COLON seq_cmd
-  | DATA COLON data_cmd
+  | SEQ ':' seq_cmd
+  | DATA ':' data_cmd
   | RST
     {
       free_all_data_segments();
@@ -134,36 +128,36 @@ command
       seq_buffer.repeat = 0;
       ad9910_init();
     }
-  | START COLON start_cmd
+  | START ':' start_cmd
   | info_cmd
   ;
 
 output_cmd
-  : WHITESPACE boolean[B]
+  : ' ' boolean[B]
     {
       ad9910_enable_output($B);
     }
-  | WHITESPACE EXT
+  | ' ' EXT
     {
       ad9910_enable_output(0);
     }
-  | COLON AMPL WHITESPACE amplitude[A]
+  | ':' AMPL ' ' amplitude[A]
     {
       ad9910_set_amplitude(0, $A);
       ad9910_io_update();
     }
-  | COLON FREQ WHITESPACE frequency[F]
+  | ':' FREQ ' ' frequency[F]
     {
       ad9910_set_frequency(0, $F);
       ad9910_io_update();
     }
-  | COLON SINC WHITESPACE boolean[B]
+  | ':' SINC ' ' boolean[B]
     {
       ad9910_set_value(ad9910_inverse_sinc_filter_enable, $B);
       ad9910_update_matching_reg(ad9910_inverse_sinc_filter_enable);
       ad9910_io_update();
     }
-  | COLON SINC QUESTIONMARK
+  | ':' SINC '?'
     {
       uint32_t value = ad9910_get_value(ad9910_inverse_sinc_filter_enable);
       print_boolean(value);
@@ -180,8 +174,8 @@ seq_cmd
         i++;
       } while (i < seq_buffer.repeat);
     }
-  | ADD WHITESPACE seqlist
-  | REPEAT WHITESPACE INTEGER[i]
+  | ADD ' ' seqlist
+  | REPEAT ' ' INTEGER[i]
     {
       seq_buffer.repeat = $i;
     }
@@ -194,11 +188,11 @@ seq_cmd
 
 seqlist
   : seqblock
-  | seqblock SEMICOLON seqlist
+  | seqblock ';' seqlist
   ;
 
 seqblock
-  : freq_cmd[F] COMMA ampl_cmd[A] COMMA phase_cmd[P]
+  : freq_cmd[F] ',' ampl_cmd[A] ',' phase_cmd[P]
     {
       ad9910_command* cmd = seq_buffer.current;
       /* TODO set trigger correctly */
@@ -221,7 +215,7 @@ seqblock
              get_command_size($P));
       seq_buffer.current += get_command_size($P);
     }
-  | freq_cmd[F] COMMA ampl_cmd[A]
+  | freq_cmd[F] ',' ampl_cmd[A]
     {
       ad9910_command* cmd = seq_buffer.current;
       /* TODO set trigger correctly */
@@ -245,14 +239,14 @@ seqblock
 
 freq_cmd
   : NONE { $$ = ad9910_command_none; }
-  | FIXED WHITESPACE frequency[F]
+  | FIXED ' ' frequency[F]
     {
       ad9910_fixed_command* cmd = (ad9910_fixed_command*)freq_parse_buffer;
       cmd->value = $F;
       $$ = ad9910_command_fixed;
     }
-  | RAMP COLON SINGLE WHITESPACE frequency[start] COMMA frequency[stop]
-    COMMA frequency [step] COMMA frequency[slope]
+  | RAMP ':' SINGLE ' ' frequency[start] ',' frequency[stop]
+    ',' frequency [step] ',' frequency[slope]
     {
       ad9910_ramp_command* cmd = (ad9910_ramp_command*)freq_parse_buffer;
 
@@ -274,8 +268,8 @@ freq_cmd
 
       $$ = ad9910_command_ramp;
     }
-  | RAMP COLON SAWTOOTH WHITESPACE frequency[start] COMMA frequency[stop]
-    COMMA frequency [step] COMMA frequency[slope]
+  | RAMP ':' SAWTOOTH ' ' frequency[start] ',' frequency[stop]
+    ',' frequency [step] ',' frequency[slope]
     {
       ad9910_ramp_command* cmd = (ad9910_ramp_command*)freq_parse_buffer;
 
@@ -297,9 +291,9 @@ freq_cmd
 
       $$ = ad9910_command_ramp;
     }
-  | RAMP COLON OSC WHITESPACE frequency[start] COMMA frequency[stop]
-    COMMA frequency[upstep] COMMA frequency[upslope]
-    COMMA frequency[downstep] COMMA frequency[downslope]
+  | RAMP ':' OSC ' ' frequency[start] ',' frequency[stop]
+    ',' frequency[upstep] ',' frequency[upslope]
+    ',' frequency[downstep] ',' frequency[downslope]
     {
       ad9910_ramp_command* cmd = (ad9910_ramp_command*)freq_parse_buffer;
 
@@ -326,14 +320,14 @@ freq_cmd
   ;
 
 data_cmd
-  : ADD WHITESPACE NAME[name] WHITESPACE
+  : ADD ' ' NAME[name] ' '
     {
       struct binary_data* bin_data = new_data_segment();
       memcpy(bin_data->name, $name, 8);
       ethernet_data_next(bin_data);
       YYACCEPT;
     }
-  | DEL WHITESPACE NAME[name]
+  | DEL ' ' NAME[name]
     {
       delete_data_segment($name);
     }
@@ -344,7 +338,7 @@ data_cmd
   ;
 
 start_cmd
-  : TSET WHITESPACE freq_cmd[F] COMMA ampl_cmd[A] COMMA phase_cmd[P]
+  : TSET ' ' freq_cmd[F] ',' ampl_cmd[A] ',' phase_cmd[P]
     {
       char buf[SEQ_PARSE_BUFFER_SIZE * 3 + sizeof(ad9910_command)];
 
@@ -364,7 +358,7 @@ start_cmd
 
       ad9910_set_startup_command((ad9910_command*)buf);
     }
-  | TSET WHITESPACE freq_cmd[F] COMMA ampl_cmd[A]
+  | TSET ' ' freq_cmd[F] ',' ampl_cmd[A]
     {
       char buf[SEQ_PARSE_BUFFER_SIZE * 3 + sizeof(ad9910_command)];
 
@@ -439,7 +433,7 @@ info_cmd
 
 ampl_cmd
   : NONE { $$ = ad9910_command_none; }
-  | FIXED WHITESPACE amplitude[A]
+  | FIXED ' ' amplitude[A]
     {
       ad9910_fixed_command* cmd = (ad9910_fixed_command*)ampl_parse_buffer;
       cmd->value = $A;
@@ -452,7 +446,7 @@ phase_cmd
   ;
 
 amplitude
-  : float WHITESPACE UNIT_DBM
+  : float ' ' UNIT_DBM
     {
       float temp = powf(10, $1 / 20) * 0x3FFF;
       $$ = nearbyintf(temp);
@@ -481,6 +475,6 @@ boolean
   ;
 
 unit_hz
-  : WHITESPACE unit_hz { $$ = $2; }
+  : ' ' unit_hz { $$ = $2; }
   | UNIT_HZ { $$ = yylval.floating; }
   ;
