@@ -15,6 +15,7 @@ static scpi_result_t scpi_callback_output(scpi_t*);
 static scpi_result_t scpi_callback_output_frequency(scpi_t*);
 static scpi_result_t scpi_callback_output_amplitude(scpi_t*);
 static scpi_result_t scpi_callback_register_q(scpi_t*);
+static scpi_result_t scpi_callback_startup_clear(scpi_t*);
 
 static const scpi_command_t scpi_commands[] = {
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
@@ -22,6 +23,7 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "OUTput:FREQuency", .callback = scpi_callback_output_frequency },
   {.pattern = "OUTput:AMPLitude", .callback = scpi_callback_output_amplitude },
   {.pattern = "REGister?", .callback = scpi_callback_register_q },
+  {.pattern = "STARTup:CLEAR", .callback = scpi_callback_startup_clear },
   SCPI_CMD_LIST_END
 };
 
@@ -219,6 +221,15 @@ scpi_callback_register_q(scpi_t* context)
   }
 
   SCPI_ResultCharacters(context, buf, i);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t scpi_callback_startup_clear(scpi_t* context)
+{
+  (void)context;
+
+  ad9910_clear_startup_command();
 
   return SCPI_RES_OK;
 }
