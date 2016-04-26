@@ -13,6 +13,7 @@ SRCS=src/main.c \
      src/interrupts.c \
      src/ethernet.c \
      src/syscalls.c \
+     src/scpi.c \
      src/spi.c \
      src/timing.c
 HDRS=include/defines.h \
@@ -24,6 +25,7 @@ HDRS=include/defines.h \
      include/gpio.h \
      include/interrupts.h \
      include/main.h \
+     include/scpi.h \
      include/spi.h \
      include/stm32f4x7_eth_conf.h \
      include/timing.h \

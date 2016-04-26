@@ -2,8 +2,8 @@
 
 #include "gpio.h"
 #include "timing.h"
+#include "scpi.h"
 #include "util.h"
-#include "parser.tab.h"
 
 #include <ctype.h>
 #include <ethernetif.h>
@@ -128,6 +128,8 @@ ethernet_init()
   lwip_init();
 
   server_init();
+
+  scpi_init();
 }
 
 static void
@@ -194,15 +196,15 @@ ethernet_copy_queue(const char* data, uint16_t length)
 void
 ethernet_loop()
 {
-  while (!(es.flags & ES_DONE)) {
-    /* clear flags */
-    es.flags = 0;
-
-    yyparse();
-
-    if (es.flags & ES_DATA) {
-      ethernet_read_data();
+  for (;;) {
+    if (ETH_CheckFrameReceived()) {
+      TM_GPIO_TogglePinValue(GPIOD, GPIO_PIN_12);
+      /* Read a received packet from the Ethernet buffers and send
+       * it to the lwIP for handling */
+      ethernetif_input(&gnetif);
     }
+
+    lwip_periodic_handle(LocalTime);
   }
 }
 
@@ -636,32 +638,32 @@ server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
     return err;
   }
 
-  if (es.state == ES_ACCEPTED) {
+  if (es.state == ES_ACCEPTED || es.state == ES_RECEIVING) {
     /* first data chunk in p->payload */
     es.state = ES_RECEIVING;
-
-    /* store reference to incoming pbuf (chain) */
-    es.pin = p;
 
     /* initialize callback */
     tcp_sent(pcb, server_sent_callback);
 
+    struct pbuf* ptr = p;
+    /* interate through all received pbufs and process the data */
+    do {
+      scpi_process(p->payload, p->len);
+
+      /* tell the TCP stack that we process the data. This is used for
+       * flow control */
+      tcp_recved(es.pcb, p->len);
+
+      p = p->next;
+    } while (p != NULL);
+
+    /* this frees the whole chain of pbufs */
+    pbuf_free(ptr);
+
     return ERR_OK;
   }
 
-  if (es.state == ES_RECEIVING) {
-    /* more data from client and previous data has been processed */
-    if (es.pin != NULL) {
-      /* chain original and new data */
-      pbuf_chain(es.pin, p);
-    } else {
-      es.pin = p;
-    }
-
-    return ERR_OK;
-  }
-
-  /* free memory and do nothing */
+  /* error case: free memory and do nothing */
   pbuf_free(p);
   return ERR_OK;
 }
