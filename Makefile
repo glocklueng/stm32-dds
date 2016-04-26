@@ -33,12 +33,14 @@ OBJS=$(patsubst src/%.c,$(BUILDDIR)/%.o, $(SRCS)) \
     $(BUILDDIR)/parser.tab.o
 LIBS=libtm.a \
      liblwip.a \
-     libstm32f4.a
+     libstm32f4.a \
+     libscpi.a
 LIB_FILES=$(LIBS:%=lib/%)
 
 STM32_DIR=lib/stm32f4
 LWIP_DIR=lib/lwip
 TM_DIR=lib/tm
+SCPI_DIR=lib/scpi-parser/libscpi
 
 #CFLAGS+=-Wmissing-declarations -Werror=implicit-function-declaration
 CFLAGS+=-Wno-unused-parameter -Winline
@@ -49,6 +51,7 @@ CPPFLAGS+=-I$(STM32_DIR)/include -I$(STM32_DIR)/include/core -I$(STM32_DIR)/incl
 CPPFLAGS+=-I$(LWIP_DIR) -I$(LWIP_DIR)/src/include -I$(LWIP_DIR)/src/include/ipv4
 CPPFLAGS+=-I$(LWIP_DIR)/port/STM32F4x7/Standalone/include
 CPPFLAGS+=-I$(TM_DIR)/include
+CPPFLAGS+=-I$(SCPI_DIR)/inc
 
 # reduce flex buffer sizes. defines in lexer file are added to late
 CPPFLAGS+=-DYY_BUF_SIZE=32 -DYY_READ_BUF_SIZE=16

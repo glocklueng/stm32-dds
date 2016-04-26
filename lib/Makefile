@@ -1,8 +1,11 @@
 include ../Makefile.inc
+# pass all defined variables down to the recursive make call (e.g. CFLAGS)
+export
 
 LIBS=libstm32f4.a \
      libtm.a \
-     liblwip.a
+     liblwip.a \
+     libscpi.a
 
 all: $(LIBS)
 
@@ -17,6 +20,10 @@ liblwip.a:
 libtm.a:
 	$(MAKE) -C tm
 	cp -f tm/$@ .
+
+libscpi.a:
+	$(MAKE) -C scpi-parser
+	cp -f scpi-parser/libscpi/dist/$@ .
 
 clean:
 	rm -f $(LIBS)
