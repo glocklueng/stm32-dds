@@ -22,7 +22,7 @@ libtm.a:
 	cp -f tm/$@ .
 
 libscpi.a:
-	$(MAKE) -C scpi-parser
+	$(MAKE) -C scpi-parser/libscpi static
 	cp -f scpi-parser/libscpi/dist/$@ .
 
 clean:
@@ -30,3 +30,4 @@ clean:
 	$(MAKE) -C stm32f4 clean
 	$(MAKE) -C lwip clean
 	$(MAKE) -C tm clean
+	$(MAKE) -C scpi-parser clean
