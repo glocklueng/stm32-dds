@@ -30,9 +30,7 @@ HDRS=include/defines.h \
      include/stm32f4x7_eth_conf.h \
      include/timing.h \
      include/util.h
-OBJS=$(patsubst src/%.c,$(BUILDDIR)/%.o, $(SRCS)) \
-    $(BUILDDIR)/lex.yy.o \
-    $(BUILDDIR)/parser.tab.o
+OBJS=$(patsubst src/%.c,$(BUILDDIR)/%.o, $(SRCS))
 LIBS=libtm.a \
      liblwip.a \
      libstm32f4.a \
@@ -69,19 +67,7 @@ all: proj
 lib/%.a:
 	$(MAKE) -C lib $(@:lib/%=%)
 
-$(BUILDDIR)/lex.yy.c: src/scanner.l $(BUILDDIR)/parser.tab.h
-	@mkdir -p $(@D)
-	$(LEX) $(LEX_OPTS) -o $@ $<
-
-$(BUILDDIR)/%.tab.c: src/%.y
-	@mkdir -p $(@D)
-	$(YACC) $(YACC_OPTS) $<
-
-$(BUILDDIR)/%.tab.h: src/%.y
-	@mkdir -p $(@D)
-	$(YACC) $(YACC_OPTS) $<
-
-$(BUILDDIR)/%.o: src/%.c $(BUILDDIR)/parser.tab.h
+$(BUILDDIR)/%.o: src/%.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 

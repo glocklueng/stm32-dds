@@ -7,8 +7,6 @@ AS=$(TOOLCHAIN_PATH)arm-none-eabi-as
 CC=$(TOOLCHAIN_PATH)arm-none-eabi-gcc
 GDB=$(TOOLCHAIN_PATH)arm-none-eabi-gdb
 OBJCOPY=$(TOOLCHAIN_PATH)arm-none-eabi-objcopy
-LEX=flex
-YACC=bison
 
 CFLAGS+=-std=gnu99
 CFLAGS+=-Wall -Wextra -ggdb -g3 -O0
