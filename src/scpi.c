@@ -8,11 +8,29 @@
 #include <stdio.h>
 #include <scpi/scpi.h>
 
+enum scpi_mode
+{
+  scpi_mode_normal,
+  scpi_mode_program,
+  scpi_mode_execute
+};
+
+static enum scpi_mode current_mode = scpi_mode_normal;
+
+static const scpi_choice_def_t scpi_mode_choices[] = {
+  { "NORMal", scpi_mode_normal },
+  { "PROGram", scpi_mode_program },
+  { "EXECute", scpi_mode_execute },
+  SCPI_CHOICE_LIST_END
+};
+
 static char data_test_buf[4096];
 
 static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
 
+static scpi_result_t scpi_callback_mode(scpi_t*);
+static scpi_result_t scpi_callback_mode_q(scpi_t*);
 static scpi_result_t scpi_callback_data_test(scpi_t*);
 static scpi_result_t scpi_callback_data_test_q(scpi_t*);
 static scpi_result_t scpi_callback_output(scpi_t*);
@@ -23,6 +41,8 @@ static scpi_result_t scpi_callback_startup_clear(scpi_t*);
 
 static const scpi_command_t scpi_commands[] = {
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
+  {.pattern = "MODe", .callback = scpi_callback_mode },
+  {.pattern = "MODe?", .callback = scpi_callback_mode_q },
   {.pattern = "DATa:TEST", .callback = scpi_callback_data_test },
   {.pattern = "DATa:TEST?", .callback = scpi_callback_data_test_q },
   {.pattern = "OUTput", .callback = scpi_callback_output },
@@ -94,6 +114,30 @@ int
 scpi_process(char* data, int len)
 {
   return SCPI_Parse(&scpi_context, data, len);
+}
+
+static scpi_result_t
+scpi_callback_mode(scpi_t* context)
+{
+  int32_t value;
+  if (!SCPI_ParamChoice(context, scpi_mode_choices, &value, TRUE)) {
+    return SCPI_RES_ERR;
+  }
+
+  current_mode = value;
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_mode_q(scpi_t* context)
+{
+  const char* str;
+  SCPI_ChoiceToName(scpi_mode_choices, current_mode, &str);
+
+  SCPI_ResultCharacters(context, str, strlen(str));
+
+  return SCPI_RES_OK;
 }
 
 static scpi_result_t
