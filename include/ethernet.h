@@ -13,6 +13,8 @@ void ethernet_loop(void);
 err_t ethernet_queue(const char*, uint16_t length);
 err_t ethernet_copy_queue(const char*, uint16_t length);
 
+size_t ethernet_copy_data(void* dest, size_t len, size_t offset);
+
 /**
  * write data from the input buffer into buf
  *

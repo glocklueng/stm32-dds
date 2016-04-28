@@ -193,18 +193,30 @@ ethernet_copy_queue(const char* data, uint16_t length)
   return tcp_write(es.pcb, data, length, TCP_WRITE_FLAG_COPY);
 }
 
+size_t
+ethernet_copy_data(void* dest, size_t len, size_t offset)
+{
+  size_t i = 0;
+  while (i < len) {
+    size_t copy_len = min(es.pin->len - offset, len - i);
+    memcpy(dest + i, es.pin->payload + offset, copy_len);
+    i += copy_len;
+    offset = 0;
+    if (i < len) {
+      ethernet_next_packet();
+    }
+  }
+
+  return i;
+}
+
 void
 ethernet_loop()
 {
   for (;;) {
-    if (ETH_CheckFrameReceived()) {
-      TM_GPIO_TogglePinValue(GPIOD, GPIO_PIN_12);
-      /* Read a received packet from the Ethernet buffers and send
-       * it to the lwIP for handling */
-      ethernetif_input(&gnetif);
-    }
+    ethernet_next_packet();
 
-    lwip_periodic_handle(LocalTime);
+    scpi_process(es.pin->payload, es.pin->len);
   }
 }
 
@@ -638,32 +650,32 @@ server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
     return err;
   }
 
-  if (es.state == ES_ACCEPTED || es.state == ES_RECEIVING) {
+  if (es.state == ES_ACCEPTED) {
     /* first data chunk in p->payload */
     es.state = ES_RECEIVING;
+
+    /* store reference to incoming pbuf (chain) */
+    es.pin = p;
 
     /* initialize callback */
     tcp_sent(pcb, server_sent_callback);
 
-    struct pbuf* ptr = p;
-    /* interate through all received pbufs and process the data */
-    do {
-      scpi_process(p->payload, p->len);
+    return ERR_OK;
+  }
 
-      /* tell the TCP stack that we process the data. This is used for
-       * flow control */
-      tcp_recved(es.pcb, p->len);
-
-      p = p->next;
-    } while (p != NULL);
-
-    /* this frees the whole chain of pbufs */
-    pbuf_free(ptr);
+  if (es.state == ES_RECEIVING) {
+    /* more data from client and previous data has been processed */
+    if (es.pin != NULL) {
+      /* chain original and new data */
+      pbuf_chain(es.pin, p);
+    } else {
+      es.pin = p;
+    }
 
     return ERR_OK;
   }
 
-  /* error case: free memory and do nothing */
+  /* free memory and do nothing */
   pbuf_free(p);
   return ERR_OK;
 }
@@ -895,6 +907,9 @@ ethernet_clear_packet()
 {
   /* free the previous packet */
   struct pbuf* ptr = es.pin;
+
+  if (ptr == NULL)
+    return;
 
   es.pin = es.pin->next;
   es.pin_offset = 0;

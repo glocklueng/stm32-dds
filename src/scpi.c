@@ -8,9 +8,13 @@
 #include <stdio.h>
 #include <scpi/scpi.h>
 
-static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
-static scpi_reg_val_t scpi_regs[SCPI_REG_COUNT];
+static char data_test_buf[4096];
 
+static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
+static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
+
+static scpi_result_t scpi_callback_data_test(scpi_t*);
+static scpi_result_t scpi_callback_data_test_q(scpi_t*);
 static scpi_result_t scpi_callback_output(scpi_t*);
 static scpi_result_t scpi_callback_output_frequency(scpi_t*);
 static scpi_result_t scpi_callback_output_amplitude(scpi_t*);
@@ -19,6 +23,8 @@ static scpi_result_t scpi_callback_startup_clear(scpi_t*);
 
 static const scpi_command_t scpi_commands[] = {
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
+  {.pattern = "DATa:TEST", .callback = scpi_callback_data_test },
+  {.pattern = "DATa:TEST?", .callback = scpi_callback_data_test_q },
   {.pattern = "OUTput", .callback = scpi_callback_output },
   {.pattern = "OUTput:FREQuency", .callback = scpi_callback_output_frequency },
   {.pattern = "OUTput:AMPLitude", .callback = scpi_callback_output_amplitude },
@@ -49,7 +55,6 @@ static scpi_t scpi_context = {
       .data = scpi_input_buffer,
     },
   .interface = &scpi_interface,
-  .registers = scpi_regs,
   .units = scpi_units_def,
   .idn = { "LOREM-IPSUM", "DDSrev2", NULL, "2016-04-24" },
 };
@@ -79,13 +84,43 @@ scpi_write(scpi_t* context, const char* data, size_t len)
 void
 scpi_init()
 {
-  SCPI_Init(&scpi_context);
+  SCPI_Init(&scpi_context, scpi_commands, &scpi_interface, scpi_units_def,
+            "LOREM-IPSUM", "DDSrev2", NULL, "2016-04-26", scpi_input_buffer,
+            SCPI_INPUT_BUFFER_LENGTH, scpi_error_queue_data,
+            SCPI_ERROR_QUEUE_SIZE);
 }
 
 int
-scpi_process(const char* data, int len)
+scpi_process(char* data, int len)
 {
-  return SCPI_Input(&scpi_context, data, len);
+  return SCPI_Parse(&scpi_context, data, len);
+}
+
+static scpi_result_t
+scpi_callback_data_test(scpi_t* context)
+{
+  const char* ptr;
+  size_t len;
+  if (!SCPI_ParamArbitraryBlock(context, &ptr, &len, TRUE)) {
+    return SCPI_RES_ERR;
+  }
+
+  len = ethernet_copy_data(data_test_buf, len,
+                           (context->param_list.lex_state.pos -
+                            context->param_list.cmd_raw.data - len));
+
+  SCPI_ResultUInt32(context, len);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_data_test_q(scpi_t* context)
+{
+  size_t len = strlen(data_test_buf);
+  SCPI_ResultArbitraryBlock(context, data_test_buf, len);
+
+  return SCPI_RES_OK;
 }
 
 static scpi_result_t
@@ -225,7 +260,8 @@ scpi_callback_register_q(scpi_t* context)
   return SCPI_RES_OK;
 }
 
-static scpi_result_t scpi_callback_startup_clear(scpi_t* context)
+static scpi_result_t
+scpi_callback_startup_clear(scpi_t* context)
 {
   (void)context;
 
