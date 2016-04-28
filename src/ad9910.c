@@ -10,43 +10,28 @@
 static const int ad9910_pll_lock_timeout = 10000000; // ~1s
 
 /* define registers with their values after bootup */
-ad9910_register ad9910_reg_cfr1 = {.address = 0x00, .value = 0x0, .size = 4 };
-ad9910_register ad9910_reg_cfr2 = {.address = 0x01,
-                                   .value = 0x400820,
-                                   .size = 4 };
-ad9910_register ad9910_reg_cfr3 = {.address = 0x02,
-                                   .value = 0x17384000,
-                                   .size = 4 };
-ad9910_register ad9910_reg_aux_dac_ctl = {.address = 0x03,
-                                          .value = 0x7F,
-                                          .size = 4 };
-ad9910_register ad9910_reg_io_update_rate = {.address = 0x04,
-                                             .value = 0xFFFFFFFF,
-                                             .size = 4 };
-ad9910_register ad9910_reg_ftw = {.address = 0x07, .value = 0x0, .size = 4 };
-ad9910_register ad9910_reg_pow = {.address = 0x08, .value = 0x0, .size = 2 };
-ad9910_register ad9910_reg_asf = {.address = 0x09, .value = 0x0, .size = 4 };
-ad9910_register ad9910_reg_multichip_sync = {.address = 0x0A,
-                                             .value = 0x0,
-                                             .size = 4 };
-ad9910_register ad9910_reg_ramp_limit = {.address = 0x0B,
-                                         .value = 0x0,
-                                         .size = 8 };
-ad9910_register ad9910_reg_ramp_step = {.address = 0x0C,
-                                        .value = 0x0,
-                                        .size = 8 };
-ad9910_register ad9910_reg_ramp_rate = {.address = 0x0D,
-                                        .value = 0x0,
-                                        .size = 4 };
-ad9910_register ad9910_reg_prof0 = {.address = 0x0E, .value = 0x0, .size = 8 };
-ad9910_register ad9910_reg_prof1 = {.address = 0x0F, .value = 0x0, .size = 8 };
-ad9910_register ad9910_reg_prof2 = {.address = 0x10, .value = 0x0, .size = 8 };
-ad9910_register ad9910_reg_prof3 = {.address = 0x11, .value = 0x0, .size = 8 };
-ad9910_register ad9910_reg_prof4 = {.address = 0x12, .value = 0x0, .size = 8 };
-ad9910_register ad9910_reg_prof5 = {.address = 0x13, .value = 0x0, .size = 8 };
-ad9910_register ad9910_reg_prof6 = {.address = 0x14, .value = 0x0, .size = 8 };
-ad9910_register ad9910_reg_prof7 = {.address = 0x15, .value = 0x0, .size = 8 };
-ad9910_register ad9910_reg_ram = {.address = 0x16, .value = 0x0, .size = 4 };
+ad9910_registers ad9910_regs = {
+  .cfr1 = {.address = 0x00, .value = 0x0, .size = 4 },
+  .cfr2 = {.address = 0x01, .value = 0x400820, .size = 4 },
+  .cfr3 = {.address = 0x02, .value = 0x17384000, .size = 4 },
+  .aux_dac_ctl = {.address = 0x03, .value = 0x7F, .size = 4 },
+  .io_update_rate = {.address = 0x04, .value = 0xFFFFFFFF, .size = 4 },
+  .ftw = {.address = 0x07, .value = 0x0, .size = 4 },
+  .pow = {.address = 0x08, .value = 0x0, .size = 2 },
+  .asf = {.address = 0x09, .value = 0x0, .size = 4 },
+  .multichip_sync = {.address = 0x0A, .value = 0x0, .size = 4 },
+  .ramp_limit = {.address = 0x0B, .value = 0x0, .size = 8 },
+  .ramp_step = {.address = 0x0C, .value = 0x0, .size = 8 },
+  .ramp_rate = {.address = 0x0D, .value = 0x0, .size = 4 },
+  .prof0 = {.address = 0x0E, .value = 0x0, .size = 8 },
+  .prof1 = {.address = 0x0F, .value = 0x0, .size = 8 },
+  .prof2 = {.address = 0x10, .value = 0x0, .size = 8 },
+  .prof3 = {.address = 0x11, .value = 0x0, .size = 8 },
+  .prof4 = {.address = 0x12, .value = 0x0, .size = 8 },
+  .prof5 = {.address = 0x13, .value = 0x0, .size = 8 },
+  .prof6 = {.address = 0x14, .value = 0x0, .size = 8 },
+  .prof7 = {.address = 0x15, .value = 0x0, .size = 8 },
+};
 
 void
 ad9910_init()
@@ -80,7 +65,7 @@ ad9910_init()
   /* disable REFCLK_OUT (it is not even connected) */
   //  ad9910_set_value(AD9910_DRV0, ad9910_drv0_output_disable);
 
-  ad9910_update_reg(&ad9910_reg_cfr3);
+  ad9910_update_reg(&ad9910_regs.cfr3);
 
   /* make sure everything is written before we issue the I/O update */
   spi_wait();
@@ -119,26 +104,26 @@ ad9910_init()
   /* update all register. It might be that only the STM32F4 has been
    * resetet and there is still data in the registers. With these commands
    * we set them to the values we specified */
-  ad9910_update_reg(&ad9910_reg_cfr1);
-  ad9910_update_reg(&ad9910_reg_cfr2);
-  ad9910_update_reg(&ad9910_reg_cfr3);
-  ad9910_update_reg(&ad9910_reg_aux_dac_ctl);
-  ad9910_update_reg(&ad9910_reg_io_update_rate);
-  ad9910_update_reg(&ad9910_reg_ftw);
-  ad9910_update_reg(&ad9910_reg_pow);
-  ad9910_update_reg(&ad9910_reg_asf);
-  ad9910_update_reg(&ad9910_reg_multichip_sync);
-  ad9910_update_reg(&ad9910_reg_ramp_limit);
-  ad9910_update_reg(&ad9910_reg_ramp_step);
-  ad9910_update_reg(&ad9910_reg_ramp_rate);
-  ad9910_update_reg(&ad9910_reg_prof0);
-  ad9910_update_reg(&ad9910_reg_prof1);
-  ad9910_update_reg(&ad9910_reg_prof2);
-  ad9910_update_reg(&ad9910_reg_prof3);
-  ad9910_update_reg(&ad9910_reg_prof4);
-  ad9910_update_reg(&ad9910_reg_prof5);
-  ad9910_update_reg(&ad9910_reg_prof6);
-  ad9910_update_reg(&ad9910_reg_prof7);
+  ad9910_update_reg(&ad9910_regs.cfr1);
+  ad9910_update_reg(&ad9910_regs.cfr2);
+  ad9910_update_reg(&ad9910_regs.cfr3);
+  ad9910_update_reg(&ad9910_regs.aux_dac_ctl);
+  ad9910_update_reg(&ad9910_regs.io_update_rate);
+  ad9910_update_reg(&ad9910_regs.ftw);
+  ad9910_update_reg(&ad9910_regs.pow);
+  ad9910_update_reg(&ad9910_regs.asf);
+  ad9910_update_reg(&ad9910_regs.multichip_sync);
+  ad9910_update_reg(&ad9910_regs.ramp_limit);
+  ad9910_update_reg(&ad9910_regs.ramp_step);
+  ad9910_update_reg(&ad9910_regs.ramp_rate);
+  ad9910_update_reg(&ad9910_regs.prof0);
+  ad9910_update_reg(&ad9910_regs.prof1);
+  ad9910_update_reg(&ad9910_regs.prof2);
+  ad9910_update_reg(&ad9910_regs.prof3);
+  ad9910_update_reg(&ad9910_regs.prof4);
+  ad9910_update_reg(&ad9910_regs.prof5);
+  ad9910_update_reg(&ad9910_regs.prof6);
+  ad9910_update_reg(&ad9910_regs.prof7);
 
   ad9910_select_profile(0);
   ad9910_select_parallel(0);
@@ -280,10 +265,10 @@ ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
   ad9910_set_value(ad9910_digital_ramp_no_dwell_high, !!no_dwell_high);
   ad9910_set_value(ad9910_digital_ramp_no_dwell_low, !!no_dwell_low);
 
-  ad9910_update_reg(&ad9910_reg_ramp_limit);
-  ad9910_update_reg(&ad9910_reg_ramp_step);
-  ad9910_update_reg(&ad9910_reg_ramp_rate);
-  ad9910_update_reg(&ad9910_reg_cfr2);
+  ad9910_update_reg(&ad9910_regs.ramp_limit);
+  ad9910_update_reg(&ad9910_regs.ramp_step);
+  ad9910_update_reg(&ad9910_regs.ramp_rate);
+  ad9910_update_reg(&ad9910_regs.cfr2);
 }
 
 void

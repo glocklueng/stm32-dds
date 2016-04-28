@@ -31,31 +31,38 @@ typedef struct
   int offset;
 } ad9910_register_bit;
 
-extern ad9910_register ad9910_reg_cfr1;
-extern ad9910_register ad9910_reg_cfr2;
-extern ad9910_register ad9910_reg_cfr3;
-extern ad9910_register ad9910_reg_aux_dac_ctl;
-extern ad9910_register ad9910_reg_io_update_rate;
-extern ad9910_register ad9910_reg_ftw;
-extern ad9910_register ad9910_reg_pow;
-extern ad9910_register ad9910_reg_asf;
-extern ad9910_register ad9910_reg_multichip_sync;
-extern ad9910_register ad9910_reg_ramp_limit;
-extern ad9910_register ad9910_reg_ramp_step;
-extern ad9910_register ad9910_reg_ramp_rate;
-extern ad9910_register ad9910_reg_prof0;
-extern ad9910_register ad9910_reg_prof1;
-extern ad9910_register ad9910_reg_prof2;
-extern ad9910_register ad9910_reg_prof3;
-extern ad9910_register ad9910_reg_prof4;
-extern ad9910_register ad9910_reg_prof5;
-extern ad9910_register ad9910_reg_prof6;
-extern ad9910_register ad9910_reg_prof7;
+typedef struct
+{
+  ad9910_register cfr1;
+  ad9910_register cfr2;
+  ad9910_register cfr3;
+  ad9910_register aux_dac_ctl;
+  ad9910_register io_update_rate;
+  ad9910_register ftw;
+  ad9910_register pow;
+  ad9910_register asf;
+  ad9910_register multichip_sync;
+  ad9910_register ramp_limit;
+  ad9910_register ramp_step;
+  ad9910_register ramp_rate;
+  ad9910_register prof0;
+  ad9910_register prof1;
+  ad9910_register prof2;
+  ad9910_register prof3;
+  ad9910_register prof4;
+  ad9910_register prof5;
+  ad9910_register prof6;
+  ad9910_register prof7;
+} ad9910_registers;
+
+/* global struct with shadow registers of the real values which are
+ * currently in the DDS */
+extern ad9910_registers ad9910_regs;
 
 #define DEF_REG_BIT(_name, _reg, _bits, _offset)                               \
-  static const ad9910_register_bit ad9910_##_name = {                          \
-    .reg = &ad9910_reg_##_reg, .bits = _bits, .offset = _offset                \
-  }
+  static const ad9910_register_bit ad9910_##_name = {.reg = &ad9910_regs._reg, \
+                                                     .bits = _bits,            \
+                                                     .offset = _offset }
 
 /* CFR1 */
 DEF_REG_BIT(ram_enable, cfr1, 1, 31);
@@ -304,21 +311,21 @@ ad9910_get_profile_reg(int profile)
 {
   switch (profile) {
     case 0:
-      return &ad9910_reg_prof0;
+      return &ad9910_regs.prof0;
     case 1:
-      return &ad9910_reg_prof1;
+      return &ad9910_regs.prof1;
     case 2:
-      return &ad9910_reg_prof2;
+      return &ad9910_regs.prof2;
     case 3:
-      return &ad9910_reg_prof3;
+      return &ad9910_regs.prof3;
     case 4:
-      return &ad9910_reg_prof4;
+      return &ad9910_regs.prof4;
     case 5:
-      return &ad9910_reg_prof5;
+      return &ad9910_regs.prof5;
     case 6:
-      return &ad9910_reg_prof6;
+      return &ad9910_regs.prof6;
     case 7:
-      return &ad9910_reg_prof7;
+      return &ad9910_regs.prof7;
     default:
       return NULL; /* this would be an error */
   }
@@ -360,7 +367,7 @@ ad9910_set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
 INLINE void
 ad9910_update_profile_reg(uint8_t profile)
 {
-  ad9910_update_reg(&ad9910_reg_prof0 + profile);
+  ad9910_update_reg(&ad9910_regs.prof0 + profile);
 }
 
 INLINE void
