@@ -5,7 +5,6 @@
 #ifndef _AD9910_H
 #define _AD9910_H
 
-#include "commands.h"
 #include "defines.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -238,6 +237,7 @@ uint64_t ad9910_read_register(ad9910_register*);
 
 uint32_t ad9910_convert_frequency(float f);
 float ad9910_backconvert_frequency(uint32_t);
+uint32_t ad9910_convert_amplitude(float f);
 
 void ad9910_init(void);
 
@@ -300,9 +300,11 @@ void ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
                          uint16_t positive_slope, int no_dwell_high,
                          int no_dwell_low);
 
-void ad9910_set_startup_command(ad9910_command* cmd);
+/*
+void ad9910_set_startup_command(ad9910_command* cmd)
 void ad9910_clear_startup_command(void);
 void ad9910_execute_startup_command(void);
+*/
 
 /** implementation starts here */
 

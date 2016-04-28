@@ -1,7 +1,9 @@
 #include "scpi.h"
 
 #include "ad9910.h"
+#include "commands.h"
 #include "ethernet.h"
+#include "gpio.h"
 
 #define USE_FULL_ERROR_LIST 1
 
@@ -43,6 +45,7 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
   {.pattern = "MODe", .callback = scpi_callback_mode },
   {.pattern = "MODe?", .callback = scpi_callback_mode_q },
+  {.pattern = "MODe?", .callback = scpi_callback_mode },
   {.pattern = "DATa:TEST", .callback = scpi_callback_data_test },
   {.pattern = "DATa:TEST?", .callback = scpi_callback_data_test_q },
   {.pattern = "OUTput", .callback = scpi_callback_output },
@@ -55,6 +58,8 @@ static const scpi_command_t scpi_commands[] = {
 
 static int scpi_error(scpi_t* context, int_fast16_t err);
 static size_t scpi_write(scpi_t* context, const char* data, size_t len);
+
+static void scpi_process_register_command(const ad9910_command_register*);
 
 /* this struct defines the main communictation functions used by the
  * library. Write is mandatory, all others are optional */
@@ -188,6 +193,8 @@ scpi_callback_output_frequency(scpi_t* context)
     return SCPI_RES_ERR;
   }
 
+  uint32_t freq = 0;
+
   if (value.special) {
     switch (value.tag) {
       default:
@@ -202,23 +209,26 @@ scpi_callback_output_frequency(scpi_t* context)
         return SCPI_RES_ERR;
       }
 
-      ad9910_set_frequency(0, value.value);
-      ad9910_io_update();
-      return SCPI_RES_OK;
+      freq = value.value;
     } else if (value.unit == SCPI_UNIT_HERTZ) {
       if (value.value < 0 || value.value > 400e6) {
         SCPI_ErrorPush(context, SCPI_ERROR_DATA_OUT_OF_RANGE);
         return SCPI_RES_ERR;
       }
 
-      ad9910_set_frequency(0, ad9910_convert_frequency(value.value));
-      ad9910_io_update();
-      return SCPI_RES_OK;
+      freq = ad9910_convert_frequency(value.value);
     } else {
       SCPI_ErrorPush(context, SCPI_ERROR_INVALID_SUFFIX);
       return SCPI_RES_ERR;
     }
   }
+
+  ad9910_command_register cmd = {
+    .reg = &ad9910_profile_frequency,
+    .value = freq
+  };
+
+  scpi_process_register_command(&cmd);
 
   return SCPI_RES_OK;
 }
@@ -230,6 +240,8 @@ scpi_callback_output_amplitude(scpi_t* context)
   if (!SCPI_ParamNumber(context, scpi_special_numbers_def, &value, TRUE)) {
     return SCPI_RES_ERR;
   }
+
+  uint32_t ampl = 0;
 
   if (value.special) {
     switch (value.tag) {
@@ -245,14 +257,26 @@ scpi_callback_output_amplitude(scpi_t* context)
         return SCPI_RES_ERR;
       }
 
-      ad9910_set_amplitude(0, value.value);
-      ad9910_io_update();
-      return SCPI_RES_OK;
+      ampl = value.value;
+    } else if (value.unit == SCPI_UNIT_DBM) {
+      if (value.value > 0) {
+        SCPI_ErrorPush(context, SCPI_ERROR_DATA_OUT_OF_RANGE);
+        return SCPI_RES_ERR;
+      }
+
+      ampl = ad9910_convert_amplitude(value.value);
     } else {
       SCPI_ErrorPush(context, SCPI_ERROR_INVALID_SUFFIX);
       return SCPI_RES_ERR;
     }
   }
+
+  ad9910_command_register cmd = {
+    .reg = &ad9910_profile_amplitude,
+    .value = ampl
+  };
+
+  scpi_process_register_command(&cmd);
 
   return SCPI_RES_OK;
 }
@@ -309,7 +333,21 @@ scpi_callback_startup_clear(scpi_t* context)
 {
   (void)context;
 
-  ad9910_clear_startup_command();
+//  ad9910_clear_startup_command();
 
   return SCPI_RES_OK;
+}
+
+static void
+scpi_process_register_command(const ad9910_command_register* cmd)
+{
+  switch (current_mode) {
+    case scpi_mode_normal:
+    case scpi_mode_execute:
+      ad9910_set_value(*cmd->reg, cmd->value);
+      ad9910_update_matching_reg(*cmd->reg);
+      ad9910_io_update();
+    case scpi_mode_program:
+      commands_queue_register(cmd);
+  }
 }

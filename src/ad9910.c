@@ -130,7 +130,7 @@ ad9910_init()
   ad9910_enable_parallel(0);
   ad9910_enable_output(1);
 
-  ad9910_execute_startup_command();
+//  ad9910_execute_startup_command();
 
   /* turn green led on signaling that initialization has passed */
   gpio_set_high(LED_GREEN);
@@ -216,6 +216,12 @@ ad9910_backconvert_frequency(uint32_t f)
   return f * 1e9 / 0xFFFFFFFF;
 }
 
+uint32_t
+ad9910_convert_amplitude(float f)
+{
+  return nearbyintf(powf(10, f / 20) * 0x3FFF);
+}
+
 void
 ad9910_set_frequency(uint8_t profile, uint32_t freq)
 {
@@ -269,71 +275,4 @@ ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
   ad9910_update_reg(&ad9910_regs.ramp_step);
   ad9910_update_reg(&ad9910_regs.ramp_rate);
   ad9910_update_reg(&ad9910_regs.cfr2);
-}
-
-void
-ad9910_set_startup_command(ad9910_command* cmd)
-{
-  size_t cmd_len = get_full_command_size(cmd);
-  const size_t eeprom_size = eeprom_get_size(EEPROM_ID);
-
-  uint16_t ref = 0;
-
-  /* find the first unwritten segment */
-  while (ref < eeprom_size) {
-    if (*((uint16_t*)eeprom_get(EEPROM_ID, ref)) == 0xFFFF) {
-      break;
-    }
-    ref += sizeof(uint16_t);
-  }
-
-  if (ref >= eeprom_size) {
-    eeprom_erase(EEPROM_ID);
-    ref = 0;
-  }
-
-  uint16_t prev_data;
-  if (ref == 0) {
-    prev_data = eeprom_size;
-  } else {
-    prev_data = *((uint16_t*)eeprom_get(EEPROM_ID, ref - 2));
-  }
-
-  uint16_t new_data = prev_data - cmd_len;
-
-  /* check if there is enough space in the eeprom */
-  if (new_data < ref + 3) {
-    eeprom_erase(EEPROM_ID);
-    new_data = eeprom_size - cmd_len;
-    ref = 0;
-  }
-
-  /* write the reference at the beginning */
-  eeprom_write(EEPROM_ID, ref, &new_data, 2);
-  /* write the data in the back */
-  eeprom_write(EEPROM_ID, new_data, cmd, cmd_len);
-}
-
-void
-ad9910_clear_startup_command()
-{
-  eeprom_erase(EEPROM_ID);
-}
-
-void
-ad9910_execute_startup_command()
-{
-  uint16_t* ptr = eeprom_get(EEPROM_ID, 0);
-  /* if the first address value is empty there is no startup command */
-  if (*ptr == 0xFFFF) {
-    return;
-  }
-
-  /* find the last element in the address list */
-  while (*ptr != 0xFFFF) {
-    ptr++;
-  }
-
-  const ad9910_command* cmd = eeprom_get(EEPROM_ID, *(ptr - 1));
-  ad9910_execute_command(cmd);
 }
