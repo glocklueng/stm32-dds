@@ -200,7 +200,12 @@ scpi_callback_output_frequency(scpi_t* context)
       default:
         SCPI_ErrorPush(context, SCPI_ERROR_ILLEGAL_PARAMETER_VALUE);
         return SCPI_RES_ERR;
-        /* TODO handle MIN, MAX, DEF, UP, DOWN */
+      case SCPI_NUM_MIN:
+        freq = 0;
+        break;
+      case SCPI_NUM_MAX:
+        freq = ad9910_convert_frequency(400e6);
+        break;
     }
   } else {
     if (value.unit == SCPI_UNIT_NONE) {
@@ -248,7 +253,12 @@ scpi_callback_output_amplitude(scpi_t* context)
       default:
         SCPI_ErrorPush(context, SCPI_ERROR_ILLEGAL_PARAMETER_VALUE);
         return SCPI_RES_ERR;
-        /* TODO handle MIN, MAX, DEF, UP, DOWN */
+      case SCPI_NUM_MIN:
+        ampl = 0;
+        break;
+      case SCPI_NUM_MAX:
+        ampl = 0x3FFF;
+        break;
     }
   } else {
     if (value.unit == SCPI_UNIT_NONE) {
