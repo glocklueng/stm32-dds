@@ -59,6 +59,9 @@ static const scpi_command_t scpi_commands[] = {
 static scpi_result_t scpi_param_frequency(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_amplitude(scpi_t*, uint32_t*);
 
+static scpi_result_t scpi_parse_register_command(
+  scpi_t*, const ad9910_register_bit*, scpi_result_t (*)(scpi_t*, uint32_t*));
+
 static int scpi_error(scpi_t* context, int_fast16_t err);
 static size_t scpi_write(scpi_t* context, const char* data, size_t len);
 
@@ -191,37 +194,15 @@ scpi_callback_output(scpi_t* context)
 static scpi_result_t
 scpi_callback_output_frequency(scpi_t* context)
 {
-  uint32_t freq = 0;
-  if (scpi_param_frequency(context, &freq) != SCPI_RES_OK) {
-    return SCPI_RES_ERR;
-  }
-
-  ad9910_command_register cmd = {
-    .reg = &ad9910_profile_frequency,
-    .value = freq
-  };
-
-  scpi_process_register_command(&cmd);
-
-  return SCPI_RES_OK;
+  return scpi_parse_register_command(context, &ad9910_profile_frequency,
+                                     scpi_param_frequency);
 }
 
 static scpi_result_t
 scpi_callback_output_amplitude(scpi_t* context)
 {
-  uint32_t ampl = 0;
-  if (scpi_param_amplitude(context, &ampl) != SCPI_RES_OK) {
-    return SCPI_RES_ERR;
-  }
-
-  ad9910_command_register cmd = {
-    .reg = &ad9910_profile_amplitude,
-    .value = ampl
-  };
-
-  scpi_process_register_command(&cmd);
-
-  return SCPI_RES_OK;
+  return scpi_parse_register_command(context, &ad9910_profile_amplitude,
+                                     scpi_param_amplitude);
 }
 
 static scpi_result_t
@@ -367,6 +348,22 @@ scpi_param_amplitude(scpi_t* context, uint32_t* ampl)
       return SCPI_RES_ERR;
     }
   }
+}
+
+static scpi_result_t
+scpi_parse_register_command(scpi_t* context, const ad9910_register_bit* reg,
+                            scpi_result_t (*parser)(scpi_t*, uint32_t*))
+{
+  uint32_t value = 0;
+  if (parser(context, &value) != SCPI_RES_OK) {
+    return SCPI_RES_ERR;
+  }
+
+  ad9910_command_register cmd = {.reg = reg, .value = value };
+
+  scpi_process_register_command(&cmd);
+
+  return SCPI_RES_OK;
 }
 
 static void
