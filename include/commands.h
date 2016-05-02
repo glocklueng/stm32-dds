@@ -10,22 +10,25 @@
 typedef enum {
   ad9910_command_type_end = 0x00,
   ad9910_command_type_register, /* change register */
-  ad9910_command_type_pin, /* change external pin */
-  ad9910_command_type_trigger, /* wait for trigger */
-  ad9910_command_type_wait, /* wait for a specified time */
+  ad9910_command_type_pin,      /* change external pin */
+  ad9910_command_type_trigger,  /* wait for trigger */
+  ad9910_command_type_wait,     /* wait for a specified time */
 } ad9910_command_type;
 
-typedef struct {
+typedef struct
+{
   const ad9910_register_bit* reg;
   uint32_t value;
 } ad9910_command_register;
 
-typedef struct {
+typedef struct
+{
   const gpio_pin* pin;
   int value;
 } ad9910_command_pin;
 
-typedef struct {
+typedef struct
+{
   ad9910_command_type type;
 } ad9910_command;
 

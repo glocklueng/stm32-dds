@@ -9,6 +9,7 @@
  * instead of the profile register in some cases */
 ad9910_registers command_regs;
 
-void commands_queue_register(const ad9910_command_register* cmd)
+void
+commands_queue_register(const ad9910_command_register* cmd)
 {
 }
