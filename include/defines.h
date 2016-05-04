@@ -17,7 +17,4 @@
 #define GW_ADDR2 10
 #define GW_ADDR3 1
 
-// chip is soldered in RMII_MODE not in MII_MODE
-#define RMII_MODE
-
 #endif /* __DEFINES_H */
