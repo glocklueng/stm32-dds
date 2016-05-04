@@ -71,11 +71,8 @@ static void ethernet_link_callback(struct netif*);
 static void lwip_init(void);
 static void lwip_periodic_handle(uint32_t localtime);
 
-static void ethernet_read_data(void);
 static void ethernet_clear_packet(void);
 static void ethernet_next_packet(void);
-
-static void ethernet_error(const char*);
 
 static int server_init(void);
 static err_t server_accept_callback(void* arg, struct tcp_pcb* newpcb,
@@ -842,13 +839,4 @@ ethernet_next_packet()
 
     lwip_periodic_handle(LocalTime);
   } while (es.pin == NULL);
-}
-
-static void
-ethernet_error(const char* err)
-{
-  ethernet_copy_queue(err, strlen(err));
-  /* dump input buffer */
-  pbuf_free(es.pin);
-  es.pin = NULL;
 }
