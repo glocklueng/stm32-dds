@@ -35,6 +35,10 @@ commands.
   :CLEAR
 :SYSTem
   :INFo
+  :NETwork
+    :ADDRess
+    :SUBmask
+    :GATEway
 :TRIGger
   :WAIT
   :SET <EXTernal|INTernal>

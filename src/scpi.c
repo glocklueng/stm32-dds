@@ -1,6 +1,7 @@
 #include "scpi.h"
 
 #include "commands.h"
+#include "config.h"
 #include "ethernet.h"
 #include "gpio.h"
 
@@ -55,6 +56,13 @@ static scpi_result_t scpi_callback_sequence_loop(scpi_t*);
 static scpi_result_t scpi_callback_startup_clear(scpi_t*);
 static scpi_result_t scpi_callback_startup_save(scpi_t*);
 
+static scpi_result_t scpi_callback_system_network_address(scpi_t*);
+static scpi_result_t scpi_callback_system_network_submask(scpi_t*);
+static scpi_result_t scpi_callback_system_network_gateway(scpi_t*);
+static scpi_result_t scpi_callback_system_network_address_q(scpi_t*);
+static scpi_result_t scpi_callback_system_network_submask_q(scpi_t*);
+static scpi_result_t scpi_callback_system_network_gateway_q(scpi_t*);
+
 static const scpi_command_t scpi_commands[] = {
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
   {.pattern = "MODe", .callback = scpi_callback_mode },
@@ -81,6 +89,18 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "STARTup:SAVE", .callback = scpi_callback_startup_save },
   {.pattern = "SEQuence:CLEAR", .callback = scpi_callback_sequence_clear },
   {.pattern = "SEQuence:LOOP", .callback = scpi_callback_sequence_loop },
+  {.pattern = "SYStem:NETwork:ADDRess",
+   .callback = scpi_callback_system_network_address },
+  {.pattern = "SYStem:NETwork:SUBmask",
+   .callback = scpi_callback_system_network_submask },
+  {.pattern = "SYStem:NETwork:GATEway",
+   .callback = scpi_callback_system_network_gateway },
+  {.pattern = "SYStem:NETwork:ADDRess?",
+   .callback = scpi_callback_system_network_address_q },
+  {.pattern = "SYStem:NETwork:SUBmask?",
+   .callback = scpi_callback_system_network_submask_q },
+  {.pattern = "SYStem:NETwork:GATEway?",
+   .callback = scpi_callback_system_network_gateway_q },
   SCPI_CMD_LIST_END
 };
 
@@ -88,6 +108,9 @@ static scpi_result_t scpi_param_frequency(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_amplitude(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_ramp(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_ramp_rate(scpi_t*, uint32_t*);
+static scpi_result_t scpi_param_ip_address(scpi_t*, uint8_t[4]);
+
+static scpi_result_t scpi_print_ip_address(scpi_t*, const uint8_t[4]);
 
 static scpi_result_t scpi_parse_register_command(
   scpi_t*, const ad9910_register_bit*, scpi_result_t (*)(scpi_t*, uint32_t*));
@@ -439,6 +462,69 @@ scpi_callback_startup_save(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_system_network_address(scpi_t* context)
+{
+  struct config conf;
+  memcpy(&conf, config_get(), sizeof(struct config));
+
+  if (!scpi_param_ip_address(context, conf.ethernet.address)) {
+    return SCPI_RES_ERR;
+  }
+
+  config_write(&conf);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_system_network_submask(scpi_t* context)
+{
+  struct config conf;
+  memcpy(&conf, config_get(), sizeof(struct config));
+
+  if (!scpi_param_ip_address(context, conf.ethernet.submask)) {
+    return SCPI_RES_ERR;
+  }
+
+  config_write(&conf);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_system_network_gateway(scpi_t* context)
+{
+  struct config conf;
+  memcpy(&conf, config_get(), sizeof(struct config));
+
+  if (!scpi_param_ip_address(context, conf.ethernet.submask)) {
+    return SCPI_RES_ERR;
+  }
+
+  config_write(&conf);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_system_network_address_q(scpi_t* context)
+{
+  return scpi_print_ip_address(context, config_get()->ethernet.address);
+}
+
+static scpi_result_t
+scpi_callback_system_network_submask_q(scpi_t* context)
+{
+  return scpi_print_ip_address(context, config_get()->ethernet.submask);
+}
+
+static scpi_result_t
+scpi_callback_system_network_gateway_q(scpi_t* context)
+{
+  return scpi_print_ip_address(context, config_get()->ethernet.gateway);
+}
+
+static scpi_result_t
 scpi_callback_sequence_clear(scpi_t* context)
 {
   commands_clear();
@@ -654,6 +740,51 @@ scpi_param_ramp(scpi_t* context, uint32_t* output)
       return SCPI_RES_ERR;
     }
   }
+}
+
+static scpi_result_t
+scpi_param_ip_address(scpi_t* context, uint8_t target[4])
+{
+  const char* input;
+  size_t len;
+  if (!SCPI_ParamCharacters(context, &input, &len, TRUE)) {
+    SCPI_ErrorPush(context, SCPI_ERROR_ILLEGAL_PARAMETER_VALUE);
+    return SCPI_RES_ERR;
+  }
+
+  if (len > 15) {
+    SCPI_ErrorPush(context, SCPI_ERROR_ILLEGAL_PARAMETER_VALUE);
+    return SCPI_RES_ERR;
+  }
+
+  char buf[16];
+  memcpy(buf, input, len);
+  buf[len] = '\0';
+
+  if (sscanf(buf, "%hhu.%hhu.%hhu.%hhu", target, target + 1, target + 2,
+             target + 3) != 4) {
+    SCPI_ErrorPush(context, SCPI_ERROR_ILLEGAL_PARAMETER_VALUE);
+    return SCPI_RES_ERR;
+  }
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_print_ip_address(scpi_t* context, const uint8_t source[4])
+{
+  char buf[16];
+
+  int len = snprintf(buf, sizeof(buf), "%hhu.%hhu.%hhu.%hhu", source[0],
+                     source[1], source[2], source[3]);
+
+  if (len < 0) {
+    return SCPI_RES_ERR;
+  }
+
+  SCPI_ResultCharacters(context, buf, len);
+
+  return SCPI_RES_OK;
 }
 
 static scpi_result_t
