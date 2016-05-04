@@ -1,6 +1,5 @@
 #include "scpi.h"
 
-#include "ad9910.h"
 #include "commands.h"
 #include "ethernet.h"
 #include "gpio.h"
@@ -51,6 +50,9 @@ static scpi_result_t scpi_callback_ramp_target(scpi_t*);
 static scpi_result_t scpi_callback_register_q(scpi_t*);
 static scpi_result_t scpi_callback_startup_clear(scpi_t*);
 
+static scpi_result_t scpi_callback_sequence_clear(scpi_t*);
+static scpi_result_t scpi_callback_sequence_loop(scpi_t*);
+
 static const scpi_command_t scpi_commands[] = {
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
   {.pattern = "MODe", .callback = scpi_callback_mode },
@@ -74,6 +76,8 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "RAMP:TARget", .callback = scpi_callback_ramp_target },
   {.pattern = "REGister?", .callback = scpi_callback_register_q },
   {.pattern = "STARTup:CLEAR", .callback = scpi_callback_startup_clear },
+  {.pattern = "SEQuence:CLEAR", .callback = scpi_callback_sequence_clear },
+  {.pattern = "SEQuence:LOOP", .callback = scpi_callback_sequence_loop },
   SCPI_CMD_LIST_END
 };
 
@@ -89,7 +93,7 @@ static scpi_result_t scpi_parse_pin_command(scpi_t*, const gpio_pin);
 static int scpi_error(scpi_t* context, int_fast16_t err);
 static size_t scpi_write(scpi_t* context, const char* data, size_t len);
 
-static void scpi_process_register_command(const ad9910_command_register*);
+static void scpi_process_register_command(const command_register*);
 
 /* this struct defines the main communictation functions used by the
  * library. Write is mandatory, all others are optional */
@@ -317,8 +321,8 @@ scpi_callback_ramp_mode(scpi_t* context)
       break;
   }
 
-  ad9910_command_register cmd = {.reg = &ad9910_digital_ramp_no_dwell_high,
-                                 .value = high };
+  command_register cmd = {.reg = &ad9910_digital_ramp_no_dwell_high,
+                          .value = high };
   scpi_process_register_command(&cmd);
 
   cmd.reg = &ad9910_digital_ramp_no_dwell_low;
@@ -351,15 +355,13 @@ scpi_callback_ramp_target(scpi_t* context)
   }
 
   if (value == 0xFF) {
-    ad9910_command_register cmd = {.reg = &ad9910_digital_ramp_enable,
-                                   .value = 0 };
+    command_register cmd = {.reg = &ad9910_digital_ramp_enable, .value = 0 };
     scpi_process_register_command(&cmd);
   } else {
-    ad9910_command_register cmd = {.reg = &ad9910_digital_ramp_destination,
-                                   .value = value };
+    command_register cmd = {.reg = &ad9910_digital_ramp_destination,
+                            .value = value };
     scpi_process_register_command(&cmd);
-    ad9910_command_register cmd2 = {.reg = &ad9910_digital_ramp_enable,
-                                    .value = 1 };
+    command_register cmd2 = {.reg = &ad9910_digital_ramp_enable, .value = 1 };
     scpi_process_register_command(&cmd2);
   }
 
@@ -421,6 +423,41 @@ scpi_callback_startup_clear(scpi_t* context)
 //  ad9910_clear_startup_command();
 
   return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_sequence_clear(scpi_t* context)
+{
+  commands_clear();
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_sequence_loop(scpi_t* context)
+{
+  scpi_number_t value;
+  if (!SCPI_ParamNumber(context, scpi_special_numbers_def, &value, TRUE)) {
+    return SCPI_RES_ERR;
+  }
+
+  if (value.special) {
+    switch (value.tag) {
+      default:
+        SCPI_ErrorPush(context, SCPI_ERROR_ILLEGAL_PARAMETER_VALUE);
+        return SCPI_RES_ERR;
+      case SCPI_NUM_INF:
+        commands_repeat(-1);
+        return SCPI_RES_OK;
+    }
+  } else {
+    if (value.unit != SCPI_UNIT_NONE) {
+      SCPI_ErrorPush(context, SCPI_ERROR_INVALID_SUFFIX);
+      return SCPI_RES_ERR;
+    }
+
+    commands_repeat(value.value);
+    return SCPI_RES_OK;
+  }
 }
 
 static scpi_result_t
@@ -615,7 +652,7 @@ scpi_parse_register_command(scpi_t* context, const ad9910_register_bit* reg,
     return SCPI_RES_ERR;
   }
 
-  ad9910_command_register cmd = {.reg = reg, .value = value };
+  command_register cmd = {.reg = reg, .value = value };
 
   scpi_process_register_command(&cmd);
 
@@ -636,14 +673,13 @@ scpi_parse_pin_command(scpi_t* context, const gpio_pin pin)
 }
 
 static void
-scpi_process_register_command(const ad9910_command_register* cmd)
+scpi_process_register_command(const command_register* cmd)
 {
   switch (current_mode) {
     case scpi_mode_normal:
     case scpi_mode_execute:
-      ad9910_set_value(*cmd->reg, cmd->value);
-      ad9910_update_matching_reg(*cmd->reg);
-      ad9910_io_update();
+      execute_command_register(cmd);
+      execute_command_update(cmd);
     case scpi_mode_program:
       commands_queue_register(cmd);
   }

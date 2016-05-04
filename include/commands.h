@@ -7,45 +7,53 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define COMMAND_QUEUE_LENGTH 1024
+
 typedef enum {
-  ad9910_command_type_end = 0x00,
-  ad9910_command_type_register, /* change register */
-  ad9910_command_type_pin,      /* change external pin */
-  ad9910_command_type_trigger,  /* wait for trigger */
-  ad9910_command_type_wait,     /* wait for a specified time */
-} ad9910_command_type;
+  command_type_end = 0x00,
+  command_type_register, /* change register */
+  command_type_pin,      /* change external pin */
+  command_type_trigger,  /* wait for trigger */
+  command_type_wait,     /* wait for a specified time */
+  command_type_update,   /* perform IO update */
+} command_type;
 
 typedef struct
 {
   const ad9910_register_bit* reg;
   uint32_t value;
-} ad9910_command_register;
+} command_register;
 
 typedef struct
 {
-  const gpio_pin* pin;
+  const gpio_pin pin;
   int value;
-} ad9910_command_pin;
+} command_pin;
+
+typedef void command_update;
+typedef void command_trigger;
 
 typedef struct
 {
-  ad9910_command_type type;
-} ad9910_command;
+  uint32_t delay;
+} command_wait;
 
-/** this function takes a list of commands and works through that list
- * command by command. It waits until the corresponding trigger is
- * triggered and then prepares the next command until the
- * ad9910_command_end is encountered. Every list of commands must end with
- * that command.
- */
-void ad9910_process_commands(const ad9910_command* commands);
+typedef struct
+{
+  command_type type;
+} command;
 
-void ad9910_execute_command(const ad9910_command* command);
+int commands_queue_register(const command_register*);
+void commands_clear(void);
+void commands_repeat(uint32_t);
+void commands_execute(void);
 
-size_t get_command_size(ad9910_command_type);
-size_t get_full_command_size(ad9910_command*);
-
-void commands_queue_register(const ad9910_command_register*);
+size_t execute_command(const command*);
+size_t execute_command_register(const command_register*);
+size_t execute_command_pin(const command_pin*);
+size_t execute_command_trigger(const command_trigger*);
+size_t execute_command_wait(const command_wait*);
+size_t execute_command_update(const command_update*);
 
 /*
  - single tone
