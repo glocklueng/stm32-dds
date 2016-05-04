@@ -1,0 +1,40 @@
+new version of network protocol. Following SCPI, using more, but smaller
+commands.
+
+:MODe <NORMal|PROGramming|EXECuting>
+
+:OUTPut
+  :FREQuency <INTEGER|frequency>
+  :FREQuency?
+  :AMPLitude <INTEGER|amplitude>
+  :PHAse <INTEGER>
+  :TRIGger <INTernal|EXTernal>
+:PARallel
+  :TARget <FREQuency|AMPLitude|PHAse|OFF>
+:RAM
+  :TARget <FREQuency|AMPLitude|PHAse|OFF>
+:RAMP
+  :BOUNDary
+    :MINimum <INTEGER|frequency>
+    :MAXimum <INTEGER|frequency>
+  :STEP <INTEGER|frequency>
+    :UP <INTEGER|frequency>
+    :DOWN <INTEGER|frequency>
+  :RATE <INTEGER|frequency>
+    :UP <INTEGER|frequency>
+    :DOWN <INTEGER|frequency>
+  :MODe <SINGle|UPSAWtooth|DOWNSAWtooth|OSCillating>
+  :DIRection <UP|DOWN>
+  :TARget <FREQuency|AMPLitude|PHAse|OFF>
+:SEQuence
+  :CLEAR
+  :LOOP <INTEGER|INFinite|OFF>
+  :LOOP?
+:STARTup
+  :SAVe
+  :CLEAR
+:SYSTem
+  :INFo
+:TRIGger
+  :WAIT
+  :SET <EXTernal|INTernal>
