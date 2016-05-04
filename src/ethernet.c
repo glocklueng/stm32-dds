@@ -1,5 +1,6 @@
 #include "ethernet.h"
 
+#include "config.h"
 #include "gpio.h"
 #include "timing.h"
 #include "scpi.h"
@@ -464,10 +465,14 @@ lwip_init()
   ip_init();
   tcp_init();
 
-  IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
-  IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1, NETMASK_ADDR2,
-           NETMASK_ADDR3);
-  IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
+  const struct ethernet_config* eth_conf = &(config_get()->ethernet);
+
+  IP4_ADDR(&ipaddr, eth_conf->address[0], eth_conf->address[1],
+           eth_conf->address[2], eth_conf->address[3]);
+  IP4_ADDR(&netmask, eth_conf->submask[0], eth_conf->submask[1],
+           eth_conf->submask[2], eth_conf->submask[3]);
+  IP4_ADDR(&gw, eth_conf->gateway[0], eth_conf->gateway[1],
+           eth_conf->gateway[2], eth_conf->gateway[3]);
 
   /* - netif_add(struct netif *netif, struct ip_addr *ipaddr,
   struct ip_addr *netmask, struct ip_addr *gw,
