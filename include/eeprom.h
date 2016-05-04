@@ -14,7 +14,8 @@ enum eeprom_id
   eeprom_block2 = FLASH_Sector_3,
 };
 
-int eeprom_write(enum eeprom_id id, uint16_t addr, void* data, size_t len);
+int eeprom_write(enum eeprom_id id, uint16_t addr, const void* data,
+                 size_t len);
 int eeprom_erase(enum eeprom_id id);
 INLINE void* eeprom_get(enum eeprom_id id, uint16_t addr);
 INLINE void* eeprom_get_end(enum eeprom_id id);

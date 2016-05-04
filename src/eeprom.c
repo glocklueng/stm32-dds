@@ -1,7 +1,7 @@
 #include "eeprom.h"
 
 int
-eeprom_write(enum eeprom_id id, uint16_t addr, void* data, size_t len)
+eeprom_write(enum eeprom_id id, uint16_t addr, const void* data, size_t len)
 {
   FLASH_Unlock();
   for (size_t i = 0; i < len; i++) {
