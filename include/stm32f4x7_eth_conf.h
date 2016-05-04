@@ -52,7 +52,7 @@ extern "C" {
 #define USE_Delay
 
 #ifdef USE_Delay
-#include "main.h" /* Header file where the Delay function prototype is exported */
+#include "timing.h" /* Header file where the Delay function prototype is exported */
 #define _eth_delay_                                                            \
   delay /* User can provide more timing precise _eth_delay_ function           \
            ex. use Systick with time base of 10 ms (as done in the provided    \

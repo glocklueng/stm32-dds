@@ -18,8 +18,7 @@ SRCS=src/main.c \
      src/scpi.c \
      src/spi.c \
      src/timing.c
-HDRS=include/defines.h \
-     include/ad9910.h \
+HDRS=include/ad9910.h \
      include/commands.h \
      include/config.h \
      include/crc.h \
@@ -28,7 +27,6 @@ HDRS=include/defines.h \
      include/ethernet.h \
      include/gpio.h \
      include/interrupts.h \
-     include/main.h \
      include/scpi.h \
      include/spi.h \
      include/stm32f4x7_eth_conf.h \

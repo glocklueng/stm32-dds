@@ -95,7 +95,6 @@ current consumption
 
 #include "stm32f4xx.h"
 #include "stm32f4xx_gpio.h"
-#include "defines.h"
 
 /**
  * @defgroup TM_GPIO_Macros
