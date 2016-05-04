@@ -14,16 +14,20 @@ ad9910_registers command_regs;
 
 struct command_queue
 {
-  char begin[COMMAND_QUEUE_LENGTH];
+  void* const begin;
   void* end; /* ptr behind the last used byte */
   uint32_t repeat;
 };
 
+static char commands_buf[COMMAND_QUEUE_LENGTH];
+
 static struct command_queue commands = {
-  .begin = { 0 },
-  .end = commands.begin,
+  .begin = commands_buf,
+  .end = commands_buf,
   .repeat = 0,
 };
+
+static void execute_commands(struct command_queue*);
 
 int
 commands_queue_register(const command_register* cmd)
@@ -60,15 +64,21 @@ commands_repeat(uint32_t count)
 void
 commands_execute()
 {
+  execute_commands(&commands);
+}
+
+static void
+execute_commands(struct command_queue* cmds)
+{
   uint32_t i = 0;
 
   do { /* repeat loop */
-    void* cur = commands.begin;
+    void* cur = cmds->begin;
 
-    while (cur < commands.end) {
+    while (cur < cmds->end) {
       execute_command(cur);
     }
-  } while (i++ < commands.repeat);
+  } while (i++ < cmds->repeat);
 }
 
 size_t
