@@ -1,9 +1,6 @@
 #ifndef __DEFINES_H
 #define __DEFINES_H
 
-/* inline even on -O0 */
-#define INLINE __attribute__((always_inline)) inline
-
 /* network configuration settings */
 #define IP_ADDR0 172
 #define IP_ADDR1 31

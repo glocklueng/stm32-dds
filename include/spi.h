@@ -1,7 +1,7 @@
 #ifndef _SPI_H
 #define _SPI_H
 
-#include "defines.h"
+#include "util.h"
 
 #include <stm32f4xx_spi.h>
 

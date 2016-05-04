@@ -1,7 +1,7 @@
 #ifndef _GPIO_H
 #define _GPIO_H
 
-#include "defines.h"
+#include "util.h"
 
 #include <tm_stm32f4_gpio.h>
 

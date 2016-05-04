@@ -5,7 +5,7 @@
 #ifndef _AD9910_H
 #define _AD9910_H
 
-#include "defines.h"
+#include "util.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <tm_stm32f4_gpio.h>
