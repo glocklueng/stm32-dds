@@ -1,0 +1,6 @@
+- configurable network configuration
+- RAM mode
+- parallel mode
+- interrupts for lost PLL signal
+- user button to return to network communication
+
