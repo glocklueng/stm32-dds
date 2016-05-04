@@ -55,6 +55,10 @@ size_t execute_command_trigger(const command_trigger*);
 size_t execute_command_wait(const command_wait*);
 size_t execute_command_update(const command_update*);
 
+void startup_command_clear(void);
+void startup_command_execute(void);
+void startup_command_save(void);
+
 /*
  - single tone
    - permanent

@@ -1,10 +1,13 @@
 #include "commands.h"
 
 #include "ad9910.h"
+#include "eeprom.h"
 #include "gpio.h"
 #include "timing.h"
 
 #include <string.h>
+
+#define STARTUP_EEPROM eeprom_block0
 
 /* these registers are used to keep track of the necessary changes while
  * programming the DDS. This is necessary because some changes depend on
@@ -153,4 +156,40 @@ execute_command_update(const command_update* cmd)
   ad9910_io_update();
 
   return 0;
+}
+
+void
+startup_command_clear()
+{
+  eeprom_erase(STARTUP_EEPROM);
+}
+
+void
+startup_command_execute()
+{
+  uint32_t* len = eeprom_get(STARTUP_EEPROM, 0);
+
+  /* check if memory is initialized or cleared */
+  if (*len == 0xFFFFFFFF) {
+    return;
+  }
+
+  struct command_queue commands = {
+    .begin = len + 1, .end = ((char*)(len + 1)) + *len, .repeat = 0,
+  };
+
+  execute_commands(&commands);
+}
+
+void
+startup_command_save()
+{
+  startup_command_clear();
+
+  uint32_t len = commands.end - commands.begin;
+
+  /* write length of the command sequence */
+  eeprom_write(STARTUP_EEPROM, 0, &len, sizeof(len));
+  /* save command sequence behind it */
+  eeprom_write(STARTUP_EEPROM, sizeof(len), commands.begin, len);
 }

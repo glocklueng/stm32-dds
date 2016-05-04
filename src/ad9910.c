@@ -1,11 +1,9 @@
 #include "ad9910.h"
 
-#include "eeprom.h"
+#include "commands.h"
 #include "gpio.h"
 #include "spi.h"
 #include <math.h>
-
-#define EEPROM_ID eeprom_block0
 
 static const int ad9910_pll_lock_timeout = 10000000; // ~1s
 
@@ -130,7 +128,7 @@ ad9910_init()
   ad9910_enable_parallel(0);
   ad9910_enable_output(1);
 
-//  ad9910_execute_startup_command();
+  startup_command_execute();
 
   /* turn green led on signaling that initialization has passed */
   gpio_set_high(LED_GREEN);

@@ -48,10 +48,12 @@ static scpi_result_t scpi_callback_ramp_mode(scpi_t*);
 static scpi_result_t scpi_callback_ramp_direction(scpi_t*);
 static scpi_result_t scpi_callback_ramp_target(scpi_t*);
 static scpi_result_t scpi_callback_register_q(scpi_t*);
-static scpi_result_t scpi_callback_startup_clear(scpi_t*);
 
 static scpi_result_t scpi_callback_sequence_clear(scpi_t*);
 static scpi_result_t scpi_callback_sequence_loop(scpi_t*);
+
+static scpi_result_t scpi_callback_startup_clear(scpi_t*);
+static scpi_result_t scpi_callback_startup_save(scpi_t*);
 
 static const scpi_command_t scpi_commands[] = {
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
@@ -76,6 +78,7 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "RAMP:TARget", .callback = scpi_callback_ramp_target },
   {.pattern = "REGister?", .callback = scpi_callback_register_q },
   {.pattern = "STARTup:CLEAR", .callback = scpi_callback_startup_clear },
+  {.pattern = "STARTup:SAVE", .callback = scpi_callback_startup_save },
   {.pattern = "SEQuence:CLEAR", .callback = scpi_callback_sequence_clear },
   {.pattern = "SEQuence:LOOP", .callback = scpi_callback_sequence_loop },
   SCPI_CMD_LIST_END
@@ -420,7 +423,17 @@ scpi_callback_startup_clear(scpi_t* context)
 {
   (void)context;
 
-//  ad9910_clear_startup_command();
+  startup_command_clear();
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_startup_save(scpi_t* context)
+{
+  (void)context;
+
+  startup_command_save();
 
   return SCPI_RES_OK;
 }
