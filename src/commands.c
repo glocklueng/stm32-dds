@@ -63,7 +63,7 @@ command_queue(command_type type, const void* cmd, size_t cmd_len)
   const size_t len = sizeof(command) + cmd_len;
 
   /* check if enough memory is left in the queue */
-  if (commands.end - (void*)commands.begin + len < COMMAND_QUEUE_LENGTH) {
+  if (commands.end - (void*)commands.begin + len > COMMAND_QUEUE_LENGTH) {
     return 1;
   }
 
