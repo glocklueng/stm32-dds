@@ -45,6 +45,7 @@ typedef struct
 
 int commands_queue_register(const command_register*);
 int commands_queue_trigger(const command_trigger*);
+int commands_queue_update(const command_update*);
 int commands_queue_wait(const command_wait*);
 
 void commands_clear(void);

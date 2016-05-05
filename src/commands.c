@@ -40,15 +40,21 @@ commands_queue_register(const command_register* cmd)
 }
 
 int
-commands_queue_wait(const command_wait* cmd)
+commands_queue_trigger(const command_trigger* cmd)
 {
-  return command_queue(command_type_wait, cmd, sizeof(command_wait));
+  return command_queue(command_type_trigger, cmd, 0);
 }
 
 int
-commands_queue_trigger(const command_trigger* cmd)
+commands_queue_update(const command_update* cmd)
 {
-  return command_queue(command_type_register, cmd, 0);
+  return command_queue(command_type_update, cmd, 0);
+}
+
+int
+commands_queue_wait(const command_wait* cmd)
+{
+  return command_queue(command_type_wait, cmd, sizeof(command_wait));
 }
 
 static int

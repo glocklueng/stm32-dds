@@ -63,6 +63,7 @@ static scpi_result_t scpi_callback_system_network_address_q(scpi_t*);
 static scpi_result_t scpi_callback_system_network_submask_q(scpi_t*);
 static scpi_result_t scpi_callback_system_network_gateway_q(scpi_t*);
 
+static scpi_result_t scpi_callback_trigger_send(scpi_t*);
 static scpi_result_t scpi_callback_trigger_wait(scpi_t*);
 static scpi_result_t scpi_callback_wait(scpi_t*);
 
@@ -104,6 +105,7 @@ static const scpi_command_t scpi_commands[] = {
    .callback = scpi_callback_system_network_submask_q },
   {.pattern = "SYStem:NETwork:GATEway?",
    .callback = scpi_callback_system_network_gateway_q },
+  {.pattern = "TRIGger:SEND", .callback = scpi_callback_trigger_send },
   {.pattern = "TRIGger:WAIT", .callback = scpi_callback_trigger_wait },
   {.pattern = "WAIT", .callback = scpi_callback_wait },
   SCPI_CMD_LIST_END
@@ -129,6 +131,7 @@ static void scpi_process_trigger(void);
 
 static void scpi_process_register_command(const command_register*);
 static void scpi_process_command_trigger(const command_trigger*);
+static void scpi_process_command_update(const command_update*);
 static void scpi_process_command_wait(const command_wait*);
 
 /* this struct defines the main communictation functions used by the
@@ -535,6 +538,14 @@ scpi_callback_system_network_gateway_q(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_trigger_send(scpi_t* context)
+{
+  scpi_process_command_update(NULL);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
 scpi_callback_trigger_wait(scpi_t* context)
 {
   return scpi_callback_wait(context);
@@ -911,6 +922,19 @@ scpi_process_command_trigger(const command_trigger* cmd)
       execute_command_trigger(cmd);
     case scpi_mode_program:
       commands_queue_trigger(cmd);
+  }
+}
+
+static void
+scpi_process_command_update(const command_update* cmd)
+{
+  switch (current_mode) {
+    default:
+      execute_command_update(cmd);
+      break;
+    case scpi_mode_program:
+      commands_queue_update(cmd);
+      break;
   }
 }
 

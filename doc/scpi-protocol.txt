@@ -40,6 +40,7 @@ commands.
     :SUBmask
     :GATEway
 :TRIGger
-  :WAIT
+  :SEND
   :SET <EXTernal|INTernal>
+  :WAIT
 :WAIT <INTEGER|time|TRIGger>
