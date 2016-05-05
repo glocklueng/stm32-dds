@@ -31,11 +31,18 @@ static struct command_queue commands = {
 };
 
 static void execute_commands(struct command_queue*);
+static int command_queue(command_type, const void*, size_t);
 
 int
 commands_queue_register(const command_register* cmd)
 {
-  const size_t len = sizeof(command) + sizeof(command_register);
+  return command_queue(command_type_register, cmd, sizeof(command_register));
+}
+
+static int
+command_queue(command_type type, const void* cmd, size_t cmd_len)
+{
+  const size_t len = sizeof(command) + cmd_len;
 
   /* check if enough memory is left in the queue */
   if (commands.end - (void*)commands.begin + len < COMMAND_QUEUE_LENGTH) {
@@ -43,11 +50,11 @@ commands_queue_register(const command_register* cmd)
   }
 
   command* header = commands.end;
-  header->type = command_type_register;
+  header->type = type;
   commands.end += sizeof(command);
 
-  memcpy(commands.end, cmd, sizeof(command_register));
-  commands.end += sizeof(command_register);
+  memcpy(commands.end, cmd, cmd_len);
+  commands.end += cmd_len;
 
   return 0;
 }
