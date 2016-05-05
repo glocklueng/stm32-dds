@@ -45,6 +45,7 @@ typedef struct
   command_type type;
 } command;
 
+int commands_queue_pin(const command_pin*);
 int commands_queue_register(const command_register*);
 int commands_queue_trigger(const command_trigger*);
 int commands_queue_update(const command_update*);

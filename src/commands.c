@@ -41,6 +41,12 @@ static size_t get_command_length(const command*);
 static const command* find_last_command(void);
 
 int
+commands_queue_pin(const command_pin* cmd)
+{
+  return command_queue(command_type_pin, cmd, sizeof(command_pin));
+}
+
+int
 commands_queue_register(const command_register* cmd)
 {
   /* if the last command was a spi write we remove that because we have

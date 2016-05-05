@@ -130,6 +130,7 @@ static void scpi_process_wait(uint32_t time);
 static void scpi_process_trigger(void);
 
 static void scpi_process_register_command(const command_register*);
+static void scpi_process_command_pin(const command_pin*);
 static void scpi_process_command_trigger(const command_trigger*);
 static void scpi_process_command_update(const command_update*);
 static void scpi_process_command_wait(const command_wait*);
@@ -253,14 +254,7 @@ scpi_callback_data_test_q(scpi_t* context)
 static scpi_result_t
 scpi_callback_output(scpi_t* context)
 {
-  scpi_bool_t value;
-  if (!SCPI_ParamBool(context, &value, TRUE)) {
-    return SCPI_RES_ERR;
-  };
-
-  ad9910_enable_output(value);
-
-  return SCPI_RES_OK;
+  return scpi_parse_pin_command(context, RF_SWITCH);
 }
 
 static scpi_result_t
@@ -885,7 +879,9 @@ scpi_parse_pin_command(scpi_t* context, const gpio_pin pin)
     return SCPI_RES_ERR;
   }
 
-  gpio_set(pin, value);
+  command_pin cmd = {.pin = pin, .value = value };
+
+  scpi_process_command_pin(&cmd);
 
   return SCPI_RES_OK;
 }
@@ -917,6 +913,19 @@ scpi_process_register_command(const command_register* cmd)
       break;
     case scpi_mode_program:
       commands_queue_register(cmd);
+      break;
+  }
+}
+
+static void
+scpi_process_command_pin(const command_pin* cmd)
+{
+  switch (current_mode) {
+    default:
+      execute_command_pin(cmd);
+      break;
+    case scpi_mode_program:
+      commands_queue_pin(cmd);
       break;
   }
 }
