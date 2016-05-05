@@ -914,8 +914,10 @@ scpi_process_register_command(const command_register* cmd)
     case scpi_mode_execute:
       execute_command_register(cmd);
       execute_command_update(cmd);
+      break;
     case scpi_mode_program:
       commands_queue_register(cmd);
+      break;
   }
 }
 
@@ -925,8 +927,10 @@ scpi_process_command_trigger(const command_trigger* cmd)
   switch (current_mode) {
     default:
       execute_command_trigger(cmd);
+      break;
     case scpi_mode_program:
       commands_queue_trigger(cmd);
+      break;
   }
 }
 
@@ -949,7 +953,9 @@ scpi_process_command_wait(const command_wait* cmd)
   switch (current_mode) {
     default:
       execute_command_wait(cmd);
+      break;
     case scpi_mode_program:
       commands_queue_wait(cmd);
+      break;
   }
 }
