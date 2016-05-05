@@ -1,6 +1,7 @@
 #include "commands.h"
 
 #include "ad9910.h"
+#include "crc.h"
 #include "eeprom.h"
 #include "gpio.h"
 #include "timing.h"
@@ -233,12 +234,18 @@ startup_command_clear()
 void
 startup_command_execute()
 {
-  uint32_t* len = eeprom_get(STARTUP_EEPROM, 0);
+  uint32_t* crc_saved = eeprom_get(STARTUP_EEPROM, 0);
+  crc_init();
+  uint32_t crc_calc = crc(eeprom_get(STARTUP_EEPROM, sizeof(crc_calc)),
+                          (eeprom_get_size(STARTUP_EEPROM) - sizeof(crc_calc)) /
+                            sizeof(uint32_t));
 
-  /* check if memory is initialized or cleared */
-  if (*len == 0xFFFFFFFF) {
+  /* if the crc check fails we abort */
+  if (crc_calc != *crc_saved) {
     return;
   }
+
+  uint32_t* len = eeprom_get(STARTUP_EEPROM, sizeof(crc_saved));
 
   struct command_queue commands = {
     .begin = len + 1, .end = ((char*)(len + 1)) + *len, .repeat = 0,
@@ -254,10 +261,21 @@ startup_command_save()
 
   uint32_t len = commands.end - commands.begin;
 
+  uint32_t crcsum;
+
   /* write length of the command sequence */
-  eeprom_write(STARTUP_EEPROM, 0, &len, sizeof(len));
+  eeprom_write(STARTUP_EEPROM, sizeof(crcsum), &len, sizeof(len));
   /* save command sequence behind it */
-  eeprom_write(STARTUP_EEPROM, sizeof(len), commands.begin, len);
+  eeprom_write(STARTUP_EEPROM, sizeof(crcsum) + sizeof(len), commands.begin,
+               len);
+
+  crc_init();
+  crcsum =
+    crc(eeprom_get(STARTUP_EEPROM, sizeof(crcsum)),
+        (eeprom_get_size(STARTUP_EEPROM) - sizeof(crcsum)) / sizeof(uint32_t));
+
+  /* save crc at the begining */
+  eeprom_write(STARTUP_EEPROM, 0, &crcsum, sizeof(crcsum));
 }
 
 static size_t
