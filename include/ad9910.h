@@ -226,6 +226,12 @@ INLINE uint64_t ad9910_get_value(ad9910_register_bit);
  */
 void ad9910_update_reg(ad9910_register* reg);
 
+/**
+ * this function can be used to update multiple registers at once.
+ * @param mask bitmask indication the registers to update
+ */
+void ad9910_update_multiple_regs(uint32_t mask);
+
 INLINE void ad9910_update_profile_reg(uint8_t profile);
 
 /* this function does update the register which contains the given bit

@@ -30,13 +30,29 @@ static struct command_queue commands = {
   .repeat = 0,
 };
 
+static uint32_t update_registers = 0;
+
 static void execute_commands(struct command_queue*);
+static size_t execute_command_register_only(const command_register*);
+static size_t execute_command_spi_write(const command_spi_write*);
 static int command_queue(command_type, const void*, size_t);
+static size_t get_command_length(const command*);
+static const command* find_last_command(void);
 
 int
 commands_queue_register(const command_register* cmd)
 {
-  return command_queue(command_type_register, cmd, sizeof(command_register));
+  /* if the last command was a spi write we remove that because we have
+   * more registers to change */
+  const command* last = find_last_command();
+  if (last != NULL && last->type == command_type_spi_write) {
+    commands.end -= sizeof(command);
+  }
+
+  size_t ret = command_queue(command_type_register, cmd, sizeof(command_register));
+  ret += command_queue(command_type_spi_write, cmd, 0);
+
+  return ret;
 }
 
 int
@@ -115,7 +131,7 @@ execute_command(const command* cmd)
   size_t len = sizeof(command);
   switch (cmd->type) {
     case command_type_register:
-      len += execute_command_register((const command_register*)(cmd + 1));
+      len += execute_command_register_only((const command_register*)(cmd + 1));
       break;
     case command_type_pin:
       len += execute_command_pin((const command_pin*)(cmd + 1));
@@ -129,11 +145,25 @@ execute_command(const command* cmd)
     case command_type_update:
       len += execute_command_update((const command_update*)(cmd + 1));
       break;
+    case command_type_spi_write:
+      len += execute_command_spi_write((const command_spi_write*)(cmd + 1));
+      break;
     case command_type_end:
       break;
   }
 
   return len;
+}
+
+static size_t
+execute_command_register_only(const command_register* cmd)
+{
+  ad9910_set_value(*cmd->reg, cmd->value);
+
+  /* mark register for spi update */
+  update_registers |= (1 << cmd->reg->reg->address);
+
+  return sizeof(command_register);
 }
 
 size_t
@@ -143,6 +173,16 @@ execute_command_register(const command_register* cmd)
   ad9910_update_matching_reg(*cmd->reg);
 
   return sizeof(command_register);
+}
+
+static size_t
+execute_command_spi_write(const command_spi_write* cmd)
+{
+  ad9910_update_multiple_regs(update_registers);
+
+  update_registers = 0;
+
+  return 0;
 }
 
 size_t
@@ -217,4 +257,40 @@ startup_command_save()
   eeprom_write(STARTUP_EEPROM, 0, &len, sizeof(len));
   /* save command sequence behind it */
   eeprom_write(STARTUP_EEPROM, sizeof(len), commands.begin, len);
+}
+
+static size_t
+get_command_length(const command* cmd)
+{
+  size_t len = sizeof(command);
+
+  switch (cmd->type) {
+    default:
+      break;
+    case command_type_register:
+      len += sizeof(command_register);
+      break;
+    case command_type_pin:
+      len += sizeof(command_pin);
+      break;
+    case command_type_wait:
+      len += sizeof(command_wait);
+      break;
+  }
+
+  return len;
+}
+
+static const command* find_last_command()
+{
+  for (const void* cur = commands.begin; cur < commands.end;) {
+    size_t len = get_command_length(cur);
+    if (cur + len == commands.end) {
+      return cur;
+    }
+
+    cur += len;
+  }
+
+  return NULL;
 }

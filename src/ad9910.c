@@ -3,6 +3,7 @@
 #include "commands.h"
 #include "gpio.h"
 #include "spi.h"
+#include "timing.h"
 #include <math.h>
 
 static const int ad9910_pll_lock_timeout = 10000000; // ~1s
@@ -40,16 +41,13 @@ ad9910_init()
 
   /* reset the DDS */
   gpio_set_high(DDS_RESET);
-  for (volatile int i = 0; i < 1000; ++i) {
-  }
+  delay(1);
   gpio_set_low(DDS_RESET);
 
   spi_init_slow();
 
   gpio_set_high(IO_RESET);
-  /* wait for SYNC_CLK which is SYSCLK/4 => wait for 1s/2.5MHz ~= 100 cycles */
-  for (volatile int i = 0; i < 100; ++i) {
-  }
+  delay(1);
   gpio_set_low(IO_RESET);
 
   /* enable PLL mode */
@@ -71,9 +69,7 @@ ad9910_init()
   /* we perform the io_update manually here because the AD9910 is still
    * running without PLL and frequency multiplier */
   gpio_set_high(IO_UPDATE);
-  /* wait for SYNC_CLK which is SYSCLK/4 => wait for 1s/2.5MHz ~= 100 cycles */
-  for (volatile int i = 0; i < 100; ++i) {
-  }
+  delay(1);
   gpio_set_low(IO_UPDATE);
 
   spi_deinit();
@@ -143,6 +139,21 @@ ad9910_update_reg(ad9910_register* reg)
    * meaning we have to send the last byte first */
   for (int i = 0; i < reg->size; ++i) {
     spi_send_single(((const char*)(&(reg->value)))[reg->size - 1 - i]);
+  }
+}
+
+void
+ad9910_update_multiple_regs(uint32_t mask)
+{
+  /* for easy access to all the registers we interpret the ad9910_register
+   * struct as an array of registers */
+  ad9910_register* regs = &ad9910_regs.cfr1;
+
+  /* TODO implement DMA */
+  for (size_t i = 0; i < sizeof(mask) * 8; ++i) {
+    if (mask & (i << i)) {
+      ad9910_update_reg(regs + i);
+    }
   }
 }
 

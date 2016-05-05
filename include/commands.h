@@ -16,6 +16,7 @@ typedef enum {
   command_type_trigger,  /* wait for trigger */
   command_type_wait,     /* wait for a specified time */
   command_type_update,   /* perform IO update */
+  command_type_spi_write, /* internal command performing SPI update */
 } command_type;
 
 typedef struct
@@ -32,6 +33,7 @@ typedef struct
 
 typedef void command_update;
 typedef void command_trigger;
+typedef void command_spi_write;
 
 typedef struct
 {
