@@ -49,7 +49,8 @@ commands_queue_register(const command_register* cmd)
     commands.end -= sizeof(command);
   }
 
-  size_t ret = command_queue(command_type_register, cmd, sizeof(command_register));
+  size_t ret =
+    command_queue(command_type_register, cmd, sizeof(command_register));
   ret += command_queue(command_type_spi_write, cmd, 0);
 
   return ret;
@@ -281,7 +282,8 @@ get_command_length(const command* cmd)
   return len;
 }
 
-static const command* find_last_command()
+static const command*
+find_last_command()
 {
   for (const void* cur = commands.begin; cur < commands.end;) {
     size_t len = get_command_length(cur);

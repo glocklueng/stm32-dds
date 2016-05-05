@@ -11,11 +11,11 @@
 
 typedef enum {
   command_type_end = 0x00,
-  command_type_register, /* change register */
-  command_type_pin,      /* change external pin */
-  command_type_trigger,  /* wait for trigger */
-  command_type_wait,     /* wait for a specified time */
-  command_type_update,   /* perform IO update */
+  command_type_register,  /* change register */
+  command_type_pin,       /* change external pin */
+  command_type_trigger,   /* wait for trigger */
+  command_type_wait,      /* wait for a specified time */
+  command_type_update,    /* perform IO update */
   command_type_spi_write, /* internal command performing SPI update */
 } command_type;
 
