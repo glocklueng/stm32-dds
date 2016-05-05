@@ -11,7 +11,6 @@
 #include <lwip/stats.h>
 #include <lwip/tcp.h>
 #include <lwip/tcp_impl.h>
-#include <misc.h>
 #include <netif/etharp.h>
 #include <stdlib.h>
 #include <string.h>
@@ -94,30 +93,6 @@ ethernet_init()
   for (volatile int i = 0; i < 1000; ++i) {
   }
   gpio_set_high(ETHERNET_RESET);
-
-  /* enable systick interrupts */
-  SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
-
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-
-  RCC_ClocksTypeDef RCC_Clocks;
-
-  /***************************************************************************
-    NOTE:
-         When using Systick to manage the delay in Ethernet driver, the Systick
-         must be configured before Ethernet initialization and, the interrupt
-         priority should be the highest one.
-  *****************************************************************************/
-
-  /* Configure Systick clock source as HCLK */
-  SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
-
-  /* SystTick configuration: an interrupt every 10ms */
-  RCC_GetClocksFreq(&RCC_Clocks);
-  SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
-
-  /* Set Systick interrupt priority to 0*/
-  NVIC_SetPriority(SysTick_IRQn, 0);
 
   ethernet_gpio_init();
 

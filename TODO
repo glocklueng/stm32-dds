@@ -2,7 +2,6 @@
 - parallel mode
 - interrupts for lost PLL signal
 - user button to return to network communication
-- adjust timing interrupts to regular interval
 - enable DMA for SPI communication
 - squash multiple register commands into a single large update
 

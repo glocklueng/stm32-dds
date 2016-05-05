@@ -1,6 +1,7 @@
 #include "ad9910.h"
 #include "gpio.h"
 #include "ethernet.h"
+#include "timing.h"
 
 int
 main(void)
@@ -11,6 +12,8 @@ main(void)
        To reconfigure the default setting of SystemInit() function, refer to
         system_stm32f4xx.c file
      */
+  sysclock_init();
+
   ad9910_init();
 
   gpio_set_high(LED_ORANGE);
