@@ -1,4 +1,8 @@
 include ../Makefile.inc
+
+# enable time units in libscpi
+CFLAGS+=-DUSE_UNITS_TIME=1
+
 # pass all defined variables down to the recursive make call (e.g. CFLAGS)
 export
 
