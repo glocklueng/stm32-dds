@@ -63,6 +63,9 @@ static scpi_result_t scpi_callback_system_network_address_q(scpi_t*);
 static scpi_result_t scpi_callback_system_network_submask_q(scpi_t*);
 static scpi_result_t scpi_callback_system_network_gateway_q(scpi_t*);
 
+static scpi_result_t scpi_callback_trigger_wait(scpi_t*);
+static scpi_result_t scpi_callback_wait(scpi_t*);
+
 static const scpi_command_t scpi_commands[] = {
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
   {.pattern = "MODe", .callback = scpi_callback_mode },
@@ -101,6 +104,8 @@ static const scpi_command_t scpi_commands[] = {
    .callback = scpi_callback_system_network_submask_q },
   {.pattern = "SYStem:NETwork:GATEway?",
    .callback = scpi_callback_system_network_gateway_q },
+  {.pattern = "TRIGger:WAIT", .callback = scpi_callback_trigger_wait },
+  {.pattern = "WAIT", .callback = scpi_callback_wait },
   SCPI_CMD_LIST_END
 };
 
@@ -119,7 +124,12 @@ static scpi_result_t scpi_parse_pin_command(scpi_t*, const gpio_pin);
 static int scpi_error(scpi_t* context, int_fast16_t err);
 static size_t scpi_write(scpi_t* context, const char* data, size_t len);
 
+static void scpi_process_wait(uint32_t time);
+static void scpi_process_trigger(void);
+
 static void scpi_process_register_command(const command_register*);
+static void scpi_process_command_trigger(const command_trigger*);
+static void scpi_process_command_wait(const command_wait*);
 
 /* this struct defines the main communictation functions used by the
  * library. Write is mandatory, all others are optional */
@@ -525,6 +535,54 @@ scpi_callback_system_network_gateway_q(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_trigger_wait(scpi_t* context)
+{
+  return scpi_callback_wait(context);
+}
+
+static scpi_result_t
+scpi_callback_wait(scpi_t* context)
+{
+  enum
+  {
+    _choice_min,
+    _choice_trigger,
+  };
+
+  const scpi_choice_def_t choices[] = {
+    {.name = "MINimal", .tag = _choice_min },
+    {.name = "TRIGger", .tag = _choice_trigger },
+  };
+
+  scpi_number_t value;
+  if (!SCPI_ParamNumber(context, choices, &value, TRUE)) {
+    return SCPI_RES_ERR;
+  }
+
+  if (value.special) {
+    switch (value.tag) {
+      case _choice_min:
+        scpi_process_wait(1);
+        return SCPI_RES_OK;
+      case _choice_trigger:
+        scpi_process_trigger();
+        return SCPI_RES_OK;
+    }
+  } else if (value.unit == SCPI_UNIT_SECOND) {
+    scpi_process_wait(value.value * 1000);
+    return SCPI_RES_OK;
+  } else if (value.unit == SCPI_UNIT_NONE) {
+    scpi_process_wait(value.value);
+    return SCPI_RES_OK;
+  } else {
+    SCPI_ErrorPush(context, SCPI_ERROR_INVALID_SUFFIX);
+    return SCPI_RES_ERR;
+  }
+
+  return SCPI_RES_ERR;
+}
+
+static scpi_result_t
 scpi_callback_sequence_clear(scpi_t* context)
 {
   commands_clear();
@@ -817,6 +875,22 @@ scpi_parse_pin_command(scpi_t* context, const gpio_pin pin)
 }
 
 static void
+scpi_process_wait(uint32_t time)
+{
+  command_wait cmd = {
+    .delay = time,
+  };
+
+  scpi_process_command_wait(&cmd);
+}
+
+static void
+scpi_process_trigger()
+{
+  scpi_process_command_trigger(NULL);
+}
+
+static void
 scpi_process_register_command(const command_register* cmd)
 {
   switch (current_mode) {
@@ -826,5 +900,27 @@ scpi_process_register_command(const command_register* cmd)
       execute_command_update(cmd);
     case scpi_mode_program:
       commands_queue_register(cmd);
+  }
+}
+
+static void
+scpi_process_command_trigger(const command_trigger* cmd)
+{
+  switch (current_mode) {
+    default:
+      execute_command_trigger(cmd);
+    case scpi_mode_program:
+      commands_queue_trigger(cmd);
+  }
+}
+
+static void
+scpi_process_command_wait(const command_wait* cmd)
+{
+  switch (current_mode) {
+    default:
+      execute_command_wait(cmd);
+    case scpi_mode_program:
+      commands_queue_wait(cmd);
   }
 }

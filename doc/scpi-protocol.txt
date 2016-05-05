@@ -42,3 +42,4 @@ commands.
 :TRIGger
   :WAIT
   :SET <EXTernal|INTernal>
+:WAIT <INTEGER|time|TRIGger>

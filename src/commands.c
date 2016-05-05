@@ -39,6 +39,18 @@ commands_queue_register(const command_register* cmd)
   return command_queue(command_type_register, cmd, sizeof(command_register));
 }
 
+int
+commands_queue_wait(const command_wait* cmd)
+{
+  return command_queue(command_type_wait, cmd, sizeof(command_wait));
+}
+
+int
+commands_queue_trigger(const command_trigger* cmd)
+{
+  return command_queue(command_type_register, cmd, 0);
+}
+
 static int
 command_queue(command_type type, const void* cmd, size_t cmd_len)
 {
