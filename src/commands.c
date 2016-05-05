@@ -104,7 +104,7 @@ execute_commands(struct command_queue* cmds)
     void* cur = cmds->begin;
 
     while (cur < cmds->end) {
-      execute_command(cur);
+      cur += execute_command(cur);
     }
   } while (i++ < cmds->repeat);
 }
