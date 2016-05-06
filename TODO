@@ -3,4 +3,4 @@
 - interrupts for lost PLL signal
 - user button to return to network communication
 - enable DMA for SPI communication
-
+- handle (non-ARB) packages which wrap around multiple pbufs
