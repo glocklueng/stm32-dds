@@ -1,0 +1,38 @@
+# VIM/KDevelop Files
+*.swp
+*.kdev4
+.kdev4/
+*.kate-swp
+
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.test
+examples/*/test
+
+# Backup files
+*~
+/libscpi/obj/
+/libscpi/dist/
+
+/nbproject/
+*.bak
+
+# Code coverage files
+*.gcno
+*.gcda
+*.gcov
