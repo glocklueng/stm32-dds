@@ -367,8 +367,8 @@ scpi_callback_ramp_mode(scpi_t* context)
     return SCPI_RES_ERR;
   }
 
-  int high;
-  int low;
+  int high = 0;
+  int low = 0;
 
   switch ((enum ramp_mode)value) {
     case ramp_mode_single:
