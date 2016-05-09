@@ -32,6 +32,8 @@ static char data_test_buf[4096];
 static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
 
+static scpi_result_t scpi_test_q(scpi_t*);
+
 static scpi_result_t scpi_callback_mode(scpi_t*);
 static scpi_result_t scpi_callback_mode_q(scpi_t*);
 static scpi_result_t scpi_callback_data_test(scpi_t*);
@@ -68,7 +70,26 @@ static scpi_result_t scpi_callback_trigger_wait(scpi_t*);
 static scpi_result_t scpi_callback_wait(scpi_t*);
 
 static const scpi_command_t scpi_commands[] = {
+  /* IEEE Mandated Commands (SCPI std V1999.0 4.1.1) */
+  {.pattern = "*CLS", .callback = SCPI_CoreCls },
+  {.pattern = "*ESE", .callback = SCPI_CoreEse },
+  {.pattern = "*ESE?", .callback = SCPI_CoreEseQ },
+  {.pattern = "*ESR?", .callback = SCPI_CoreEsrQ },
   {.pattern = "*IDN?", .callback = SCPI_CoreIdnQ },
+  {.pattern = "*OPC", .callback = SCPI_CoreOpc },
+  {.pattern = "*OPC?", .callback = SCPI_CoreOpcQ },
+  {.pattern = "*RST", .callback = SCPI_CoreRst },
+  {.pattern = "*SRE", .callback = SCPI_CoreSre },
+  {.pattern = "*SRE?", .callback = SCPI_CoreSreQ },
+  {.pattern = "*STB?", .callback = SCPI_CoreStbQ },
+  {.pattern = "*TST?", .callback = scpi_test_q },
+  {.pattern = "*WAI", .callback = SCPI_CoreWai },
+
+  /* Required SCPI commands (SCPI std V1999.0 4.2.1) */
+  {.pattern = "SYSTem:ERRor[:NEXT]?", .callback = SCPI_SystemErrorNextQ },
+  {.pattern = "SYSTem:ERRor:COUNt?", .callback = SCPI_SystemErrorCountQ },
+  {.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ },
+
   {.pattern = "MODe", .callback = scpi_callback_mode },
   {.pattern = "MODe?", .callback = scpi_callback_mode_q },
   {.pattern = "MODe?", .callback = scpi_callback_mode },
@@ -193,6 +214,15 @@ int
 scpi_process(char* data, int len)
 {
   return SCPI_Parse(&scpi_context, data, len);
+}
+
+/* this should return 0 if everything is ok, 1 if some error exists */
+static scpi_result_t
+scpi_test_q(scpi_t* context)
+{
+  SCPI_ResultInt32(context, 0);
+
+  return SCPI_RES_OK;
 }
 
 static scpi_result_t
