@@ -9,14 +9,14 @@ void spi_init_slow(void);
 void spi_init_fast(void);
 void spi_init(uint16_t prescaler);
 void spi_deinit(void);
-INLINE uint8_t spi_send_single(uint8_t data);
-INLINE int spi_is_busy(void);
-INLINE void spi_wait(void);
+static INLINE uint8_t spi_send_single(uint8_t data);
+static INLINE int spi_is_busy(void);
+static INLINE void spi_wait(void);
 void spi_write_multi(uint8_t* data, uint32_t length);
 
 /* implementation starts here */
 
-INLINE uint8_t
+static INLINE uint8_t
 spi_send_single(uint8_t data)
 {
   /* wait until previous transmission is complete */
@@ -31,14 +31,14 @@ spi_send_single(uint8_t data)
   return SPI1->DR;
 }
 
-INLINE int
+static INLINE int
 spi_is_busy()
 {
   return (SPI1->SR & (SPI_SR_TXE | SPI_SR_RXNE)) == 0 ||
          (SPI1->SR & SPI_SR_BSY);
 }
 
-INLINE void
+static INLINE void
 spi_wait()
 {
   while (spi_is_busy())

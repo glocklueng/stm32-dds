@@ -205,7 +205,7 @@ typedef enum {
   ad9910_ram_ctl_cont_recirculate = 0x4
 } ad9910_ram_control;
 
-INLINE ad9910_register* ad9910_get_profile_reg(int profile);
+static INLINE ad9910_register* ad9910_get_profile_reg(int profile);
 
 /**
  * sets the given bit field to the specified value. This is only done
@@ -213,12 +213,12 @@ INLINE ad9910_register* ad9910_get_profile_reg(int profile);
  * required to
  * send the changed register to the DDS chip
  */
-INLINE void ad9910_set_value(ad9910_register_bit, uint64_t value);
+static INLINE void ad9910_set_value(ad9910_register_bit, uint64_t value);
 
-INLINE void ad9910_set_profile_value(int profile, ad9910_register_bit,
-                                     uint64_t value);
+static INLINE void ad9910_set_profile_value(int profile, ad9910_register_bit,
+                                            uint64_t value);
 
-INLINE uint64_t ad9910_get_value(ad9910_register_bit);
+static INLINE uint64_t ad9910_get_value(ad9910_register_bit);
 
 /**
  * Write the current internal state of the specified register to the
@@ -232,12 +232,12 @@ void ad9910_update_reg(ad9910_register* reg);
  */
 void ad9910_update_multiple_regs(uint32_t mask);
 
-INLINE void ad9910_update_profile_reg(uint8_t profile);
+static INLINE void ad9910_update_profile_reg(uint8_t profile);
 
 /* this function does update the register which contains the given bit
  * value. If you want to change multiple bits at once first set them and
  * then call ad9910_update_reg on that register directly */
-INLINE void ad9910_update_matching_reg(ad9910_register_bit field);
+static INLINE void ad9910_update_matching_reg(ad9910_register_bit field);
 
 uint64_t ad9910_read_register(ad9910_register*);
 
@@ -283,7 +283,7 @@ void ad9910_enable_parallel(int enable);
 /**
  * sets the parallel output pins to the given value
  */
-INLINE void ad9910_set_parallel(uint16_t port);
+static INLINE void ad9910_set_parallel(uint16_t port);
 
 void ad9910_set_frequency(uint8_t profile, uint32_t freq);
 void ad9910_set_amplitude(uint8_t profile, uint16_t ampl);
@@ -314,7 +314,7 @@ void ad9910_execute_startup_command(void);
 
 /** implementation starts here */
 
-INLINE ad9910_register*
+static INLINE ad9910_register*
 ad9910_get_profile_reg(int profile)
 {
   switch (profile) {
@@ -339,7 +339,7 @@ ad9910_get_profile_reg(int profile)
   }
 }
 
-INLINE void
+static INLINE void
 ad9910_set_value(ad9910_register_bit field, uint64_t value)
 {
   /* convert the numbers of bits in a mask with matching length */
@@ -350,7 +350,7 @@ ad9910_set_value(ad9910_register_bit field, uint64_t value)
   field.reg->value |= ((value & mask) << field.offset);
 }
 
-INLINE uint64_t
+static INLINE uint64_t
 ad9910_get_value(ad9910_register_bit field)
 {
   /* convert the numbers of bits in a mask with matching length */
@@ -359,7 +359,7 @@ ad9910_get_value(ad9910_register_bit field)
   return (field.reg->value >> field.offset) & mask;
 }
 
-INLINE void
+static INLINE void
 ad9910_set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
 {
   /* convert the numbers of bits in a mask with matching length */
@@ -372,19 +372,19 @@ ad9910_set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
   reg->value |= ((value & mask) << field.offset);
 }
 
-INLINE void
+static INLINE void
 ad9910_update_profile_reg(uint8_t profile)
 {
   ad9910_update_reg(&ad9910_regs.prof0 + profile);
 }
 
-INLINE void
+static INLINE void
 ad9910_update_matching_reg(ad9910_register_bit field)
 {
   ad9910_update_reg(field.reg);
 }
 
-INLINE void
+static INLINE void
 ad9910_set_parallel(uint16_t port)
 {
   TM_GPIO_SetPortValue(GPIOE, port);

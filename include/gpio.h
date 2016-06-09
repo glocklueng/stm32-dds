@@ -64,11 +64,11 @@ DEF_GPIO(PARALLEL_D15, E, 15);
 #undef DEF_GPIO
 
 /* basic GPIO functions defined as inline to save call time */
-INLINE void gpio_set_high(gpio_pin);
-INLINE void gpio_set_low(gpio_pin);
-INLINE void gpio_set(gpio_pin, int);
-INLINE void gpio_toggle(gpio_pin);
-INLINE int gpio_get(gpio_pin);
+static INLINE void gpio_set_high(gpio_pin);
+static INLINE void gpio_set_low(gpio_pin);
+static INLINE void gpio_set(gpio_pin, int);
+static INLINE void gpio_toggle(gpio_pin);
+static INLINE int gpio_get(gpio_pin);
 
 void gpio_init(void);
 
@@ -80,29 +80,25 @@ void gpio_blink_forever_fast(gpio_pin);
 
 /** implementation starts here */
 
-INLINE
-void
+static INLINE void
 gpio_set_high(gpio_pin pin)
 {
   TM_GPIO_SetPinHigh(pin.group, 1 << pin.pin);
 }
 
-INLINE
-void
+static INLINE void
 gpio_set_low(gpio_pin pin)
 {
   TM_GPIO_SetPinLow(pin.group, 1 << pin.pin);
 }
 
-INLINE
-void
+static INLINE void
 gpio_toggle(gpio_pin pin)
 {
   TM_GPIO_TogglePinValue(pin.group, 1 << pin.pin);
 }
 
-INLINE
-void
+static INLINE void
 gpio_set(gpio_pin pin, int value)
 {
   if (value) {
@@ -112,8 +108,7 @@ gpio_set(gpio_pin pin, int value)
   }
 }
 
-INLINE
-int
+static INLINE int
 gpio_get(gpio_pin pin)
 {
   return TM_GPIO_GetInputPinValue(pin.group, 1 << pin.pin);

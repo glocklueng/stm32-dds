@@ -17,23 +17,23 @@ enum eeprom_id
 int eeprom_write(enum eeprom_id id, uint16_t addr, const void* data,
                  size_t len);
 int eeprom_erase(enum eeprom_id id);
-INLINE void* eeprom_get(enum eeprom_id id, uint16_t addr);
-INLINE void* eeprom_get_end(enum eeprom_id id);
-INLINE size_t eeprom_get_size(enum eeprom_id);
+static INLINE void* eeprom_get(enum eeprom_id id, uint16_t addr);
+static INLINE void* eeprom_get_end(enum eeprom_id id);
+static INLINE size_t eeprom_get_size(enum eeprom_id);
 
-INLINE void*
+static INLINE void*
 eeprom_get(enum eeprom_id id, uint16_t addr)
 {
   return (char*)0x08000000 + id * 0x800 + addr;
 }
 
-INLINE void*
+static INLINE void*
 eeprom_get_end(enum eeprom_id id)
 {
   return (char*)0x08000000 + id * 0x800 + 0x4000;
 }
 
-INLINE size_t
+static INLINE size_t
 eeprom_get_size(enum eeprom_id id)
 {
   (void)id;
