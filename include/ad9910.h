@@ -6,8 +6,8 @@
 #define _AD9910_H
 
 #include "util.h"
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <tm_stm32f4_gpio.h>
 
 #define AD9910_INSTR_WRITE 0x00

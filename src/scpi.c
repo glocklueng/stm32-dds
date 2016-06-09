@@ -8,8 +8,8 @@
 #define USE_FULL_ERROR_LIST 1
 
 #include <math.h>
-#include <stdio.h>
 #include <scpi/scpi.h>
+#include <stdio.h>
 
 enum scpi_mode
 {

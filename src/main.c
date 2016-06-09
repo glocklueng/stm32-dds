@@ -1,6 +1,6 @@
 #include "ad9910.h"
-#include "gpio.h"
 #include "ethernet.h"
+#include "gpio.h"
 #include "timing.h"
 
 int

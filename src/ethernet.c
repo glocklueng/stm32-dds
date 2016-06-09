@@ -2,8 +2,8 @@
 
 #include "config.h"
 #include "gpio.h"
-#include "timing.h"
 #include "scpi.h"
+#include "timing.h"
 #include "util.h"
 
 #include <ctype.h>
@@ -13,10 +13,10 @@
 #include <lwip/tcp_impl.h>
 #include <netif/etharp.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stm32f4x7_eth.h>
 #include <stm32f4xx_rcc.h>
 #include <stm32f4xx_syscfg.h>
+#include <string.h>
 
 #define DP83848_PHY_ADDRESS 0x01 /* Relative to STM324xG-EVAL Board */
 
