@@ -4,9 +4,15 @@
 #include "gpio.h"
 #include "spi.h"
 #include "timing.h"
+
 #include <math.h>
+#include <stm32f4xx_rcc.h>
+#include <stm32f4xx_tim.h>
 
 static const int ad9910_pll_lock_timeout = 10000000; // ~1s
+
+/* we use timer 2 because it is has a 32 bit counter */
+TIM_TypeDef* parallel_timer = TIM2;
 
 /* define registers with their values after bootup */
 ad9910_registers ad9910_regs = {
@@ -35,6 +41,9 @@ ad9910_registers ad9910_regs = {
 void
 ad9910_init()
 {
+  /* enable clock for parallel timing */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+
   gpio_init();
 
   gpio_set_high(LED_ORANGE);
@@ -120,7 +129,7 @@ ad9910_init()
   ad9910_update_reg(&ad9910_regs.prof7);
 
   ad9910_select_profile(0);
-  ad9910_select_parallel(0);
+  ad9910_select_parallel_target(0);
   ad9910_enable_parallel(0);
   ad9910_enable_output(1);
 
@@ -197,10 +206,32 @@ ad9910_select_profile(uint8_t profile)
 }
 
 void
-ad9910_select_parallel(parallel_mode mode)
+ad9910_select_parallel_target(parallel_mode mode)
 {
   gpio_set(PARALLEL_F0, mode & 0x1);
   gpio_set(PARALLEL_F0, mode & 0x2);
+}
+
+float
+ad9910_set_parallel_frequency(float freq)
+{
+  /* clock runs with half the processor speed */
+  const uint32_t interval = nearbyintf(168e6 / 2 / freq);
+
+  /* TIM2 is a 32bit timer. This allows to use no prescaler, instead we
+   * count longer */
+  TIM_TimeBaseInitTypeDef timer_init = {
+    .TIM_Prescaler = 0,
+    .TIM_CounterMode = TIM_CounterMode_Up,
+    .TIM_Period = interval - 1, /* the update takes up one cycle */
+    .TIM_ClockDivision = TIM_CKD_DIV1,
+    .TIM_RepetitionCounter = 0
+  };
+
+  TIM_DeInit(parallel_timer);
+  TIM_TimeBaseInit(parallel_timer, &timer_init);
+
+  return interval * 2 * 168e6;
 }
 
 void
@@ -211,6 +242,36 @@ ad9910_enable_parallel(int mode)
   ad9910_update_matching_reg(ad9910_parallel_data_port_enable);
 
   gpio_set(TX_ENABLE, !!mode);
+}
+
+void
+ad9910_execute_parallel(uint16_t* data, size_t len, size_t rep)
+{
+  /* disable interrupts to prevent delays */
+  __disable_irq();
+
+  /* already set the first value not to send something old */
+  ad9910_set_parallel(data[0]);
+
+  ad9910_enable_parallel(1);
+
+  TIM_ClearFlag(parallel_timer, TIM_FLAG_Update);
+  /* enable timer */
+  TIM_Cmd(parallel_timer, ENABLE);
+
+  for (size_t i = 0; i < len * rep; ++i) {
+    // these are inlined versions of TIM_GetFlagStatus and TIM_ClearFlag
+    // if they are not inlined the function call take ages
+    if ((parallel_timer->SR & TIM_FLAG_Update) != (uint16_t)RESET) {
+      parallel_timer->SR = (uint16_t)~TIM_FLAG_Update;
+      ad9910_set_parallel(data[i % len]);
+    }
+  }
+
+  TIM_Cmd(parallel_timer, DISABLE);
+
+  /* reenable interrupts */
+  __enable_irq();
 }
 
 uint32_t

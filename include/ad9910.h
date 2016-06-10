@@ -271,7 +271,7 @@ void ad9910_enable_output(int);
  * changes which registers are influenced by the parallel port. See table
  * 4 in the AD9910 data sheet for exact specification
  */
-void ad9910_select_parallel(parallel_mode mode);
+void ad9910_select_parallel_target(parallel_mode mode);
 
 /**
  * enables the parallel communication port on the AD9910. As soon as this
@@ -284,6 +284,26 @@ void ad9910_enable_parallel(int enable);
  * sets the parallel output pins to the given value
  */
 static INLINE void ad9910_set_parallel(uint16_t port);
+
+/* this prepares the timing provider for the parallel interface. The
+ * maximum frequency is dependent on the actions done in the transfer
+ * loop, in general 1 MHz appears to be a reasonable upper limit.
+ *
+ * It returns the actual update frequency which might differ due to the
+ * possible clock timings.
+ */
+float ad9910_set_parallel_frequency(float freq);
+
+/**
+ * start operation on the parallel interface. The function won't return
+ * until all data has been transmitted and it will disable all interrupts
+ * while processing.
+ *
+ * @param data data buffer to transmit
+ * @param len length of the data buffer
+ * @param repeats how often the data should be transmitted
+ */
+void ad9910_execute_parallel(uint16_t* data, size_t len, size_t repeats);
 
 void ad9910_set_frequency(uint8_t profile, uint32_t freq);
 void ad9910_set_amplitude(uint8_t profile, uint16_t ampl);
