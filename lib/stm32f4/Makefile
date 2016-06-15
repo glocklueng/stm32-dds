@@ -59,7 +59,7 @@ OBJS=$(SRCS:.c=.o) $(ASMS:.s=.o)
 all: $(LIB).a
 
 $(LIB).a: $(OBJS)
-	$(AR) -r $@ $(OBJS)
+	$(AR) rcs $@ $(OBJS)
 
 clean:
 	rm -f $(OBJS) $(LIB).a
