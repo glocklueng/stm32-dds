@@ -1,8 +1,4 @@
 - RAM mode
-- parallel mode
-  - try to use nop ramps for short timing
-  - (mis)use timer interrupt for longer timing steps
-  - disable other interrupts (network, clock if not used)
 - interrupts for lost PLL signal
 - user button to return to network communication
 - enable DMA for SPI communication
