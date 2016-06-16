@@ -10,7 +10,9 @@ commands.
   :PHAse <INTEGER>
   :TRIGger <INTernal|EXTernal>
 :PARallel
-  :TARget <FREQuency|AMPLitude|PHAse|OFF>
+  :TARget <FREQuency|AMPLitude|PHAse|POLar|OFF>
+  :DATa Arbitraty Data
+  :FREQuency <frequency>
 :RAM
   :TARget <FREQuency|AMPLitude|PHAse|OFF>
 :RAMP

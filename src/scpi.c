@@ -27,7 +27,8 @@ static const scpi_choice_def_t scpi_mode_choices[] = {
   SCPI_CHOICE_LIST_END
 };
 
-static char data_test_buf[4096];
+#define PARALLEL_BUF_SIZE (1024 * 60)
+static char parallel_buffer[PARALLEL_BUF_SIZE];
 
 static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
@@ -36,11 +37,14 @@ static scpi_result_t scpi_test_q(scpi_t*);
 
 static scpi_result_t scpi_callback_mode(scpi_t*);
 static scpi_result_t scpi_callback_mode_q(scpi_t*);
-static scpi_result_t scpi_callback_data_test(scpi_t*);
-static scpi_result_t scpi_callback_data_test_q(scpi_t*);
 static scpi_result_t scpi_callback_output(scpi_t*);
 static scpi_result_t scpi_callback_output_frequency(scpi_t*);
 static scpi_result_t scpi_callback_output_amplitude(scpi_t*);
+
+static scpi_result_t scpi_callback_parallel_data(scpi_t*);
+static scpi_result_t scpi_callback_parallel_frequency(scpi_t*);
+static scpi_result_t scpi_callback_parallel_target(scpi_t*);
+
 static scpi_result_t scpi_callback_ramp_boundary_minimum(scpi_t*);
 static scpi_result_t scpi_callback_ramp_boundary_maximum(scpi_t*);
 static scpi_result_t scpi_callback_ramp_step_up(scpi_t*);
@@ -93,11 +97,15 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "MODe", .callback = scpi_callback_mode },
   {.pattern = "MODe?", .callback = scpi_callback_mode_q },
   {.pattern = "MODe?", .callback = scpi_callback_mode },
-  {.pattern = "DATa:TEST", .callback = scpi_callback_data_test },
-  {.pattern = "DATa:TEST?", .callback = scpi_callback_data_test_q },
   {.pattern = "OUTput", .callback = scpi_callback_output },
   {.pattern = "OUTput:FREQuency", .callback = scpi_callback_output_frequency },
   {.pattern = "OUTput:AMPLitude", .callback = scpi_callback_output_amplitude },
+
+  {.pattern = "PARallel:DATa", .callback = scpi_callback_parallel_data },
+  {.pattern = "PARallel:FREQuency",
+   .callback = scpi_callback_parallel_frequency },
+  {.pattern = "PARallel:TARget", .callback = scpi_callback_parallel_target },
+
   {.pattern = "RAMP:BOUNDary:MINimum",
    .callback = scpi_callback_ramp_boundary_minimum },
   {.pattern = "RAMP:BOUNDary:MAXimum",
@@ -255,7 +263,7 @@ scpi_callback_mode_q(scpi_t* context)
 }
 
 static scpi_result_t
-scpi_callback_data_test(scpi_t* context)
+scpi_callback_parallel_data(scpi_t* context)
 {
   const char* ptr;
   size_t len;
@@ -263,7 +271,12 @@ scpi_callback_data_test(scpi_t* context)
     return SCPI_RES_ERR;
   }
 
-  len = ethernet_copy_data(data_test_buf, len,
+  if (len > PARALLEL_BUF_SIZE) {
+    SCPI_ErrorPush(context, SCPI_ERROR_TOO_MUCH_DATA);
+    return SCPI_RES_ERR;
+  }
+
+  len = ethernet_copy_data(parallel_buffer, len,
                            (context->param_list.lex_state.pos -
                             context->param_list.cmd_raw.data - len));
 
@@ -273,11 +286,99 @@ scpi_callback_data_test(scpi_t* context)
 }
 
 static scpi_result_t
-scpi_callback_data_test_q(scpi_t* context)
+scpi_callback_parallel_frequency(scpi_t* context)
 {
-  size_t len = strlen(data_test_buf);
-  SCPI_ResultArbitraryBlock(context, data_test_buf, len);
+  scpi_number_t value;
+  if (!SCPI_ParamNumber(context, scpi_special_numbers_def, &value, TRUE)) {
+    return SCPI_RES_ERR;
+  }
 
+  if (!value.special || value.unit != SCPI_UNIT_HERTZ) {
+    SCPI_ErrorPush(context, SCPI_ERROR_ILLEGAL_PARAMETER_VALUE);
+    return SCPI_RES_ERR;
+  }
+
+  if (value.value < 0 || value.value > 1e6) {
+    SCPI_ErrorPush(context, SCPI_ERROR_DATA_OUT_OF_RANGE);
+    return SCPI_RES_ERR;
+  }
+
+  switch (current_mode) {
+    default:
+      ad9910_set_parallel_frequency(value.value);
+      break;
+    case scpi_mode_program: {
+      /* TODO parallel frequency command */
+      const command_parallel_frequency cmd = {
+        .frequency = value.value,
+      };
+      commands_queue_parallel_frequency(&cmd);
+      break;
+    }
+  }
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_parallel_target(scpi_t* context)
+{
+  enum parallel_target
+  {
+    parallel_target_amplitude = ad9910_parallel_amplitude,
+    parallel_target_phase = ad9910_parallel_phase,
+    parallel_target_frequency = ad9910_parallel_frequency,
+    parallel_target_polar = ad9910_parallel_polar,
+    parallel_target_none,
+  };
+
+  static const scpi_choice_def_t parallel_target_choices[] = {
+    { "OFF", parallel_target_none },
+    { "NONE", parallel_target_none },
+    { "FREQuency", parallel_target_frequency },
+    { "AMPLitude", parallel_target_amplitude },
+    { "PHAse", parallel_target_phase },
+    { "POLar", parallel_target_polar },
+    SCPI_CHOICE_LIST_END
+  };
+
+  int32_t value;
+  if (!SCPI_ParamChoice(context, parallel_target_choices, &value, TRUE)) {
+    return SCPI_RES_ERR;
+  }
+
+  if (value == parallel_target_none) {
+    const command_pin pcmd = {
+      .pin = TX_ENABLE, .value = 0,
+    };
+    scpi_process_command_pin(&pcmd);
+
+    const command_register rcmd = {
+      .reg = &ad9910_parallel_data_port_enable, .value = 0,
+    };
+    scpi_process_register_command(&rcmd);
+
+  } else {
+    const command_pin t0cmd = {
+      .pin = PARALLEL_F0, .value = value & 0x1,
+    };
+    scpi_process_command_pin(&t0cmd);
+
+    const command_pin t1cmd = {
+      .pin = PARALLEL_F0, .value = value & 0x2,
+    };
+    scpi_process_command_pin(&t1cmd);
+
+    const command_register rcmd = {
+      .reg = &ad9910_parallel_data_port_enable, .value = 1,
+    };
+    scpi_process_register_command(&rcmd);
+
+    const command_pin pcmd = {
+      .pin = TX_ENABLE, .value = 1,
+    };
+    scpi_process_command_pin(&pcmd);
+  }
   return SCPI_RES_OK;
 }
 

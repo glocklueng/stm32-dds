@@ -81,6 +81,13 @@ commands_queue_wait(const command_wait* cmd)
   return command_queue(command_type_wait, cmd, sizeof(command_wait));
 }
 
+int
+commands_queue_parallel_frequency(const command_parallel_frequency* cmd)
+{
+  return command_queue(command_type_parallel_frequency, cmd,
+                       sizeof(command_parallel_frequency));
+}
+
 static int
 command_queue(command_type type, const void* cmd, size_t cmd_len)
 {
@@ -156,6 +163,10 @@ execute_command(const command* cmd)
     case command_type_spi_write:
       len += execute_command_spi_write((const command_spi_write*)(cmd + 1));
       break;
+    case command_type_parallel_frequency:
+      len += execute_command_parallel_frequency(
+        (const command_parallel_frequency*)(cmd + 1));
+      break;
     case command_type_end:
       break;
   }
@@ -229,6 +240,14 @@ execute_command_update(const command_update* cmd)
   ad9910_io_update();
 
   return 0;
+}
+
+size_t
+execute_command_parallel_frequency(const command_parallel_frequency* cmd)
+{
+  ad9910_set_parallel_frequency(cmd->frequency);
+
+  return sizeof(command_parallel_frequency);
 }
 
 void
