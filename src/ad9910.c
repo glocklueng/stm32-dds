@@ -209,7 +209,7 @@ void
 ad9910_select_parallel_target(parallel_mode mode)
 {
   gpio_set(PARALLEL_F0, mode & 0x1);
-  gpio_set(PARALLEL_F0, mode & 0x2);
+  gpio_set(PARALLEL_F1, mode & 0x2);
 }
 
 float
