@@ -1,6 +1,7 @@
 - RAM mode
 - interrupts for lost PLL signal
 - user button to return to network communication
+  - long press (5s) to reset to factory defaults
 - enable DMA for SPI communication
 - handle (non-ARB) packages which wrap around multiple pbufs
 - connect to external SPI memory chip and use for extended parallel input
