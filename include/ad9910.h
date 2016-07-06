@@ -16,7 +16,7 @@
 typedef struct
 {
   /* the physical address in the chip */
-  const int address;
+  const uint8_t address;
   /* the current value stored locally for transmission */
   uint64_t value;
   /* actual size of the register (may be smaller than 8 byte) */
