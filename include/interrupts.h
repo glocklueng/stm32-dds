@@ -8,6 +8,7 @@ extern "C" {
 void init_interrupts(void);
 
 void EXTI0_IRQHandler(void);
+void EXTI15_10_IRQHandler(void);
 void NMI_Handler(void);
 void HardFault_Handler(void);
 void MemManage_Handler(void);

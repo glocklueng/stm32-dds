@@ -24,6 +24,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "interrupts.h"
 
+#include "ethernet.h"
 #include "gpio.h"
 #include "timing.h"
 
@@ -70,6 +71,25 @@ init_interrupts()
   NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
   /* Add to NVIC */
   NVIC_Init(&NVIC_InitStruct);
+
+  /** configure interrupts for PLL lock (Pin C15) */
+  /* Enable clock for GPIOC */
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+
+  /* Tell system that you will use PC15 for EXTI_Line15 */
+  SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource15);
+
+  EXTI_InitStruct.EXTI_Line = EXTI_Line15;
+  EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+  EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+  EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
+  EXTI_Init(&EXTI_InitStruct);
+
+  NVIC_InitStruct.NVIC_IRQChannel = EXTI15_10_IRQn;
+  NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 0x00;
+  NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0x00;
+  NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStruct);
 }
 
 void
@@ -80,6 +100,17 @@ EXTI0_IRQHandler()
     gpio_toggle(LED_RED);
     /* Clear interrupt flag */
     EXTI_ClearITPendingBit(EXTI_Line0);
+  }
+}
+
+void
+EXTI15_10_IRQHandler()
+{
+  /* this should only be called if the PLL has lost it's lock signal */
+  if (EXTI_GetITStatus(EXTI_Line15) != RESET) {
+    static const char msg[] = "DDS lost PLL signal. Output will be wrong.\n";
+    ethernet_queue(msg, sizeof(msg));
+    EXTI_ClearITPendingBit(EXTI_Line15);
   }
 }
 
