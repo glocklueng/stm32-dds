@@ -142,13 +142,20 @@ ad9910_init()
 void
 ad9910_update_reg(ad9910_register* reg)
 {
-  spi_send_single(reg->address | AD9910_INSTR_WRITE);
+  static uint8_t buf[9];
+
+  buf[0] = reg->address | AD9910_INSTR_WRITE;
 
   /* MSB is not only for the bits in every byte but also for the bytes
    * meaning we have to send the last byte first */
-  for (int i = 0; i < reg->size; ++i) {
-    spi_send_single(((const char*)(&(reg->value)))[reg->size - 1 - i]);
+  for (int i = 1; i <= reg->size; ++i) {
+    buf[i] = ((const uint8_t*)(&(reg->value)))[reg->size - i];
   }
+
+  spi_write_multi(buf, reg->size + 1);
+
+  /* make sure that the write is done before we return */
+  spi_wait();
 }
 
 void
