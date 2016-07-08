@@ -149,6 +149,10 @@ ethernet_gpio_init()
 err_t
 ethernet_queue(const char* data, uint16_t length)
 {
+  if (es.pcb == NULL) {
+    return 0;
+  }
+
   if (length == 0) {
     length = strlen(data);
   }
@@ -159,6 +163,10 @@ ethernet_queue(const char* data, uint16_t length)
 err_t
 ethernet_copy_queue(const char* data, uint16_t length)
 {
+  if (es.pcb == NULL) {
+    return 0;
+  }
+
   if (length == 0) {
     length = strlen(data);
   }
@@ -777,6 +785,8 @@ server_connection_close(struct tcp_pcb* pcb)
 
   /* close connection */
   tcp_close(pcb);
+
+  pcb = NULL;
 
   /* TODO free binary_target if it is in use */
 
