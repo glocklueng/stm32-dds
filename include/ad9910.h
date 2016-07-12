@@ -219,6 +219,8 @@ static INLINE void ad9910_set_profile_value(int profile, ad9910_register_bit,
                                             uint64_t value);
 
 static INLINE uint64_t ad9910_get_value(ad9910_register_bit);
+static INLINE uint64_t ad9910_get_profile_value(int profile,
+                                                ad9910_register_bit);
 
 /**
  * Write the current internal state of the specified register to the
@@ -391,6 +393,17 @@ ad9910_set_profile_value(int profile, ad9910_register_bit field, uint64_t value)
   reg->value &= ~(mask << field.offset);
   /* set affected bits */
   reg->value |= ((value & mask) << field.offset);
+}
+
+static INLINE uint64_t
+ad9910_get_profile_value(int profile, ad9910_register_bit field)
+{
+  /* convert the numbers of bits in a mask with matching length */
+  const uint64_t mask = ((uint64_t)1 << field.bits) - 1;
+  /* get correct profile register */
+  ad9910_register* reg = field.reg + profile;
+
+  return (reg->value >> field.offset) & mask;
 }
 
 static INLINE void
