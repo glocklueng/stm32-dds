@@ -299,6 +299,12 @@ ad9910_convert_amplitude(float f)
   return nearbyintf(powf(10, f / 20) * 0x3FFF);
 }
 
+float
+ad9910_backconvert_amplitude(uint32_t a)
+{
+  return 20 * log10f(((float)a) / 0x3FFF);
+}
+
 void
 ad9910_set_frequency(uint8_t profile, uint32_t freq)
 {

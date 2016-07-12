@@ -244,6 +244,7 @@ uint64_t ad9910_read_register(ad9910_register*);
 uint32_t ad9910_convert_frequency(float f);
 float ad9910_backconvert_frequency(uint32_t);
 uint32_t ad9910_convert_amplitude(float f);
+float ad9910_backconvert_amplitude(uint32_t);
 
 void ad9910_init(void);
 
