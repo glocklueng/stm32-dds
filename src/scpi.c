@@ -38,8 +38,11 @@ static scpi_result_t scpi_test_q(scpi_t*);
 static scpi_result_t scpi_callback_mode(scpi_t*);
 static scpi_result_t scpi_callback_mode_q(scpi_t*);
 static scpi_result_t scpi_callback_output(scpi_t*);
+static scpi_result_t scpi_callback_output_q(scpi_t*);
 static scpi_result_t scpi_callback_output_frequency(scpi_t*);
+static scpi_result_t scpi_callback_output_frequency_q(scpi_t*);
 static scpi_result_t scpi_callback_output_amplitude(scpi_t*);
+static scpi_result_t scpi_callback_output_amplitude_q(scpi_t*);
 
 static scpi_result_t scpi_callback_parallel_data(scpi_t*);
 static scpi_result_t scpi_callback_parallel_frequency(scpi_t*);
@@ -98,8 +101,13 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "MODe?", .callback = scpi_callback_mode_q },
   {.pattern = "MODe?", .callback = scpi_callback_mode },
   {.pattern = "OUTput", .callback = scpi_callback_output },
+  {.pattern = "OUTput?", .callback = scpi_callback_output_q },
   {.pattern = "OUTput:FREQuency", .callback = scpi_callback_output_frequency },
+  {.pattern = "OUTput:FREQuency?",
+   .callback = scpi_callback_output_frequency_q },
   {.pattern = "OUTput:AMPLitude", .callback = scpi_callback_output_amplitude },
+  {.pattern = "OUTput:AMPLitude?",
+   .callback = scpi_callback_output_amplitude_q },
 
   {.pattern = "PARallel:DATa", .callback = scpi_callback_parallel_data },
   {.pattern = "PARallel:FREQuency",
@@ -147,6 +155,7 @@ static scpi_result_t scpi_param_ramp_rate(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_ip_address(scpi_t*, uint8_t[4]);
 
 static scpi_result_t scpi_print_ip_address(scpi_t*, const uint8_t[4]);
+static scpi_result_t scpi_print_pin(scpi_t*, const gpio_pin);
 
 static scpi_result_t scpi_parse_register_command(
   scpi_t*, const ad9910_register_bit*, scpi_result_t (*)(scpi_t*, uint32_t*));
@@ -389,6 +398,12 @@ scpi_callback_output(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_output_q(scpi_t* context)
+{
+  return scpi_print_pin(context, RF_SWITCH);
+}
+
+static scpi_result_t
 scpi_callback_output_frequency(scpi_t* context)
 {
   return scpi_parse_register_command(context, &ad9910_profile_frequency,
@@ -396,10 +411,30 @@ scpi_callback_output_frequency(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_output_frequency_q(scpi_t* context)
+{
+  uint32_t freq = ad9910_get_profile_value(0, ad9910_profile_frequency);
+
+  SCPI_ResultFloat(context, ad9910_backconvert_frequency(freq));
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
 scpi_callback_output_amplitude(scpi_t* context)
 {
   return scpi_parse_register_command(context, &ad9910_profile_amplitude,
                                      scpi_param_amplitude);
+}
+
+static scpi_result_t
+scpi_callback_output_amplitude_q(scpi_t* context)
+{
+  uint32_t ampl = ad9910_get_profile_value(0, ad9910_profile_amplitude);
+
+  SCPI_ResultFloat(context, ad9910_backconvert_amplitude(ampl));
+
+  return SCPI_RES_OK;
 }
 
 static scpi_result_t
@@ -982,6 +1017,14 @@ scpi_print_ip_address(scpi_t* context, const uint8_t source[4])
   }
 
   SCPI_ResultCharacters(context, buf, len);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_print_pin(scpi_t* context, const gpio_pin pin)
+{
+  SCPI_ResultBool(context, gpio_get(pin));
 
   return SCPI_RES_OK;
 }
