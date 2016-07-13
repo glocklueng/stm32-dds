@@ -32,6 +32,7 @@ static char work_buf[64];
 
 #define PARALLEL_BUF_SIZE (1024 * 60)
 static char parallel_buffer[PARALLEL_BUF_SIZE];
+static size_t parallel_len;
 
 static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
@@ -41,7 +42,10 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("MODe", mode)                                                              \
   F("OUTput", output)                                                          \
   F("OUTput:FREQuency", output_frequency)                                      \
-  F("OUTput:AMPLitude", output_amplitude)
+  F("OUTput:AMPLitude", output_amplitude)                                      \
+  F("PARallel:DATa", parallel_data)                                            \
+  F("PARallel:FREQuency", parallel_frequency)                                  \
+  F("PARallel:TARget", parallel_target)
 
 #define SCPI_CALLBACK_LIST(pattrn, clbk)                                       \
   {.pattern = pattrn, .callback = scpi_callback_##clbk },                      \
@@ -54,10 +58,6 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
 SCPI_PATTERNS(SCPI_CALLBACK_PROTOTYPE)
 
 static scpi_result_t scpi_test_q(scpi_t*);
-
-static scpi_result_t scpi_callback_parallel_data(scpi_t*);
-static scpi_result_t scpi_callback_parallel_frequency(scpi_t*);
-static scpi_result_t scpi_callback_parallel_target(scpi_t*);
 
 static scpi_result_t scpi_callback_ramp_boundary_minimum(scpi_t*);
 static scpi_result_t scpi_callback_ramp_boundary_maximum(scpi_t*);
@@ -108,13 +108,6 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "SYSTem:ERRor:COUNt?", .callback = SCPI_SystemErrorCountQ },
   {.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ },
 
-  SCPI_PATTERNS(SCPI_CALLBACK_LIST)
-
-  {.pattern = "PARallel:DATa", .callback = scpi_callback_parallel_data },
-  {.pattern = "PARallel:FREQuency",
-   .callback = scpi_callback_parallel_frequency },
-  {.pattern = "PARallel:TARget", .callback = scpi_callback_parallel_target },
-
   {.pattern = "RAMP:BOUNDary:MINimum",
    .callback = scpi_callback_ramp_boundary_minimum },
   {.pattern = "RAMP:BOUNDary:MAXimum",
@@ -146,7 +139,8 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "TRIGger:SEND", .callback = scpi_callback_trigger_send },
   {.pattern = "TRIGger:WAIT", .callback = scpi_callback_trigger_wait },
   {.pattern = "WAIT", .callback = scpi_callback_wait },
-  SCPI_CMD_LIST_END
+
+  SCPI_PATTERNS(SCPI_CALLBACK_LIST) SCPI_CMD_LIST_END
 };
 
 static scpi_result_t scpi_param_frequency(scpi_t*, uint32_t*);
@@ -288,11 +282,21 @@ scpi_callback_parallel_data(scpi_t* context)
     return SCPI_RES_ERR;
   }
 
+  parallel_len = len;
+
   len = ethernet_copy_data(parallel_buffer, len,
                            (context->param_list.lex_state.pos -
                             context->param_list.cmd_raw.data - len));
 
   SCPI_ResultUInt32(context, len);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_parallel_data_q(scpi_t* context)
+{
+  SCPI_ResultArbitraryBlock(context, parallel_buffer, parallel_len);
 
   return SCPI_RES_OK;
 }
@@ -330,6 +334,12 @@ scpi_callback_parallel_frequency(scpi_t* context)
   }
 
   return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_parallel_frequency_q(scpi_t* context)
+{
+  return scpi_print_frequency(context, ad9910_get_parallel_frequency());
 }
 
 static scpi_result_t
@@ -391,6 +401,39 @@ scpi_callback_parallel_target(scpi_t* context)
     };
     scpi_process_command_pin(&pcmd);
   }
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_parallel_target_q(scpi_t* context)
+{
+  parallel_mode mode = gpio_get(PARALLEL_F0) | (gpio_get(PARALLEL_F1) << 1);
+
+  switch (mode) {
+    default:
+      return SCPI_RES_ERR;
+    case ad9910_parallel_amplitude: {
+      static const char data[] = "AMPLITUDE";
+      SCPI_ResultCharacters(context, data, sizeof(data));
+      break;
+    }
+    case ad9910_parallel_phase: {
+      static const char data[] = "PHASE";
+      SCPI_ResultCharacters(context, data, sizeof(data));
+      break;
+    }
+    case ad9910_parallel_frequency: {
+      static const char data[] = "FREQUENCY";
+      SCPI_ResultCharacters(context, data, sizeof(data));
+      break;
+    }
+    case ad9910_parallel_polar: {
+      static const char data[] = "POLAR";
+      SCPI_ResultCharacters(context, data, sizeof(data));
+      break;
+    }
+  }
+
   return SCPI_RES_OK;
 }
 
