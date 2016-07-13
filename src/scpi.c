@@ -36,16 +36,24 @@ static char parallel_buffer[PARALLEL_BUF_SIZE];
 static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
 
-static scpi_result_t scpi_test_q(scpi_t*);
+/* be systematic and lazy */
+#define SCPI_PATTERNS(F)                                                       \
+  F("MODe", mode)                                                              \
+  F("OUTput", output)                                                          \
+  F("OUTput:FREQuency", output_frequency)                                      \
+  F("OUTput:AMPLitude", output_amplitude)
 
-static scpi_result_t scpi_callback_mode(scpi_t*);
-static scpi_result_t scpi_callback_mode_q(scpi_t*);
-static scpi_result_t scpi_callback_output(scpi_t*);
-static scpi_result_t scpi_callback_output_q(scpi_t*);
-static scpi_result_t scpi_callback_output_frequency(scpi_t*);
-static scpi_result_t scpi_callback_output_frequency_q(scpi_t*);
-static scpi_result_t scpi_callback_output_amplitude(scpi_t*);
-static scpi_result_t scpi_callback_output_amplitude_q(scpi_t*);
+#define SCPI_CALLBACK_LIST(pattrn, clbk)                                       \
+  {.pattern = pattrn, .callback = scpi_callback_##clbk },                      \
+    {.pattern = pattrn "?", .callback = scpi_callback_##clbk##_q },
+
+#define SCPI_CALLBACK_PROTOTYPE(pattrn, clbk)                                  \
+  static scpi_result_t scpi_callback_##clbk(scpi_t*);                          \
+  static scpi_result_t scpi_callback_##clbk##_q(scpi_t*);
+
+SCPI_PATTERNS(SCPI_CALLBACK_PROTOTYPE)
+
+static scpi_result_t scpi_test_q(scpi_t*);
 
 static scpi_result_t scpi_callback_parallel_data(scpi_t*);
 static scpi_result_t scpi_callback_parallel_frequency(scpi_t*);
@@ -100,17 +108,7 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "SYSTem:ERRor:COUNt?", .callback = SCPI_SystemErrorCountQ },
   {.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ },
 
-  {.pattern = "MODe", .callback = scpi_callback_mode },
-  {.pattern = "MODe?", .callback = scpi_callback_mode_q },
-  {.pattern = "MODe?", .callback = scpi_callback_mode },
-  {.pattern = "OUTput", .callback = scpi_callback_output },
-  {.pattern = "OUTput?", .callback = scpi_callback_output_q },
-  {.pattern = "OUTput:FREQuency", .callback = scpi_callback_output_frequency },
-  {.pattern = "OUTput:FREQuency?",
-   .callback = scpi_callback_output_frequency_q },
-  {.pattern = "OUTput:AMPLitude", .callback = scpi_callback_output_amplitude },
-  {.pattern = "OUTput:AMPLitude?",
-   .callback = scpi_callback_output_amplitude_q },
+  SCPI_PATTERNS(SCPI_CALLBACK_LIST)
 
   {.pattern = "PARallel:DATa", .callback = scpi_callback_parallel_data },
   {.pattern = "PARallel:FREQuency",
