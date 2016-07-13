@@ -223,7 +223,7 @@ float
 ad9910_set_parallel_frequency(float freq)
 {
   /* clock runs with half the processor speed */
-  const uint32_t interval = nearbyintf(168e6 / 2 / freq);
+  const uint32_t interval = nearbyintf(((float)(CORE_CLOCK_SPEED / 2)) / freq);
 
   /* TIM2 is a 32bit timer. This allows to use no prescaler, instead we
    * count longer */
@@ -238,7 +238,7 @@ ad9910_set_parallel_frequency(float freq)
   TIM_DeInit(parallel_timer);
   TIM_TimeBaseInit(parallel_timer, &timer_init);
 
-  return interval * 2 * 168e6;
+  return ((float)(CORE_CLOCK_SPEED / 2)) / interval;
 }
 
 void
