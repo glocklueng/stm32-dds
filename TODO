@@ -1,3 +1,4 @@
+- maybe add one centralized buffer as temporary
 - RAM mode
 - interrupts for lost PLL signal
 - user button to return to network communication

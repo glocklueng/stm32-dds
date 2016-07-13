@@ -27,6 +27,9 @@ static const scpi_choice_def_t scpi_mode_choices[] = {
   SCPI_CHOICE_LIST_END
 };
 
+/* working buffer to be used by functions */
+static char work_buf[64];
+
 #define PARALLEL_BUF_SIZE (1024 * 60)
 static char parallel_buffer[PARALLEL_BUF_SIZE];
 
@@ -154,6 +157,8 @@ static scpi_result_t scpi_param_ramp(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_ramp_rate(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_ip_address(scpi_t*, uint8_t[4]);
 
+static scpi_result_t scpi_print_amplitude(scpi_t*, float);
+static scpi_result_t scpi_print_frequency(scpi_t*, float);
 static scpi_result_t scpi_print_ip_address(scpi_t*, const uint8_t[4]);
 static scpi_result_t scpi_print_pin(scpi_t*, const gpio_pin);
 
@@ -415,9 +420,7 @@ scpi_callback_output_frequency_q(scpi_t* context)
 {
   uint32_t freq = ad9910_get_profile_value(0, ad9910_profile_frequency);
 
-  SCPI_ResultFloat(context, ad9910_backconvert_frequency(freq));
-
-  return SCPI_RES_OK;
+  return scpi_print_frequency(context, ad9910_backconvert_frequency(freq));
 }
 
 static scpi_result_t
@@ -432,9 +435,7 @@ scpi_callback_output_amplitude_q(scpi_t* context)
 {
   uint32_t ampl = ad9910_get_profile_value(0, ad9910_profile_amplitude);
 
-  SCPI_ResultFloat(context, ad9910_backconvert_amplitude(ampl));
-
-  return SCPI_RES_OK;
+  return scpi_print_amplitude(context, ad9910_backconvert_amplitude(ampl));
 }
 
 static scpi_result_t
@@ -1000,6 +1001,36 @@ scpi_param_ip_address(scpi_t* context, uint8_t target[4])
     SCPI_ErrorPush(context, SCPI_ERROR_ILLEGAL_PARAMETER_VALUE);
     return SCPI_RES_ERR;
   }
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_print_amplitude(scpi_t* context, float amplitude)
+{
+  scpi_number_t number = {
+    .special = 0, .value = amplitude, .unit = SCPI_UNIT_DBM, .base = 10,
+  };
+
+  size_t len = SCPI_NumberToStr(context, scpi_special_numbers_def, &number,
+                                work_buf, sizeof(work_buf));
+
+  SCPI_ResultCharacters(context, work_buf, len);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_print_frequency(scpi_t* context, float freq)
+{
+  scpi_number_t number = {
+    .special = 0, .value = freq, .unit = SCPI_UNIT_HERTZ, .base = 10,
+  };
+
+  size_t len = SCPI_NumberToStr(context, scpi_special_numbers_def, &number,
+                                work_buf, sizeof(work_buf));
+
+  SCPI_ResultCharacters(context, work_buf, len);
 
   return SCPI_RES_OK;
 }
