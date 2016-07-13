@@ -297,6 +297,8 @@ static INLINE void ad9910_set_parallel(uint16_t port);
  */
 float ad9910_set_parallel_frequency(float freq);
 
+float ad9910_get_parallel_frequency(void);
+
 /**
  * start operation on the parallel interface. The function won't return
  * until all data has been transmitted and it will disable all interrupts

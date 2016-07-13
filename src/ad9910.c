@@ -241,6 +241,13 @@ ad9910_set_parallel_frequency(float freq)
   return ((float)(CORE_CLOCK_SPEED / 2)) / interval;
 }
 
+float
+ad9910_get_parallel_frequency()
+{
+  /* the defined period ends up in the auto-reload register (ARR) */
+  return ((float)(CORE_CLOCK_SPEED / 2)) / (parallel_timer->ARR + 1);
+}
+
 void
 ad9910_enable_parallel(int mode)
 {
