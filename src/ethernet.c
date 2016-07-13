@@ -49,6 +49,7 @@ struct server_state
   size_t pin_offset;
   struct pbuf* pout;
   struct binary_data* binary_target;
+  uint32_t last_activity;
 };
 
 static struct server_state es = {
@@ -59,6 +60,7 @@ static struct server_state es = {
   .pin_offset = 0,
   .pout = NULL,
   .binary_target = NULL,
+  .last_activity = 0,
 };
 
 static struct netif gnetif;
@@ -530,6 +532,10 @@ lwip_periodic_handle(uint32_t localtime)
     arp_timer = localtime;
     etharp_tmr();
   }
+
+  if (localtime - es.last_activity >= CONNECTION_TIMEOUT) {
+    server_connection_close(es.pcb);
+  }
 }
 
 /**
@@ -589,6 +595,7 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
   es.pin = NULL;
   es.pin_offset = 0;
   es.pout = NULL;
+  es.last_activity = LocalTime;
 
   tcp_arg(newpcb, &es);
 
@@ -614,6 +621,8 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
 static err_t
 server_recv_callback(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err)
 {
+  es.last_activity = LocalTime;
+
   /* if we receive an empty tcp frame from the client we close the
    * connection */
   if (p == NULL) {
@@ -771,6 +780,8 @@ server_send(struct tcp_pcb* pcb)
      * reference count > 0 (we just incremented it) */
     pbuf_free(ptr);
   }
+
+  es.last_activity = LocalTime;
 }
 
 static void

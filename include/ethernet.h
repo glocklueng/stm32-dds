@@ -7,6 +7,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define CONNECTION_TIMEOUT 30000
+
 void ethernet_init(void);
 void ethernet_loop(void);
 
