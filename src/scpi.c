@@ -35,7 +35,7 @@ static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
 
 /* be systematic and lazy */
-#define SCPI_PATTERNS(F)                                                       \
+#define SCPI_PATTERNS_BOTH(F)                                                  \
   F("MODe", mode)                                                              \
   F("OUTput", output)                                                          \
   F("OUTput:AMPLitude", output_amplitude)                                      \
@@ -56,13 +56,31 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("SYSTem:NETwork:GATEway", system_network_gateway)                          \
   F("SYSTem:NETwork:SUBmask", system_network_submask)
 
+#define SCPI_PATTERNS_NO_QUERY(F)                                              \
+  F("SEQuence:CLEAR", sequence_clear)                                          \
+  F("STARTup:CLEAR", startup_clear)                                            \
+  F("STARTup:SAVE", startup_save)                                              \
+  F("TRIGger:SEND", trigger_send)                                              \
+  F("TRIGger:WAIT", trigger_wait)                                              \
+  F("WAIT", wait)
+
+#define SCPI_PATTERNS(F)                                                       \
+  SCPI_PATTERNS_BOTH(F)                                                        \
+  SCPI_PATTERNS_NO_QUERY(F##_NO_QUERY)
+
 #define SCPI_CALLBACK_LIST(pattrn, clbk)                                       \
   {.pattern = pattrn, .callback = scpi_callback_##clbk },                      \
     {.pattern = pattrn "?", .callback = scpi_callback_##clbk##_q },
 
+#define SCPI_CALLBACK_LIST_NO_QUERY(pattrn, clbk)                              \
+  {.pattern = pattrn, .callback = scpi_callback_##clbk },
+
 #define SCPI_CALLBACK_PROTOTYPE(pattrn, clbk)                                  \
   static scpi_result_t scpi_callback_##clbk(scpi_t*);                          \
   static scpi_result_t scpi_callback_##clbk##_q(scpi_t*);
+
+#define SCPI_CALLBACK_PROTOTYPE_NO_QUERY(pattrn, clbk)                         \
+  static scpi_result_t scpi_callback_##clbk(scpi_t*);
 
 SCPI_PATTERNS(SCPI_CALLBACK_PROTOTYPE)
 
@@ -70,15 +88,7 @@ static scpi_result_t scpi_test_q(scpi_t*);
 
 static scpi_result_t scpi_callback_register_q(scpi_t*);
 
-static scpi_result_t scpi_callback_sequence_clear(scpi_t*);
 static scpi_result_t scpi_callback_sequence_loop(scpi_t*);
-
-static scpi_result_t scpi_callback_startup_clear(scpi_t*);
-static scpi_result_t scpi_callback_startup_save(scpi_t*);
-
-static scpi_result_t scpi_callback_trigger_send(scpi_t*);
-static scpi_result_t scpi_callback_trigger_wait(scpi_t*);
-static scpi_result_t scpi_callback_wait(scpi_t*);
 
 static const scpi_command_t scpi_commands[] = {
   /* IEEE Mandated Commands (SCPI std V1999.0 4.1.1) */
@@ -102,13 +112,7 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ },
 
   {.pattern = "REGister?", .callback = scpi_callback_register_q },
-  {.pattern = "STARTup:CLEAR", .callback = scpi_callback_startup_clear },
-  {.pattern = "STARTup:SAVE", .callback = scpi_callback_startup_save },
-  {.pattern = "SEQuence:CLEAR", .callback = scpi_callback_sequence_clear },
   {.pattern = "SEQuence:LOOP", .callback = scpi_callback_sequence_loop },
-  {.pattern = "TRIGger:SEND", .callback = scpi_callback_trigger_send },
-  {.pattern = "TRIGger:WAIT", .callback = scpi_callback_trigger_wait },
-  {.pattern = "WAIT", .callback = scpi_callback_wait },
 
   SCPI_PATTERNS(SCPI_CALLBACK_LIST) SCPI_CMD_LIST_END
 };
