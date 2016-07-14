@@ -52,7 +52,7 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("RAMP:STEP:DOWN", ramp_step_down)                                          \
   F("RAMP:STEP:UP", ramp_step_up)                                              \
   F("RAMP:TARget", ramp_target)                                                \
-  F("SEQuence:LOOP", sequence_loop ) \
+  F("SEQuence:NCYCles", sequence_ncycles)                                      \
   F("SYSTem:NETwork:ADDRess", system_network_address)                          \
   F("SYSTem:NETwork:GATEway", system_network_gateway)                          \
   F("SYSTem:NETwork:SUBmask", system_network_submask)
@@ -841,7 +841,7 @@ scpi_callback_sequence_clear(scpi_t* context)
 }
 
 static scpi_result_t
-scpi_callback_sequence_loop(scpi_t* context)
+scpi_callback_sequence_ncycles(scpi_t* context)
 {
   scpi_number_t value;
   if (!SCPI_ParamNumber(context, scpi_special_numbers_def, &value, TRUE)) {
@@ -869,7 +869,7 @@ scpi_callback_sequence_loop(scpi_t* context)
 }
 
 static scpi_result_t
-scpi_callback_sequence_loop_q(scpi_t* context)
+scpi_callback_sequence_ncycles_q(scpi_t* context)
 {
   SCPI_ResultUInt32(context, get_commands_repeat());
 
