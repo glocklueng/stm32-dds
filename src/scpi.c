@@ -36,7 +36,7 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
 
 /* be systematic and lazy */
 #define SCPI_PATTERNS_BOTH(F)                                                  \
-  F("MODe", mode)                                                              \
+  F("MODE", mode)                                                              \
   F("OUTput", output)                                                          \
   F("OUTput:AMPLitude", output_amplitude)                                      \
   F("OUTput:FREQuency", output_frequency)                                      \
@@ -46,7 +46,7 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("RAMP:BOUNDary:MAXimum", ramp_boundary_maximum)                            \
   F("RAMP:BOUNDary:MINimum", ramp_boundary_minimum)                            \
   F("RAMP:DIRection", ramp_direction)                                          \
-  F("RAMP:MODe", ramp_mode)                                                    \
+  F("RAMP:MODE", ramp_mode)                                                    \
   F("RAMP:RATE:DOWN", ramp_rate_down)                                          \
   F("RAMP:RATE:UP", ramp_rate_up)                                              \
   F("RAMP:STEP:DOWN", ramp_step_down)                                          \
