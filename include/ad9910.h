@@ -347,12 +347,6 @@ void ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
                          uint16_t positive_slope, int no_dwell_high,
                          int no_dwell_low);
 
-/*
-void ad9910_set_startup_command(ad9910_command* cmd)
-void ad9910_clear_startup_command(void);
-void ad9910_execute_startup_command(void);
-*/
-
 /** implementation starts here */
 
 static INLINE ad9910_register*
