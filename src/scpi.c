@@ -37,7 +37,7 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
 /* be systematic and lazy */
 #define SCPI_PATTERNS_BOTH(F)                                                  \
   F("MODE", mode)                                                              \
-  F("OUTput", output)                                                          \
+  F("OUTput:STATe", output_state)                                              \
   F("OUTput:AMPLitude", output_amplitude)                                      \
   F("OUTput:FREQuency", output_frequency)                                      \
   F("PARallel:DATa", parallel_data)                                            \
@@ -395,13 +395,13 @@ scpi_callback_parallel_target_q(scpi_t* context)
 }
 
 static scpi_result_t
-scpi_callback_output(scpi_t* context)
+scpi_callback_output_state(scpi_t* context)
 {
   return scpi_parse_pin_command(context, RF_SWITCH);
 }
 
 static scpi_result_t
-scpi_callback_output_q(scpi_t* context)
+scpi_callback_output_state_q(scpi_t* context)
 {
   return scpi_print_pin(context, RF_SWITCH);
 }
