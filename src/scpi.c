@@ -42,7 +42,16 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("OUTput:FREQuency", output_frequency)                                      \
   F("PARallel:DATa", parallel_data)                                            \
   F("PARallel:FREQuency", parallel_frequency)                                  \
-  F("PARallel:TARget", parallel_target)
+  F("PARallel:TARget", parallel_target)                                        \
+  F("RAMP:BOUNDary:MAXimum", ramp_boundary_maximum)                            \
+  F("RAMP:BOUNDary:MINimum", ramp_boundary_minimum)                            \
+  F("RAMP:DIRection", ramp_direction)                                          \
+  F("RAMP:MODe", ramp_mode)                                                    \
+  F("RAMP:RATE:DOWN", ramp_rate_down)                                          \
+  F("RAMP:RATE:UP", ramp_rate_up)                                              \
+  F("RAMP:STEP:DOWN", ramp_step_down)                                          \
+  F("RAMP:STEP:UP", ramp_step_up)                                              \
+  F("RAMP:TARget", ramp_target)
 
 #define SCPI_CALLBACK_LIST(pattrn, clbk)                                       \
   {.pattern = pattrn, .callback = scpi_callback_##clbk },                      \
@@ -56,15 +65,6 @@ SCPI_PATTERNS(SCPI_CALLBACK_PROTOTYPE)
 
 static scpi_result_t scpi_test_q(scpi_t*);
 
-static scpi_result_t scpi_callback_ramp_boundary_minimum(scpi_t*);
-static scpi_result_t scpi_callback_ramp_boundary_maximum(scpi_t*);
-static scpi_result_t scpi_callback_ramp_step_up(scpi_t*);
-static scpi_result_t scpi_callback_ramp_step_down(scpi_t*);
-static scpi_result_t scpi_callback_ramp_rate_up(scpi_t*);
-static scpi_result_t scpi_callback_ramp_rate_down(scpi_t*);
-static scpi_result_t scpi_callback_ramp_mode(scpi_t*);
-static scpi_result_t scpi_callback_ramp_direction(scpi_t*);
-static scpi_result_t scpi_callback_ramp_target(scpi_t*);
 static scpi_result_t scpi_callback_register_q(scpi_t*);
 
 static scpi_result_t scpi_callback_sequence_clear(scpi_t*);
@@ -105,17 +105,6 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "SYSTem:ERRor:COUNt?", .callback = SCPI_SystemErrorCountQ },
   {.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ },
 
-  {.pattern = "RAMP:BOUNDary:MINimum",
-   .callback = scpi_callback_ramp_boundary_minimum },
-  {.pattern = "RAMP:BOUNDary:MAXimum",
-   .callback = scpi_callback_ramp_boundary_maximum },
-  {.pattern = "RAMP:STEP:UP", .callback = scpi_callback_ramp_step_up },
-  {.pattern = "RAMP:STEP:DOWN", .callback = scpi_callback_ramp_step_down },
-  {.pattern = "RAMP:RATE:UP", .callback = scpi_callback_ramp_rate_up },
-  {.pattern = "RAMP:RATE:DOWN", .callback = scpi_callback_ramp_rate_down },
-  {.pattern = "RAMP:MODe", .callback = scpi_callback_ramp_mode },
-  {.pattern = "RAMP:DIRection", .callback = scpi_callback_ramp_direction },
-  {.pattern = "RAMP:TARget", .callback = scpi_callback_ramp_target },
   {.pattern = "REGister?", .callback = scpi_callback_register_q },
   {.pattern = "STARTup:CLEAR", .callback = scpi_callback_startup_clear },
   {.pattern = "STARTup:SAVE", .callback = scpi_callback_startup_save },
@@ -146,10 +135,15 @@ static scpi_result_t scpi_param_ramp(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_ramp_rate(scpi_t*, uint32_t*);
 static scpi_result_t scpi_param_ip_address(scpi_t*, uint8_t[4]);
 
+static scpi_result_t scpi_print_unit(scpi_t*, float, scpi_unit_t);
 static scpi_result_t scpi_print_amplitude(scpi_t*, float);
 static scpi_result_t scpi_print_frequency(scpi_t*, float);
+static scpi_result_t scpi_print_phase(scpi_t*, float);
 static scpi_result_t scpi_print_ip_address(scpi_t*, const uint8_t[4]);
 static scpi_result_t scpi_print_pin(scpi_t*, const gpio_pin);
+static scpi_result_t scpi_print_register(scpi_t*, const ad9910_register_bit*,
+                                         scpi_result_t (*)(scpi_t*, uint32_t));
+static scpi_result_t scpi_print_ramp(scpi_t*, uint32_t);
 
 static scpi_result_t scpi_parse_register_command(
   scpi_t*, const ad9910_register_bit*, scpi_result_t (*)(scpi_t*, uint32_t*));
@@ -484,10 +478,24 @@ scpi_callback_ramp_boundary_minimum(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_ramp_boundary_minimum_q(scpi_t* context)
+{
+  return scpi_print_register(context, &ad9910_ramp_lower_limit,
+                             scpi_print_ramp);
+}
+
+static scpi_result_t
 scpi_callback_ramp_boundary_maximum(scpi_t* context)
 {
   return scpi_parse_register_command(context, &ad9910_ramp_upper_limit,
                                      scpi_param_ramp);
+}
+
+static scpi_result_t
+scpi_callback_ramp_boundary_maximum_q(scpi_t* context)
+{
+  return scpi_print_register(context, &ad9910_ramp_upper_limit,
+                             scpi_print_ramp);
 }
 
 static scpi_result_t
@@ -498,10 +506,24 @@ scpi_callback_ramp_step_up(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_ramp_step_up_q(scpi_t* context)
+{
+  return scpi_print_register(context, &ad9910_ramp_increment_step,
+                             scpi_print_ramp);
+}
+
+static scpi_result_t
 scpi_callback_ramp_step_down(scpi_t* context)
 {
   return scpi_parse_register_command(context, &ad9910_ramp_decrement_step,
                                      scpi_param_ramp);
+}
+
+static scpi_result_t
+scpi_callback_ramp_step_down_q(scpi_t* context)
+{
+  return scpi_print_register(context, &ad9910_ramp_decrement_step,
+                             scpi_print_ramp);
 }
 
 static scpi_result_t
@@ -512,6 +534,14 @@ scpi_callback_ramp_rate_up(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_ramp_rate_up_q(scpi_t* context)
+{
+  return scpi_print_frequency(
+    context,
+    ad9910_backconvert_frequency(ad9910_get_value(ad9910_ramp_positive_rate)));
+}
+
+static scpi_result_t
 scpi_callback_ramp_rate_down(scpi_t* context)
 {
   return scpi_parse_register_command(context, &ad9910_ramp_negative_rate,
@@ -519,50 +549,43 @@ scpi_callback_ramp_rate_down(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_ramp_rate_down_q(scpi_t* context)
+{
+  return scpi_print_frequency(
+    context,
+    ad9910_backconvert_frequency(ad9910_get_value(ad9910_ramp_negative_rate)));
+}
+
+/* these values match the value one gets from calculating
+ * low | (high << 1)
+ * i.e. low is the first bit, high the second. */
+enum ramp_mode
+{
+  ramp_mode_single = 0,
+  ramp_mode_sawtooth_down = 1,
+  ramp_mode_sawtooth_up = 2,
+  ramp_mode_oscillating = 3,
+};
+
+static const scpi_choice_def_t ramp_mode_choices[] = {
+  { "SINGle", ramp_mode_single },
+  { "DOWNSAWtooth", ramp_mode_sawtooth_down },
+  { "UPSAWtooth", ramp_mode_sawtooth_up },
+  { "OSCillating", ramp_mode_oscillating },
+  SCPI_CHOICE_LIST_END
+};
+
+static scpi_result_t
 scpi_callback_ramp_mode(scpi_t* context)
 {
-  enum ramp_mode
-  {
-    ramp_mode_single,
-    ramp_mode_sawtooth_down,
-    ramp_mode_sawtooth_up,
-    ramp_mode_oscillating,
-  };
-
-  static const scpi_choice_def_t mode_choices[] = {
-    { "SINGle", ramp_mode_single },
-    { "DOWNSAWtooth", ramp_mode_sawtooth_down },
-    { "UPSAWtooth", ramp_mode_sawtooth_up },
-    { "OSCillating", ramp_mode_oscillating },
-    SCPI_CHOICE_LIST_END
-  };
-
   int32_t value;
-  if (SCPI_ParamChoice(context, mode_choices, &value, TRUE) != SCPI_RES_OK) {
+  if (SCPI_ParamChoice(context, ramp_mode_choices, &value, TRUE) !=
+      SCPI_RES_OK) {
     return SCPI_RES_ERR;
   }
 
-  int high = 0;
-  int low = 0;
-
-  switch ((enum ramp_mode)value) {
-    case ramp_mode_single:
-      high = 0;
-      low = 0;
-      break;
-    case ramp_mode_oscillating:
-      high = 1;
-      low = 1;
-      break;
-    case ramp_mode_sawtooth_up:
-      high = 1;
-      low = 0;
-      break;
-    case ramp_mode_sawtooth_down:
-      high = 0;
-      low = 1;
-      break;
-  }
+  int low = value & 0x1;
+  int high = value & 0x2;
 
   command_register cmd = {.reg = &ad9910_digital_ramp_no_dwell_high,
                           .value = high };
@@ -576,28 +599,55 @@ scpi_callback_ramp_mode(scpi_t* context)
 }
 
 static scpi_result_t
+scpi_callback_ramp_mode_q(scpi_t* context)
+{
+  const uint32_t low = ad9910_get_value(ad9910_digital_ramp_no_dwell_low);
+  const uint32_t high = ad9910_get_value(ad9910_digital_ramp_no_dwell_high);
+  const enum ramp_mode mode = low | (high << 1);
+
+  const char* name;
+  SCPI_ChoiceToName(ramp_mode_choices, mode, &name);
+
+  SCPI_ResultCharacters(context, name, strlen(name));
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
 scpi_callback_ramp_direction(scpi_t* context)
 {
   return scpi_parse_pin_command(context, DRCTL);
 }
 
 static scpi_result_t
+scpi_callback_ramp_direction_q(scpi_t* context)
+{
+  return scpi_print_pin(context, DRCTL);
+}
+
+enum
+{
+  ramp_target_off = 0xFF
+};
+
+static const scpi_choice_def_t ramp_target_choices[] = {
+  { "OFF", ramp_target_off },
+  { "AMPLitude", ad9910_ramp_dest_amplitude },
+  { "FREQuency", ad9910_ramp_dest_frequency },
+  { "PHAse", ad9910_ramp_dest_phase },
+  SCPI_CHOICE_LIST_END
+};
+
+static scpi_result_t
 scpi_callback_ramp_target(scpi_t* context)
 {
-  static const scpi_choice_def_t target_choices[] = {
-    { "OFF", 0xFF },
-    { "AMPLitude", ad9910_ramp_dest_amplitude },
-    { "FREQuency", ad9910_ramp_dest_frequency },
-    { "PHAse", ad9910_ramp_dest_phase },
-    SCPI_CHOICE_LIST_END
-  };
-
   int32_t value;
-  if (SCPI_ParamChoice(context, target_choices, &value, TRUE) != SCPI_RES_OK) {
+  if (SCPI_ParamChoice(context, ramp_target_choices, &value, TRUE) !=
+      SCPI_RES_OK) {
     return SCPI_RES_ERR;
   }
 
-  if (value == 0xFF) {
+  if (value == ramp_target_off) {
     command_register cmd = {.reg = &ad9910_digital_ramp_enable, .value = 0 };
     scpi_process_register_command(&cmd);
   } else {
@@ -607,6 +657,26 @@ scpi_callback_ramp_target(scpi_t* context)
     command_register cmd2 = {.reg = &ad9910_digital_ramp_enable, .value = 1 };
     scpi_process_register_command(&cmd2);
   }
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_ramp_target_q(scpi_t* context)
+{
+  int enabled = ad9910_get_value(ad9910_digital_ramp_enable);
+
+  uint32_t value;
+  if (enabled) {
+    value = ad9910_get_value(ad9910_digital_ramp_destination);
+  } else {
+    value = ramp_target_off;
+  }
+
+  const char* name;
+  SCPI_ChoiceToName(ramp_target_choices, value, &name);
+
+  SCPI_ResultCharacters(context, name, strlen(name));
 
   return SCPI_RES_OK;
 }
@@ -1044,12 +1114,12 @@ scpi_param_ip_address(scpi_t* context, uint8_t target[4])
 }
 
 static scpi_result_t
-scpi_print_amplitude(scpi_t* context, float amplitude)
+scpi_print_unit(scpi_t* context, float value, scpi_unit_t unit)
 {
   char buf[64] = { 0 };
 
   scpi_number_t number = {
-    .special = 0, .value = amplitude, .unit = SCPI_UNIT_DBM, .base = 10,
+    .special = 0, .value = value, .unit = unit, .base = 10,
   };
 
   size_t len = SCPI_NumberToStr(context, scpi_special_numbers_def, &number, buf,
@@ -1061,20 +1131,21 @@ scpi_print_amplitude(scpi_t* context, float amplitude)
 }
 
 static scpi_result_t
+scpi_print_amplitude(scpi_t* context, float amplitude)
+{
+  return scpi_print_unit(context, amplitude, SCPI_UNIT_DBM);
+}
+
+static scpi_result_t
 scpi_print_frequency(scpi_t* context, float freq)
 {
-  char buf[64] = { 0 };
+  return scpi_print_unit(context, freq, SCPI_UNIT_HERTZ);
+}
 
-  scpi_number_t number = {
-    .special = 0, .value = freq, .unit = SCPI_UNIT_HERTZ, .base = 10,
-  };
-
-  size_t len = SCPI_NumberToStr(context, scpi_special_numbers_def, &number, buf,
-                                sizeof(buf));
-
-  SCPI_ResultCharacters(context, buf, len);
-
-  return SCPI_RES_OK;
+static scpi_result_t
+scpi_print_phase(scpi_t* context, float phase)
+{
+  return scpi_print_unit(context, phase, SCPI_UNIT_RADIAN);
 }
 
 static scpi_result_t
@@ -1100,6 +1171,31 @@ scpi_print_pin(scpi_t* context, const gpio_pin pin)
   SCPI_ResultBool(context, gpio_get(pin));
 
   return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_print_register(scpi_t* context, const ad9910_register_bit* reg,
+                    scpi_result_t (*printer)(scpi_t*, uint32_t))
+{
+  return printer(context, ad9910_get_value(*reg));
+}
+
+static scpi_result_t
+scpi_print_ramp(scpi_t* context, uint32_t value)
+{
+  ad9910_ramp_destination dest =
+    ad9910_get_value(ad9910_digital_ramp_destination);
+
+  switch (dest) {
+    case ad9910_ramp_dest_frequency:
+      return scpi_print_frequency(context, ad9910_backconvert_frequency(value));
+    case ad9910_ramp_dest_phase:
+      return scpi_print_phase(context, ad9910_backconvert_phase(value));
+    case ad9910_ramp_dest_amplitude:
+      return scpi_print_amplitude(context, ad9910_backconvert_amplitude(value));
+    default:
+      return SCPI_RES_ERR;
+  }
 }
 
 static scpi_result_t
