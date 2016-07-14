@@ -303,13 +303,13 @@ ad9910_backconvert_frequency(uint32_t f)
 uint32_t
 ad9910_convert_amplitude(float f)
 {
-  return nearbyintf(powf(10, f / 20) * 0x3FFF);
+  return 0x3FFF & (uint32_t)nearbyintf(powf(10, f / 20) * 0x3FFF);
 }
 
 float
 ad9910_backconvert_amplitude(uint32_t a)
 {
-  return 20 * log10f(((float)a) / 0x3FFF);
+  return 20 * log10f(((float)(a & 0x3FFF)) / 0x3FFF);
 }
 
 void
