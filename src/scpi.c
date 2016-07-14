@@ -854,7 +854,7 @@ scpi_param_frequency(scpi_t* context, uint32_t* freq)
     }
   } else {
     if (value.unit == SCPI_UNIT_NONE) {
-      if (value.value < 0 || value.value > 0xFFFFFFFF) {
+      if (value.value < 0 || value.value > ad9910_max_frequency) {
         SCPI_ErrorPush(context, SCPI_ERROR_DATA_OUT_OF_RANGE);
         return SCPI_RES_ERR;
       }
@@ -893,12 +893,12 @@ scpi_param_amplitude(scpi_t* context, uint32_t* ampl)
         *ampl = 0;
         return SCPI_RES_OK;
       case SCPI_NUM_MAX:
-        *ampl = 0x3FFF;
+        *ampl = ad9910_max_amplitude;
         return SCPI_RES_OK;
     }
   } else {
     if (value.unit == SCPI_UNIT_NONE) {
-      if (value.value < 0 || value.value > 0x3FFF) {
+      if (value.value < 0 || value.value > ad9910_max_amplitude) {
         SCPI_ErrorPush(context, SCPI_ERROR_DATA_OUT_OF_RANGE);
         return SCPI_RES_ERR;
       }
@@ -983,7 +983,7 @@ scpi_param_ramp(scpi_t* context, uint32_t* output)
     }
   } else {
     if (value.unit == SCPI_UNIT_NONE) {
-      if (value.value < 0 || value.value > 0xFFFFFFFF) {
+      if (value.value < 0 || value.value > ad9910_max_frequency) {
         SCPI_ErrorPush(context, SCPI_ERROR_DATA_OUT_OF_RANGE);
         return SCPI_RES_ERR;
       }

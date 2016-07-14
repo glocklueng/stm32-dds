@@ -13,6 +13,20 @@
 #define AD9910_INSTR_WRITE 0x00
 #define AD9910_INSTR_READ 0x80
 
+/* ad9910 precision values */
+enum
+{
+  ad9910_bits_amplitude = 14,
+  ad9910_bits_phase = 16,
+  ad9910_bits_frequency = 32,
+  ad9910_precision_amplitude = 1u << ad9910_bits_amplitude,
+  ad9910_precision_phase = 1u << ad9910_bits_phase,
+  ad9910_precision_frequency = 1uLL << ad9910_bits_frequency,
+  ad9910_max_amplitude = ad9910_precision_amplitude - 1,
+  ad9910_max_phase = ad9910_precision_phase - 1,
+  ad9910_max_frequency = ad9910_precision_frequency - 1,
+};
+
 typedef struct
 {
   /* the physical address in the chip */
