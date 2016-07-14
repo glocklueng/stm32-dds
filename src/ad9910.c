@@ -9,7 +9,10 @@
 #include <stm32f4xx_rcc.h>
 #include <stm32f4xx_tim.h>
 
-static const int ad9910_pll_lock_timeout = 10000000; // ~1s
+enum
+{
+  ad9910_pll_lock_timeout = 10000000
+}; // ~1s
 
 /* we use timer 2 because it is has a 32 bit counter */
 TIM_TypeDef* parallel_timer = TIM2;
