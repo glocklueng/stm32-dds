@@ -51,7 +51,10 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("RAMP:RATE:UP", ramp_rate_up)                                              \
   F("RAMP:STEP:DOWN", ramp_step_down)                                          \
   F("RAMP:STEP:UP", ramp_step_up)                                              \
-  F("RAMP:TARget", ramp_target)
+  F("RAMP:TARget", ramp_target)                                                \
+  F("SYSTem:NETwork:ADDRess", system_network_address)                          \
+  F("SYSTem:NETwork:GATEway", system_network_gateway)                          \
+  F("SYSTem:NETwork:SUBmask", system_network_submask)
 
 #define SCPI_CALLBACK_LIST(pattrn, clbk)                                       \
   {.pattern = pattrn, .callback = scpi_callback_##clbk },                      \
@@ -72,13 +75,6 @@ static scpi_result_t scpi_callback_sequence_loop(scpi_t*);
 
 static scpi_result_t scpi_callback_startup_clear(scpi_t*);
 static scpi_result_t scpi_callback_startup_save(scpi_t*);
-
-static scpi_result_t scpi_callback_system_network_address(scpi_t*);
-static scpi_result_t scpi_callback_system_network_submask(scpi_t*);
-static scpi_result_t scpi_callback_system_network_gateway(scpi_t*);
-static scpi_result_t scpi_callback_system_network_address_q(scpi_t*);
-static scpi_result_t scpi_callback_system_network_submask_q(scpi_t*);
-static scpi_result_t scpi_callback_system_network_gateway_q(scpi_t*);
 
 static scpi_result_t scpi_callback_trigger_send(scpi_t*);
 static scpi_result_t scpi_callback_trigger_wait(scpi_t*);
@@ -110,18 +106,6 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "STARTup:SAVE", .callback = scpi_callback_startup_save },
   {.pattern = "SEQuence:CLEAR", .callback = scpi_callback_sequence_clear },
   {.pattern = "SEQuence:LOOP", .callback = scpi_callback_sequence_loop },
-  {.pattern = "SYSTem:NETwork:ADDRess",
-   .callback = scpi_callback_system_network_address },
-  {.pattern = "SYSTem:NETwork:SUBmask",
-   .callback = scpi_callback_system_network_submask },
-  {.pattern = "SYSTem:NETwork:GATEway",
-   .callback = scpi_callback_system_network_gateway },
-  {.pattern = "SYSTem:NETwork:ADDRess?",
-   .callback = scpi_callback_system_network_address_q },
-  {.pattern = "SYSTem:NETwork:SUBmask?",
-   .callback = scpi_callback_system_network_submask_q },
-  {.pattern = "SYSTem:NETwork:GATEway?",
-   .callback = scpi_callback_system_network_gateway_q },
   {.pattern = "TRIGger:SEND", .callback = scpi_callback_trigger_send },
   {.pattern = "TRIGger:WAIT", .callback = scpi_callback_trigger_wait },
   {.pattern = "WAIT", .callback = scpi_callback_wait },
