@@ -319,28 +319,28 @@ scpi_callback_parallel_frequency_q(scpi_t* context)
   return scpi_print_frequency(context, ad9910_get_parallel_frequency());
 }
 
+enum parallel_target
+{
+  parallel_target_amplitude = ad9910_parallel_amplitude,
+  parallel_target_phase = ad9910_parallel_phase,
+  parallel_target_frequency = ad9910_parallel_frequency,
+  parallel_target_polar = ad9910_parallel_polar,
+  parallel_target_none,
+};
+
+static const scpi_choice_def_t parallel_target_choices[] = {
+  { "OFF", parallel_target_none },
+  { "NONE", parallel_target_none },
+  { "FREQuency", parallel_target_frequency },
+  { "AMPLitude", parallel_target_amplitude },
+  { "PHAse", parallel_target_phase },
+  { "POLar", parallel_target_polar },
+  SCPI_CHOICE_LIST_END
+};
+
 static scpi_result_t
 scpi_callback_parallel_target(scpi_t* context)
 {
-  enum parallel_target
-  {
-    parallel_target_amplitude = ad9910_parallel_amplitude,
-    parallel_target_phase = ad9910_parallel_phase,
-    parallel_target_frequency = ad9910_parallel_frequency,
-    parallel_target_polar = ad9910_parallel_polar,
-    parallel_target_none,
-  };
-
-  static const scpi_choice_def_t parallel_target_choices[] = {
-    { "OFF", parallel_target_none },
-    { "NONE", parallel_target_none },
-    { "FREQuency", parallel_target_frequency },
-    { "AMPLitude", parallel_target_amplitude },
-    { "PHAse", parallel_target_phase },
-    { "POLar", parallel_target_polar },
-    SCPI_CHOICE_LIST_END
-  };
-
   int32_t value;
   if (!SCPI_ParamChoice(context, parallel_target_choices, &value, TRUE)) {
     return SCPI_RES_ERR;
@@ -386,30 +386,10 @@ scpi_callback_parallel_target_q(scpi_t* context)
 {
   parallel_mode mode = gpio_get(PARALLEL_F0) | (gpio_get(PARALLEL_F1) << 1);
 
-  switch (mode) {
-    default:
-      return SCPI_RES_ERR;
-    case ad9910_parallel_amplitude: {
-      static const char data[] = "AMPLITUDE";
-      SCPI_ResultCharacters(context, data, sizeof(data));
-      break;
-    }
-    case ad9910_parallel_phase: {
-      static const char data[] = "PHASE";
-      SCPI_ResultCharacters(context, data, sizeof(data));
-      break;
-    }
-    case ad9910_parallel_frequency: {
-      static const char data[] = "FREQUENCY";
-      SCPI_ResultCharacters(context, data, sizeof(data));
-      break;
-    }
-    case ad9910_parallel_polar: {
-      static const char data[] = "POLAR";
-      SCPI_ResultCharacters(context, data, sizeof(data));
-      break;
-    }
-  }
+  const char* name;
+  SCPI_ChoiceToName(parallel_target_choices, mode, &name);
+
+  SCPI_ResultCharacters(context, name, strlen(name));
 
   return SCPI_RES_OK;
 }
