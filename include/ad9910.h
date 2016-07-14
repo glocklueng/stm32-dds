@@ -247,6 +247,8 @@ uint32_t ad9910_convert_frequency(float f);
 float ad9910_backconvert_frequency(uint32_t);
 uint32_t ad9910_convert_amplitude(float f);
 float ad9910_backconvert_amplitude(uint32_t);
+uint32_t ad9910_convert_phase(float);
+float ad9910_backconvert_phase(uint32_t);
 
 void ad9910_init(void);
 

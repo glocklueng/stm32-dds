@@ -312,6 +312,18 @@ ad9910_backconvert_amplitude(uint32_t a)
   return 20 * log10f(((float)(a & 0x3FFF)) / 0x3FFF);
 }
 
+uint32_t
+ad9910_convert_phase(float f)
+{
+  return 0xFFFF & (uint32_t)nearbyintf(f * 0xFFFF / 2 / M_PI);
+}
+
+float
+ad9910_backconvert_phase(uint32_t v)
+{
+  return 2 * M_PI * ((float)(v & 0xFFFF)) / 0xFFFF;
+}
+
 void
 ad9910_set_frequency(uint8_t profile, uint32_t freq)
 {
