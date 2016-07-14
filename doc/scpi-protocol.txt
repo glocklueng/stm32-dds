@@ -1,21 +1,31 @@
 new version of network protocol. Following SCPI, using more, but smaller
 commands.
 
-:MODe <NORMal|PROGramming|EXECuting>
+:MODE <NORMal|PROGramming|EXECuting>
 
 :OUTPut
+  :STATe <ON|1|OFF|0>
   :FREQuency <INTEGER|frequency>
-  :FREQuency?
   :AMPLitude <INTEGER|amplitude>
-  :PHAse <INTEGER>
-  :TRIGger <INTernal|EXTernal>
+  :PHASe <INTEGER|phase>
 :PARallel
-  :TARget <FREQuency|AMPLitude|PHAse|POLar|OFF>
+  :STATe <ON|1|OFF|0>
+  :TARget <FREQuency|AMPLitude|PHASe|POLar>
   :DATa Arbitraty Data
   :FREQuency <frequency>
 :RAM
-  :TARget <FREQuency|AMPLitude|PHAse|OFF>
+  :STATe <ON|1|OFF|0>
+  :TARget <FREQuency|AMPLitude|PHASe|POLar>
+  :DATa Arbitraty Data
+  :RATE <INTEGER|frequeny>
+  :DIRection <UP|BIdirectional>
+  :MODE <BURSt|CONTinuous>
+  :SEGment#
+    :DATa Arbitrary Data
+    :RATE <INTEGER|FREQUENCY>
+  :DWELl <BOOLEAN>
 :RAMP
+  :STATe <ON|1|OFF|0>
   :BOUNDary
     :MINimum <INTEGER|frequency>
     :MAXimum <INTEGER|frequency>
@@ -25,13 +35,12 @@ commands.
   :RATE <INTEGER|frequency>
     :UP <INTEGER|frequency>
     :DOWN <INTEGER|frequency>
-  :MODe <SINGle|UPSAWtooth|DOWNSAWtooth|OSCillating>
+  :MODE <SINGle|UPSAWtooth|DOWNSAWtooth|OSCillating>
   :DIRection <UP|DOWN>
-  :TARget <FREQuency|AMPLitude|PHAse|OFF>
+  :TARget <FREQuency|AMPLitude|PHASe>
 :SEQuence
   :CLEAR
-  :LOOP <INTEGER|INFinite|OFF>
-  :LOOP?
+  :NCYCles <INTEGER|INFinite|OFF>
 :STARTup
   :SAVe
   :CLEAR
@@ -41,6 +50,7 @@ commands.
     :ADDRess
     :SUBmask
     :GATEway
+    :TIMEout
 :TRIGger
   :SEND
   :SET <EXTernal|INTernal>
