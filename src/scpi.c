@@ -38,8 +38,8 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
 #define SCPI_PATTERNS(F)                                                       \
   F("MODe", mode)                                                              \
   F("OUTput", output)                                                          \
-  F("OUTput:FREQuency", output_frequency)                                      \
   F("OUTput:AMPLitude", output_amplitude)                                      \
+  F("OUTput:FREQuency", output_frequency)                                      \
   F("PARallel:DATa", parallel_data)                                            \
   F("PARallel:FREQuency", parallel_frequency)                                  \
   F("PARallel:TARget", parallel_target)
