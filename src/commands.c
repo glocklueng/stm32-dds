@@ -120,6 +120,12 @@ commands_repeat(uint32_t count)
   commands.repeat = count;
 }
 
+uint32_t
+get_commands_repeat()
+{
+  return commands.repeat;
+}
+
 void
 commands_execute()
 {

@@ -60,6 +60,7 @@ int commands_queue_parallel_frequency(const command_parallel_frequency*);
 
 void commands_clear(void);
 void commands_repeat(uint32_t);
+uint32_t get_commands_repeat(void);
 void commands_execute(void);
 
 size_t execute_command(const command*);

@@ -52,6 +52,7 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("RAMP:STEP:DOWN", ramp_step_down)                                          \
   F("RAMP:STEP:UP", ramp_step_up)                                              \
   F("RAMP:TARget", ramp_target)                                                \
+  F("SEQuence:LOOP", sequence_loop ) \
   F("SYSTem:NETwork:ADDRess", system_network_address)                          \
   F("SYSTem:NETwork:GATEway", system_network_gateway)                          \
   F("SYSTem:NETwork:SUBmask", system_network_submask)
@@ -88,8 +89,6 @@ static scpi_result_t scpi_test_q(scpi_t*);
 
 static scpi_result_t scpi_callback_register_q(scpi_t*);
 
-static scpi_result_t scpi_callback_sequence_loop(scpi_t*);
-
 static const scpi_command_t scpi_commands[] = {
   /* IEEE Mandated Commands (SCPI std V1999.0 4.1.1) */
   {.pattern = "*CLS", .callback = SCPI_CoreCls },
@@ -112,7 +111,6 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ },
 
   {.pattern = "REGister?", .callback = scpi_callback_register_q },
-  {.pattern = "SEQuence:LOOP", .callback = scpi_callback_sequence_loop },
 
   SCPI_PATTERNS(SCPI_CALLBACK_LIST) SCPI_CMD_LIST_END
 };
@@ -888,6 +886,14 @@ scpi_callback_sequence_loop(scpi_t* context)
     commands_repeat(value.value);
     return SCPI_RES_OK;
   }
+}
+
+static scpi_result_t
+scpi_callback_sequence_loop_q(scpi_t* context)
+{
+  SCPI_ResultUInt32(context, get_commands_repeat());
+
+  return SCPI_RES_OK;
 }
 
 static scpi_result_t
