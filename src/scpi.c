@@ -333,7 +333,7 @@ static const scpi_choice_def_t parallel_target_choices[] = {
   { "NONE", parallel_target_none },
   { "FREQuency", parallel_target_frequency },
   { "AMPLitude", parallel_target_amplitude },
-  { "PHAse", parallel_target_phase },
+  { "PHASe", parallel_target_phase },
   { "POLar", parallel_target_polar },
   SCPI_CHOICE_LIST_END
 };
@@ -600,7 +600,7 @@ static const scpi_choice_def_t ramp_target_choices[] = {
   { "OFF", ramp_target_off },
   { "AMPLitude", ad9910_ramp_dest_amplitude },
   { "FREQuency", ad9910_ramp_dest_frequency },
-  { "PHAse", ad9910_ramp_dest_phase },
+  { "PHASe", ad9910_ramp_dest_phase },
   SCPI_CHOICE_LIST_END
 };
 
