@@ -27,9 +27,6 @@ static const scpi_choice_def_t scpi_mode_choices[] = {
   SCPI_CHOICE_LIST_END
 };
 
-/* working buffer to be used by functions */
-static char work_buf[64];
-
 #define PARALLEL_BUF_SIZE (1024 * 60)
 static char parallel_buffer[PARALLEL_BUF_SIZE];
 static size_t parallel_len;
@@ -1049,14 +1046,16 @@ scpi_param_ip_address(scpi_t* context, uint8_t target[4])
 static scpi_result_t
 scpi_print_amplitude(scpi_t* context, float amplitude)
 {
+  char buf[64] = { 0 };
+
   scpi_number_t number = {
     .special = 0, .value = amplitude, .unit = SCPI_UNIT_DBM, .base = 10,
   };
 
-  size_t len = SCPI_NumberToStr(context, scpi_special_numbers_def, &number,
-                                work_buf, sizeof(work_buf));
+  size_t len = SCPI_NumberToStr(context, scpi_special_numbers_def, &number, buf,
+                                sizeof(buf));
 
-  SCPI_ResultCharacters(context, work_buf, len);
+  SCPI_ResultCharacters(context, buf, len);
 
   return SCPI_RES_OK;
 }
@@ -1064,14 +1063,16 @@ scpi_print_amplitude(scpi_t* context, float amplitude)
 static scpi_result_t
 scpi_print_frequency(scpi_t* context, float freq)
 {
+  char buf[64] = { 0 };
+
   scpi_number_t number = {
     .special = 0, .value = freq, .unit = SCPI_UNIT_HERTZ, .base = 10,
   };
 
-  size_t len = SCPI_NumberToStr(context, scpi_special_numbers_def, &number,
-                                work_buf, sizeof(work_buf));
+  size_t len = SCPI_NumberToStr(context, scpi_special_numbers_def, &number, buf,
+                                sizeof(buf));
 
-  SCPI_ResultCharacters(context, work_buf, len);
+  SCPI_ResultCharacters(context, buf, len);
 
   return SCPI_RES_OK;
 }
