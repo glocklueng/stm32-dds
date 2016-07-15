@@ -307,7 +307,7 @@ scpi_callback_parallel_frequency(scpi_t* context)
       const command_parallel_frequency cmd = {
         .frequency = value.value,
       };
-      commands_queue_parallel_frequency(&cmd);
+      command_queue_parallel_frequency(&cmd);
       break;
     }
   }
@@ -1225,7 +1225,7 @@ scpi_process_trigger()
         execute_command_##cmd(command);                                        \
         break;                                                                 \
       case scpi_mode_program:                                                  \
-        commands_queue_##cmd(command);                                         \
+        command_queue_##cmd(command);                                          \
         break;                                                                 \
     }                                                                          \
   }

@@ -40,24 +40,24 @@ static int command_queue(command_type, const void*, size_t);
 static size_t get_command_length(const command*);
 static const command* find_last_command(void);
 
-#define DEFINE_COMMANDS_QUEUE_IMPL(cmd, size)                                  \
-  int commands_queue_##cmd(const command_##cmd* command)                       \
+#define DEFINE_COMMAND_QUEUE_IMPL(cmd, size)                                   \
+  int command_queue_##cmd(const command_##cmd* command)                        \
   {                                                                            \
     return command_queue(command_type_##cmd, command, size);                   \
   }
 
-#define DEFINE_COMMANDS_QUEUE(cmd)                                             \
-  DEFINE_COMMANDS_QUEUE_IMPL(cmd, sizeof(command_##cmd))
-#define DEFINE_COMMANDS_QUEUE_VOID(cmd) DEFINE_COMMANDS_QUEUE_IMPL(cmd, 0)
+#define DEFINE_COMMAND_QUEUE(cmd)                                              \
+  DEFINE_COMMAND_QUEUE_IMPL(cmd, sizeof(command_##cmd))
+#define DEFINE_COMMAND_QUEUE_VOID(cmd) DEFINE_COMMAND_QUEUE_IMPL(cmd, 0)
 
-DEFINE_COMMANDS_QUEUE(pin)
-DEFINE_COMMANDS_QUEUE_VOID(trigger)
-DEFINE_COMMANDS_QUEUE_VOID(update)
-DEFINE_COMMANDS_QUEUE(wait)
-DEFINE_COMMANDS_QUEUE(parallel_frequency)
+DEFINE_COMMAND_QUEUE(pin)
+DEFINE_COMMAND_QUEUE_VOID(trigger)
+DEFINE_COMMAND_QUEUE_VOID(update)
+DEFINE_COMMAND_QUEUE(wait)
+DEFINE_COMMAND_QUEUE(parallel_frequency)
 
 int
-commands_queue_register(const command_register* cmd)
+command_queue_register(const command_register* cmd)
 {
   /* if the last command was a spi write we remove that because we have
    * more registers to change */

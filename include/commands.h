@@ -51,12 +51,12 @@ typedef struct
   command_type type;
 } command;
 
-int commands_queue_pin(const command_pin*);
-int commands_queue_register(const command_register*);
-int commands_queue_trigger(const command_trigger*);
-int commands_queue_update(const command_update*);
-int commands_queue_wait(const command_wait*);
-int commands_queue_parallel_frequency(const command_parallel_frequency*);
+int command_queue_pin(const command_pin*);
+int command_queue_register(const command_register*);
+int command_queue_trigger(const command_trigger*);
+int command_queue_update(const command_update*);
+int command_queue_wait(const command_wait*);
+int command_queue_parallel_frequency(const command_parallel_frequency*);
 
 void commands_clear(void);
 void commands_repeat(uint32_t);
