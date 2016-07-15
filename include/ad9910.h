@@ -347,6 +347,9 @@ void ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
                          uint16_t positive_slope, int no_dwell_high,
                          int no_dwell_low);
 
+void ad9910_program_ram(ad9910_ram_destination dest, ad9910_ram_control mode,
+                        uint32_t samples, uint32_t* data);
+
 /** implementation starts here */
 
 static INLINE ad9910_register*

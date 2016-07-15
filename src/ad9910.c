@@ -11,8 +11,9 @@
 
 enum
 {
-  ad9910_pll_lock_timeout = 10000000
-}; // ~1s
+  ad9910_pll_lock_timeout = 10000000, // ~1s
+  ad9910_ram_address = 0x16,
+};
 
 /* we use timer 2 because it is has a 32 bit counter */
 TIM_TypeDef* parallel_timer = TIM2;
@@ -387,4 +388,42 @@ ad9910_program_ramp(ad9910_ramp_destination dest, uint32_t upper_limit,
   ad9910_update_reg(&ad9910_regs.ramp_step);
   ad9910_update_reg(&ad9910_regs.ramp_rate);
   ad9910_update_reg(&ad9910_regs.cfr2);
+}
+
+void
+ad9910_program_ram(ad9910_ram_destination dest, ad9910_ram_control mode,
+                   uint32_t samples, uint32_t* data)
+{
+  if (samples > 1000)
+    return;
+
+  /* to upload the data we need to write the correct addresses in the ram
+   * registers. These overlap with the normal profile registers. To not
+   * mess anything up we turn off the output during data upload
+   */
+  int out = gpio_get(RF_SWITCH);
+  gpio_set(RF_SWITCH, 0);
+
+  /* currently we just support profile 0 */
+  const int prof = 0;
+
+  /* save current settings for later */
+  uint64_t old_reg = ad9910_get_profile_reg(prof)->value;
+
+  ad9910_set_profile_value(prof, ad9910_profile_waveform_start_address, 0);
+  ad9910_set_profile_value(prof, ad9910_profile_waveform_end_address, samples);
+  ad9910_update_profile_reg(prof);
+  ad9910_io_update();
+
+  spi_send_single(ad9910_ram_address | AD9910_INSTR_WRITE);
+
+  /* TODO check for endianess (use DMA, there it is just a flag) */
+  spi_write_multi((uint8_t*)data, samples * sizeof(uint32_t) / sizeof(uint8_t));
+
+  /* restore previous settings */
+  ad9910_get_profile_reg(prof)->value = old_reg;
+  ad9910_update_profile_reg(prof);
+  ad9910_io_update();
+
+  gpio_set(RF_SWITCH, out);
 }
