@@ -40,11 +40,21 @@ static int command_queue(command_type, const void*, size_t);
 static size_t get_command_length(const command*);
 static const command* find_last_command(void);
 
-int
-commands_queue_pin(const command_pin* cmd)
-{
-  return command_queue(command_type_pin, cmd, sizeof(command_pin));
-}
+#define DEFINE_COMMANDS_QUEUE_IMPL(cmd, size)                                  \
+  int commands_queue_##cmd(const command_##cmd* command)                       \
+  {                                                                            \
+    return command_queue(command_type_##cmd, command, size);                   \
+  }
+
+#define DEFINE_COMMANDS_QUEUE(cmd)                                             \
+  DEFINE_COMMANDS_QUEUE_IMPL(cmd, sizeof(command_##cmd))
+#define DEFINE_COMMANDS_QUEUE_VOID(cmd) DEFINE_COMMANDS_QUEUE_IMPL(cmd, 0)
+
+DEFINE_COMMANDS_QUEUE(pin)
+DEFINE_COMMANDS_QUEUE_VOID(trigger)
+DEFINE_COMMANDS_QUEUE_VOID(update)
+DEFINE_COMMANDS_QUEUE(wait)
+DEFINE_COMMANDS_QUEUE(parallel_frequency)
 
 int
 commands_queue_register(const command_register* cmd)
@@ -61,31 +71,6 @@ commands_queue_register(const command_register* cmd)
   ret += command_queue(command_type_spi_write, cmd, 0);
 
   return ret;
-}
-
-int
-commands_queue_trigger(const command_trigger* cmd)
-{
-  return command_queue(command_type_trigger, cmd, 0);
-}
-
-int
-commands_queue_update(const command_update* cmd)
-{
-  return command_queue(command_type_update, cmd, 0);
-}
-
-int
-commands_queue_wait(const command_wait* cmd)
-{
-  return command_queue(command_type_wait, cmd, sizeof(command_wait));
-}
-
-int
-commands_queue_parallel_frequency(const command_parallel_frequency* cmd)
-{
-  return command_queue(command_type_parallel_frequency, cmd,
-                       sizeof(command_parallel_frequency));
 }
 
 static int
