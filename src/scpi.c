@@ -143,7 +143,7 @@ static size_t scpi_write(scpi_t* context, const char* data, size_t len);
 static void scpi_process_wait(uint32_t time);
 static void scpi_process_trigger(void);
 
-static void scpi_process_register_command(const command_register*);
+static void scpi_process_command_register(const command_register*);
 static void scpi_process_command_pin(const command_pin*);
 static void scpi_process_command_trigger(const command_trigger*);
 static void scpi_process_command_update(const command_update*);
@@ -332,7 +332,7 @@ scpi_callback_parallel_state(scpi_t* context)
   const command_register cmd = {
     .reg = &ad9910_parallel_data_port_enable, .value = value,
   };
-  scpi_process_register_command(&cmd);
+  scpi_process_command_register(&cmd);
 
   return SCPI_RES_OK;
 }
@@ -547,11 +547,11 @@ scpi_callback_ramp_mode(scpi_t* context)
 
   command_register cmd = {.reg = &ad9910_digital_ramp_no_dwell_high,
                           .value = high };
-  scpi_process_register_command(&cmd);
+  scpi_process_command_register(&cmd);
 
   cmd.reg = &ad9910_digital_ramp_no_dwell_low;
   cmd.value = low;
-  scpi_process_register_command(&cmd);
+  scpi_process_command_register(&cmd);
 
   return SCPI_RES_OK;
 }
@@ -607,13 +607,13 @@ scpi_callback_ramp_target(scpi_t* context)
 
   if (value == ramp_target_off) {
     command_register cmd = {.reg = &ad9910_digital_ramp_enable, .value = 0 };
-    scpi_process_register_command(&cmd);
+    scpi_process_command_register(&cmd);
   } else {
     command_register cmd = {.reg = &ad9910_digital_ramp_destination,
                             .value = value };
-    scpi_process_register_command(&cmd);
+    scpi_process_command_register(&cmd);
     command_register cmd2 = {.reg = &ad9910_digital_ramp_enable, .value = 1 };
-    scpi_process_register_command(&cmd2);
+    scpi_process_command_register(&cmd2);
   }
 
   return SCPI_RES_OK;
@@ -1181,7 +1181,7 @@ scpi_parse_register_command(scpi_t* context, const ad9910_register_bit* reg,
 
   command_register cmd = {.reg = reg, .value = value };
 
-  scpi_process_register_command(&cmd);
+  scpi_process_command_register(&cmd);
 
   return SCPI_RES_OK;
 }
@@ -1217,69 +1217,21 @@ scpi_process_trigger()
   scpi_process_command_trigger(NULL);
 }
 
-static void
-scpi_process_register_command(const command_register* cmd)
-{
-  switch (current_mode) {
-    case scpi_mode_normal:
-    case scpi_mode_execute:
-      execute_command_register(cmd);
-      execute_command_update(cmd);
-      break;
-    case scpi_mode_program:
-      commands_queue_register(cmd);
-      break;
+#define DEFINE_PROCESS_COMMAND(cmd)                                            \
+  static void scpi_process_command_##cmd(const command_##cmd* command)         \
+  {                                                                            \
+    switch (current_mode) {                                                    \
+      default:                                                                 \
+        execute_command_##cmd(command);                                        \
+        break;                                                                 \
+      case scpi_mode_program:                                                  \
+        commands_queue_##cmd(command);                                         \
+        break;                                                                 \
+    }                                                                          \
   }
-}
 
-static void
-scpi_process_command_pin(const command_pin* cmd)
-{
-  switch (current_mode) {
-    default:
-      execute_command_pin(cmd);
-      break;
-    case scpi_mode_program:
-      commands_queue_pin(cmd);
-      break;
-  }
-}
-
-static void
-scpi_process_command_trigger(const command_trigger* cmd)
-{
-  switch (current_mode) {
-    default:
-      execute_command_trigger(cmd);
-      break;
-    case scpi_mode_program:
-      commands_queue_trigger(cmd);
-      break;
-  }
-}
-
-static void
-scpi_process_command_update(const command_update* cmd)
-{
-  switch (current_mode) {
-    default:
-      execute_command_update(cmd);
-      break;
-    case scpi_mode_program:
-      commands_queue_update(cmd);
-      break;
-  }
-}
-
-static void
-scpi_process_command_wait(const command_wait* cmd)
-{
-  switch (current_mode) {
-    default:
-      execute_command_wait(cmd);
-      break;
-    case scpi_mode_program:
-      commands_queue_wait(cmd);
-      break;
-  }
-}
+DEFINE_PROCESS_COMMAND(pin)
+DEFINE_PROCESS_COMMAND(register)
+DEFINE_PROCESS_COMMAND(trigger)
+DEFINE_PROCESS_COMMAND(update)
+DEFINE_PROCESS_COMMAND(wait)
