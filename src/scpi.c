@@ -28,8 +28,17 @@ static const scpi_choice_def_t scpi_mode_choices[] = {
 };
 
 #define PARALLEL_BUF_SIZE (1024 * 60)
-static char parallel_buffer[PARALLEL_BUF_SIZE];
-static size_t parallel_len;
+struct parallel {
+  uint16_t buffer[PARALLEL_BUF_SIZE / sizeof(uint16_t)];
+  size_t length;
+  size_t repeats;
+};
+
+struct parallel parallel = {
+  .buffer = {0},
+  .length = 0,
+  .repeats = 0,
+};
 
 static char scpi_input_buffer[SCPI_INPUT_BUFFER_LENGTH];
 static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
@@ -148,6 +157,7 @@ static void scpi_process_command_pin(const command_pin*);
 static void scpi_process_command_trigger(const command_trigger*);
 static void scpi_process_command_update(const command_update*);
 static void scpi_process_command_wait(const command_wait*);
+static void scpi_process_command_parallel(const command_parallel*);
 
 /* this struct defines the main communictation functions used by the
  * library. Write is mandatory, all others are optional */
@@ -261,9 +271,9 @@ scpi_callback_parallel_data(scpi_t* context)
     return SCPI_RES_ERR;
   }
 
-  parallel_len = len;
+  parallel.length = len;
 
-  len = ethernet_copy_data(parallel_buffer, len,
+  len = ethernet_copy_data(parallel.buffer, len,
                            (context->param_list.lex_state.pos -
                             context->param_list.cmd_raw.data - len));
 
@@ -275,7 +285,7 @@ scpi_callback_parallel_data(scpi_t* context)
 static scpi_result_t
 scpi_callback_parallel_data_q(scpi_t* context)
 {
-  SCPI_ResultArbitraryBlock(context, parallel_buffer, parallel_len);
+  SCPI_ResultArbitraryBlock(context, parallel.buffer, parallel.length);
 
   return SCPI_RES_OK;
 }
@@ -329,10 +339,12 @@ scpi_callback_parallel_state(scpi_t* context)
     return SCPI_RES_ERR;
   }
 
-  const command_register cmd = {
-    .reg = &ad9910_parallel_data_port_enable, .value = value,
+  const command_parallel cmd = {
+    .data = parallel.buffer,
+    .length = parallel.length,
+    .repeats = parallel.repeats,
   };
-  scpi_process_command_register(&cmd);
+  scpi_process_command_parallel(&cmd);
 
   return SCPI_RES_OK;
 }
@@ -1235,3 +1247,4 @@ DEFINE_PROCESS_COMMAND(register)
 DEFINE_PROCESS_COMMAND(trigger)
 DEFINE_PROCESS_COMMAND(update)
 DEFINE_PROCESS_COMMAND(wait)
+DEFINE_PROCESS_COMMAND(parallel)

@@ -17,6 +17,7 @@ typedef enum {
   command_type_wait,               /* wait for a specified time */
   command_type_update,             /* perform IO update */
   command_type_spi_write,          /* internal command performing SPI update */
+  command_type_parallel,           /* run parallel sequence */
   command_type_parallel_frequency, /* parallel update frequency */
 } command_type;
 
@@ -43,6 +44,13 @@ typedef struct
 
 typedef struct
 {
+  uint16_t* data;
+  size_t length;
+  size_t repeats;
+} command_parallel;
+
+typedef struct
+{
   float frequency;
 } command_parallel_frequency;
 
@@ -56,6 +64,7 @@ int command_queue_register(const command_register*);
 int command_queue_trigger(const command_trigger*);
 int command_queue_update(const command_update*);
 int command_queue_wait(const command_wait*);
+int command_queue_parallel(const command_parallel*);
 int command_queue_parallel_frequency(const command_parallel_frequency*);
 
 void commands_clear(void);
@@ -69,6 +78,7 @@ size_t execute_command_pin(const command_pin*);
 size_t execute_command_trigger(const command_trigger*);
 size_t execute_command_wait(const command_wait*);
 size_t execute_command_update(const command_update*);
+size_t execute_command_parallel(const command_parallel*);
 size_t execute_command_parallel_frequency(const command_parallel_frequency*);
 
 void startup_command_clear(void);

@@ -54,6 +54,7 @@ DEFINE_COMMAND_QUEUE(pin)
 DEFINE_COMMAND_QUEUE_VOID(trigger)
 DEFINE_COMMAND_QUEUE_VOID(update)
 DEFINE_COMMAND_QUEUE(wait)
+DEFINE_COMMAND_QUEUE(parallel)
 DEFINE_COMMAND_QUEUE(parallel_frequency)
 
 int
@@ -154,6 +155,9 @@ execute_command(const command* cmd)
     case command_type_spi_write:
       len += execute_command_spi_write((const command_spi_write*)(cmd + 1));
       break;
+    case command_type_parallel:
+      len += execute_command_parallel((const command_parallel*)(cmd + 1));
+      break;
     case command_type_parallel_frequency:
       len += execute_command_parallel_frequency(
         (const command_parallel_frequency*)(cmd + 1));
@@ -231,6 +235,14 @@ execute_command_update(const command_update* cmd)
   ad9910_io_update();
 
   return 0;
+}
+
+size_t
+execute_command_parallel(const command_parallel* cmd)
+{
+  ad9910_execute_parallel(cmd->data, cmd->length, cmd->repeats);
+
+  return sizeof(command_parallel);
 }
 
 size_t
