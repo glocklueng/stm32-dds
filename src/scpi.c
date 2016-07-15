@@ -28,14 +28,15 @@ static const scpi_choice_def_t scpi_mode_choices[] = {
 };
 
 #define PARALLEL_BUF_SIZE (1024 * 60)
-struct parallel {
+struct parallel
+{
   uint16_t buffer[PARALLEL_BUF_SIZE / sizeof(uint16_t)];
   size_t length;
   size_t repeats;
 };
 
 struct parallel parallel = {
-  .buffer = {0},
+  .buffer = { 0 },
   .length = 0,
   .repeats = 0,
 };
@@ -51,6 +52,7 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("OUTput:FREQuency", output_frequency)                                      \
   F("PARallel:DATa", parallel_data)                                            \
   F("PARallel:FREQuency", parallel_frequency)                                  \
+  F("PARallel:NCYCles", parallel_ncycles)                                      \
   F("PARallel:STATe", parallel_state)                                          \
   F("PARallel:TARget", parallel_target)                                        \
   F("RAMP:BOUNDary:MAXimum", ramp_boundary_maximum)                            \
@@ -329,6 +331,27 @@ static scpi_result_t
 scpi_callback_parallel_frequency_q(scpi_t* context)
 {
   return scpi_print_frequency(context, ad9910_get_parallel_frequency());
+}
+
+static scpi_result_t
+scpi_callback_parallel_ncycles(scpi_t* context)
+{
+  uint32_t value;
+  if (SCPI_ParamUInt32(context, &value, true) != SCPI_RES_OK) {
+    return SCPI_RES_ERR;
+  }
+
+  parallel.repeats = value;
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_parallel_ncycles_q(scpi_t* context)
+{
+  SCPI_ResultUInt32(context, parallel.repeats);
+
+  return SCPI_RES_OK;
 }
 
 static scpi_result_t

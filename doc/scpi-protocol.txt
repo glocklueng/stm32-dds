@@ -13,6 +13,7 @@ commands.
   :TARget <FREQuency|AMPLitude|PHASe|POLar>
   :DATa Arbitraty Data
   :FREQuency <frequency>
+  :NCYCles <INTEGER|OFF>
 :RAM
   :STATe <ON|1|OFF|0>
   :TARget <FREQuency|AMPLitude|PHASe|POLar>
