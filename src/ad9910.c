@@ -134,6 +134,9 @@ ad9910_init()
   ad9910_select_profile(0);
   ad9910_select_parallel_target(0);
   ad9910_enable_parallel(0);
+  /* we just set it high by default, if the register bit is not set it is
+   * not used anyways */
+  gpio_set_high(TX_ENABLE);
   ad9910_enable_output(1);
 
   startup_command_execute();

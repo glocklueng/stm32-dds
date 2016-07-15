@@ -42,6 +42,7 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("OUTput:FREQuency", output_frequency)                                      \
   F("PARallel:DATa", parallel_data)                                            \
   F("PARallel:FREQuency", parallel_frequency)                                  \
+  F("PARallel:STATe", parallel_state)                                          \
   F("PARallel:TARget", parallel_target)                                        \
   F("RAMP:BOUNDary:MAXimum", ramp_boundary_maximum)                            \
   F("RAMP:BOUNDary:MINimum", ramp_boundary_minimum)                            \
@@ -130,6 +131,7 @@ static scpi_result_t scpi_print_pin(scpi_t*, const gpio_pin);
 static scpi_result_t scpi_print_register(scpi_t*, const ad9910_register_bit*,
                                          scpi_result_t (*)(scpi_t*, uint32_t));
 static scpi_result_t scpi_print_ramp(scpi_t*, uint32_t);
+static scpi_result_t scpi_print_boolean(scpi_t*, uint32_t);
 
 static scpi_result_t scpi_parse_register_command(
   scpi_t*, const ad9910_register_bit*, scpi_result_t (*)(scpi_t*, uint32_t*));
@@ -319,22 +321,34 @@ scpi_callback_parallel_frequency_q(scpi_t* context)
   return scpi_print_frequency(context, ad9910_get_parallel_frequency());
 }
 
-enum parallel_target
+static scpi_result_t
+scpi_callback_parallel_state(scpi_t* context)
 {
-  parallel_target_amplitude = ad9910_parallel_amplitude,
-  parallel_target_phase = ad9910_parallel_phase,
-  parallel_target_frequency = ad9910_parallel_frequency,
-  parallel_target_polar = ad9910_parallel_polar,
-  parallel_target_none,
-};
+  scpi_bool_t value;
+  if (SCPI_ParamBool(context, &value, true) != SCPI_RES_OK) {
+    return SCPI_RES_ERR;
+  }
+
+  const command_register cmd = {
+    .reg = &ad9910_parallel_data_port_enable, .value = value,
+  };
+  scpi_process_register_command(&cmd);
+
+  return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_parallel_state_q(scpi_t* context)
+{
+  return scpi_print_register(context, &ad9910_parallel_data_port_enable,
+                             scpi_print_boolean);
+}
 
 static const scpi_choice_def_t parallel_target_choices[] = {
-  { "OFF", parallel_target_none },
-  { "NONE", parallel_target_none },
-  { "FREQuency", parallel_target_frequency },
-  { "AMPLitude", parallel_target_amplitude },
-  { "PHASe", parallel_target_phase },
-  { "POLar", parallel_target_polar },
+  { "FREQuency", ad9910_parallel_frequency },
+  { "AMPLitude", ad9910_parallel_amplitude },
+  { "PHASe", ad9910_parallel_phase },
+  { "POLar", ad9910_parallel_polar },
   SCPI_CHOICE_LIST_END
 };
 
@@ -346,38 +360,16 @@ scpi_callback_parallel_target(scpi_t* context)
     return SCPI_RES_ERR;
   }
 
-  if (value == parallel_target_none) {
-    const command_pin pcmd = {
-      .pin = TX_ENABLE, .value = 0,
-    };
-    scpi_process_command_pin(&pcmd);
+  const command_pin t0cmd = {
+    .pin = PARALLEL_F0, .value = value & 0x1,
+  };
+  scpi_process_command_pin(&t0cmd);
 
-    const command_register rcmd = {
-      .reg = &ad9910_parallel_data_port_enable, .value = 0,
-    };
-    scpi_process_register_command(&rcmd);
+  const command_pin t1cmd = {
+    .pin = PARALLEL_F1, .value = !!(value & 0x2),
+  };
+  scpi_process_command_pin(&t1cmd);
 
-  } else {
-    const command_pin t0cmd = {
-      .pin = PARALLEL_F0, .value = value & 0x1,
-    };
-    scpi_process_command_pin(&t0cmd);
-
-    const command_pin t1cmd = {
-      .pin = PARALLEL_F0, .value = value & 0x2,
-    };
-    scpi_process_command_pin(&t1cmd);
-
-    const command_register rcmd = {
-      .reg = &ad9910_parallel_data_port_enable, .value = 1,
-    };
-    scpi_process_register_command(&rcmd);
-
-    const command_pin pcmd = {
-      .pin = TX_ENABLE, .value = 1,
-    };
-    scpi_process_command_pin(&pcmd);
-  }
   return SCPI_RES_OK;
 }
 
@@ -1170,6 +1162,12 @@ scpi_print_ramp(scpi_t* context, uint32_t value)
     default:
       return SCPI_RES_ERR;
   }
+}
+
+static scpi_result_t
+scpi_print_boolean(scpi_t* context, uint32_t value)
+{
+  return SCPI_ResultBool(context, value);
 }
 
 static scpi_result_t
