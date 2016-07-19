@@ -298,41 +298,40 @@ ad9910_execute_parallel(uint16_t* data, size_t len, size_t rep)
 uint32_t
 ad9910_convert_frequency(float f)
 {
-  return nearbyintf(f / 1e9 * ad9910_precision_frequency);
+  return nearbyintf(f / 1e9 * ad9910_max_frequency);
 }
 
 float
 ad9910_backconvert_frequency(uint32_t f)
 {
-  return f * 1e9 / ad9910_precision_frequency;
+  return f * 1e9 / ad9910_max_frequency;
 }
 
 uint32_t
 ad9910_convert_amplitude(float f)
 {
-  return ad9910_precision_amplitude &
-         (uint32_t)nearbyintf(powf(10, f / 20) * ad9910_precision_amplitude);
+  return ad9910_mask_amplitude &
+         (uint32_t)nearbyintf(powf(10, f / 20) * ad9910_max_amplitude);
 }
 
 float
 ad9910_backconvert_amplitude(uint32_t a)
 {
-  return 20 * log10f(((float)(a & ad9910_precision_amplitude)) /
-                     ad9910_precision_amplitude);
+  return 20 *
+         log10f(((float)(a & ad9910_mask_amplitude)) / ad9910_max_amplitude);
 }
 
 uint32_t
 ad9910_convert_phase(float f)
 {
-  return ad9910_precision_phase &
-         (uint32_t)nearbyintf(f * ad9910_precision_phase / 2 / M_PI);
+  return ad9910_mask_phase &
+         (uint32_t)nearbyintf(f * ad9910_max_phase / 2 / M_PI);
 }
 
 float
 ad9910_backconvert_phase(uint32_t v)
 {
-  return 2 * M_PI * ((float)(v & ad9910_precision_phase)) /
-         ad9910_precision_phase;
+  return 2 * M_PI * ((float)(v & ad9910_mask_phase)) / ad9910_max_phase;
 }
 
 void

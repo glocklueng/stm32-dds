@@ -25,6 +25,9 @@ enum
   ad9910_max_amplitude = ad9910_precision_amplitude - 1,
   ad9910_max_phase = ad9910_precision_phase - 1,
   ad9910_max_frequency = ad9910_precision_frequency - 1,
+  ad9910_mask_amplitude = ad9910_precision_amplitude - 1,
+  ad9910_mask_phase = ad9910_precision_phase - 1,
+  ad9910_mask_frequency = ad9910_precision_frequency - 1,
 };
 
 typedef struct
