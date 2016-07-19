@@ -679,7 +679,7 @@ scpi_callback_register_q(scpi_t* context)
     const char* name;
   };
 
-  struct reg_print_helper print_helper[] = {
+  static const struct reg_print_helper print_helper[] = {
     { &ad9910_regs.cfr1, "CFR1:" },
     { &ad9910_regs.cfr2, "CFR2:" },
     { &ad9910_regs.cfr3, "CFR3:" },
@@ -703,16 +703,19 @@ scpi_callback_register_q(scpi_t* context)
     { NULL, NULL }
   };
 
-  char buf[1100];
-  size_t i = 0;
-  for (struct reg_print_helper* helper = print_helper; helper->reg != NULL;
-       helper++) {
-    i += snprintf(buf + i, sizeof(buf) - i, "%-16s0x%.16llx 0x%.16llx\n",
-                  helper->name, ad9910_read_register(helper->reg),
-                  helper->reg->value);
-  }
+  static const char header[] =
+    "Register:               DDS              Shadow";
 
-  SCPI_ResultCharacters(context, buf, i);
+  SCPI_ResultCharacters(context, header, sizeof(header));
+
+  char buf[60];
+  for (const struct reg_print_helper* helper = print_helper;
+       helper->reg != NULL; helper++) {
+    size_t len =
+      snprintf(buf, sizeof(buf), "\n%-16s0x%.16llx 0x%.16llx", helper->name,
+               ad9910_read_register(helper->reg), helper->reg->value);
+    SCPI_ResultCharacters(context, buf, len);
+  }
 
   return SCPI_RES_OK;
 }
