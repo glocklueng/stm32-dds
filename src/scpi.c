@@ -181,7 +181,7 @@ static scpi_t scpi_context = {
     },
   .interface = &scpi_interface,
   .units = scpi_units_def,
-  .idn = { "LOREM-IPSUM", "DDSrev2", NULL, "2016-04-24" },
+  .idn = { "LOREM-IPSUM", "CamDDS", NULL, "2016-07-19" },
 };
 
 static int
