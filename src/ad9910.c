@@ -272,6 +272,7 @@ void
 ad9910_execute_parallel(uint16_t* data, size_t len, size_t rep)
 {
   /* disable interrupts to prevent delays */
+  /* TODO just disable timing and ethernet interrupts */
   __disable_irq();
 
   /* already set the first value not to send something old */
