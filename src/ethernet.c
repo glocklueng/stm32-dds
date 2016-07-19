@@ -607,6 +607,8 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
 
   tcp_poll(newpcb, server_poll_callback, 1);
 
+  tcp_accepted(newpcb);
+
   return ERR_OK;
 }
 

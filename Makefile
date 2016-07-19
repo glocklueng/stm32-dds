@@ -45,7 +45,7 @@ TM_DIR=lib/tm
 SCPI_DIR=lib/scpi-parser/libscpi
 
 #CFLAGS+=-Wmissing-declarations -Werror=implicit-function-declaration
-CFLAGS+=-Wno-unused-parameter -Winline
+CFLAGS+=-Wno-unused-parameter -Wno-empty-body -Winline
 
 # set search path for include files
 CPPFLAGS+=-Iinclude -I$(BUILDDIR)
