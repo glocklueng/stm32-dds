@@ -140,10 +140,13 @@ ad9910_init()
   gpio_set_high(TX_ENABLE);
   ad9910_enable_output(1);
 
-  startup_command_execute();
-
-  /* turn green led on signaling that initialization has passed */
-  gpio_set_high(LED_GREEN);
+  /* press red button during startup to skip command execution and clear
+   * the startup command */
+  if (gpio_get(RED_BUTTON) == 0) {
+    startup_command_execute();
+  } else {
+    startup_command_clear();
+  }
 }
 
 void
