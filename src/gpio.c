@@ -20,8 +20,10 @@ gpio_init()
 
   gpio_init_output(LED_RED);
   gpio_init_output(LED_ORANGE);
+  gpio_init_output(LED_FRONT);
   gpio_init_output(LED_BLUE);
-  gpio_init_output(LED_GREEN);
+
+  gpio_init_input(RED_BUTTON);
 
   gpio_init_output(RF_SWITCH);
   gpio_init_output(TRIGGER_SELECT);

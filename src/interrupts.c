@@ -129,15 +129,15 @@ HardFault_Handler(void)
   while (1) {
     gpio_set_high(LED_RED);
     gpio_set_high(LED_BLUE);
-    gpio_set_high(LED_GREEN);
     gpio_set_high(LED_ORANGE);
+    gpio_set_high(LED_FRONT);
 
     for (volatile unsigned int i = 0; i < cycles; ++i) {
     }
 
     gpio_set_low(LED_RED);
     gpio_set_low(LED_BLUE);
-    gpio_set_low(LED_GREEN);
+    gpio_set_low(LED_FRONT);
     gpio_set_low(LED_ORANGE);
 
     for (volatile unsigned int i = 0; i < cycles; ++i) {
