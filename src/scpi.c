@@ -77,29 +77,28 @@ static scpi_error_t scpi_error_queue_data[SCPI_ERROR_QUEUE_SIZE];
   F("TRIGger:WAIT", trigger_wait)                                              \
   F("WAIT", wait)
 
+#define SCPI_PATTERNS_ONLY_QUERY(F)                                            \
+  F("*TST", test)                                                              \
+  F("REGister", register)                                                      \
+  F("SYSTem:PLL", system_pll)
+
 #define SCPI_PATTERNS(F)                                                       \
-  SCPI_PATTERNS_BOTH(F)                                                        \
-  SCPI_PATTERNS_NO_QUERY(F##_NO_QUERY)
+  SCPI_PATTERNS_BOTH(F##_SET)                                                  \
+  SCPI_PATTERNS_BOTH(F##_QUERY)                                                \
+  SCPI_PATTERNS_NO_QUERY(F##_SET)                                              \
+  SCPI_PATTERNS_ONLY_QUERY(F##_QUERY)
 
-#define SCPI_CALLBACK_LIST(pattrn, clbk)                                       \
-  {.pattern = pattrn, .callback = scpi_callback_##clbk },                      \
-    {.pattern = pattrn "?", .callback = scpi_callback_##clbk##_q },
-
-#define SCPI_CALLBACK_LIST_NO_QUERY(pattrn, clbk)                              \
+#define SCPI_CALLBACK_LIST_SET(pattrn, clbk)                                   \
   {.pattern = pattrn, .callback = scpi_callback_##clbk },
+#define SCPI_CALLBACK_LIST_QUERY(pattrn, clbk)                                 \
+  {.pattern = pattrn "?", .callback = scpi_callback_##clbk##_q },
 
-#define SCPI_CALLBACK_PROTOTYPE(pattrn, clbk)                                  \
-  static scpi_result_t scpi_callback_##clbk(scpi_t*);                          \
+#define SCPI_CALLBACK_PROTOTYPE_SET(pattrn, clbk)                              \
+  static scpi_result_t scpi_callback_##clbk(scpi_t*);
+#define SCPI_CALLBACK_PROTOTYPE_QUERY(pattrn, clbk)                            \
   static scpi_result_t scpi_callback_##clbk##_q(scpi_t*);
 
-#define SCPI_CALLBACK_PROTOTYPE_NO_QUERY(pattrn, clbk)                         \
-  static scpi_result_t scpi_callback_##clbk(scpi_t*);
-
 SCPI_PATTERNS(SCPI_CALLBACK_PROTOTYPE)
-
-static scpi_result_t scpi_test_q(scpi_t*);
-
-static scpi_result_t scpi_callback_register_q(scpi_t*);
 
 static const scpi_command_t scpi_commands[] = {
   /* IEEE Mandated Commands (SCPI std V1999.0 4.1.1) */
@@ -114,15 +113,12 @@ static const scpi_command_t scpi_commands[] = {
   {.pattern = "*SRE", .callback = SCPI_CoreSre },
   {.pattern = "*SRE?", .callback = SCPI_CoreSreQ },
   {.pattern = "*STB?", .callback = SCPI_CoreStbQ },
-  {.pattern = "*TST?", .callback = scpi_test_q },
   {.pattern = "*WAI", .callback = SCPI_CoreWai },
 
   /* Required SCPI commands (SCPI std V1999.0 4.2.1) */
   {.pattern = "SYSTem:ERRor[:NEXT]?", .callback = SCPI_SystemErrorNextQ },
   {.pattern = "SYSTem:ERRor:COUNt?", .callback = SCPI_SystemErrorCountQ },
   {.pattern = "SYSTem:VERSion?", .callback = SCPI_SystemVersionQ },
-
-  {.pattern = "REGister?", .callback = scpi_callback_register_q },
 
   SCPI_PATTERNS(SCPI_CALLBACK_LIST) SCPI_CMD_LIST_END
 };
@@ -223,7 +219,7 @@ scpi_process(char* data, int len)
 
 /* this should return 0 if everything is ok, 1 if some error exists */
 static scpi_result_t
-scpi_test_q(scpi_t* context)
+scpi_callback_test_q(scpi_t* context)
 {
   SCPI_ResultInt32(context, 0);
 
@@ -719,6 +715,12 @@ scpi_callback_register_q(scpi_t* context)
   SCPI_ResultCharacters(context, buf, i);
 
   return SCPI_RES_OK;
+}
+
+static scpi_result_t
+scpi_callback_system_pll_q(scpi_t* context)
+{
+  return scpi_print_pin(context, PLL_LOCK);
 }
 
 static scpi_result_t
