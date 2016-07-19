@@ -7,7 +7,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define CONNECTION_TIMEOUT 30000
+enum
+{
+  ethernet_activity_timeout = 1000, /* ms */
+};
 
 void ethernet_init(void);
 void ethernet_loop(void);

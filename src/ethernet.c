@@ -532,10 +532,6 @@ lwip_periodic_handle(uint32_t localtime)
     arp_timer = localtime;
     etharp_tmr();
   }
-
-  if (localtime - es.last_activity >= CONNECTION_TIMEOUT) {
-    server_connection_close(es.pcb);
-  }
 }
 
 /**
@@ -586,8 +582,14 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
   LWIP_UNUSED_ARG(err);
 
   if (es.state != ES_NONE) {
-    tcp_close(newpcb);
-    return ERR_ABRT;
+    /* if there was no activity on the connection in the last time we just
+     * close the old connection, otherwise we reject the new request */
+    if (LocalTime - es.last_activity > ethernet_activity_timeout) {
+      server_connection_close(es.pcb);
+    } else {
+      tcp_close(newpcb);
+      return ERR_ABRT;
+    }
   }
 
   es.state = ES_ACCEPTED;
