@@ -108,6 +108,9 @@ ad9910_init()
   /* enable amplitude scale from profile registers */
   ad9910_set_value(ad9910_enable_amplitude_scale, 1);
 
+  /* match latency of amlitude, frequency and phase updates */
+  ad9910_set_value(ad9910_matched_latency_enable, 1);
+
   /* update all register. It might be that only the STM32F4 has been
    * resetet and there is still data in the registers. With these commands
    * we set them to the values we specified */
