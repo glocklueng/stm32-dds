@@ -500,7 +500,8 @@ lwip_init()
 static void
 lwip_periodic_handle(uint32_t localtime)
 {
-  static uint32_t tcp_timer = 0;
+  static uint32_t tcp_fast_timer = 0;
+  static uint32_t tcp_slow_timer = 0;
   static uint32_t arp_timer = 0;
   static uint32_t link_timer = 0;
   static int link_status = 0;
@@ -523,9 +524,14 @@ lwip_periodic_handle(uint32_t localtime)
     }
   }
 
-  if (localtime - tcp_timer >= TCP_TMR_INTERVAL) {
-    tcp_timer = localtime;
-    tcp_tmr();
+  if (localtime - tcp_fast_timer >= TCP_FAST_INTERVAL) {
+    tcp_fast_timer = localtime;
+    tcp_fasttmr();
+  }
+
+  if (localtime - tcp_slow_timer >= TCP_SLOW_INTERVAL) {
+    tcp_slow_timer = localtime;
+    tcp_slowtmr();
   }
 
   if (localtime - arp_timer >= ARP_TMR_INTERVAL) {
