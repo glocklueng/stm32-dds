@@ -123,6 +123,8 @@ execute_commands(struct command_queue* cmds)
 {
   uint32_t i = 0;
 
+  gpio_set_high(LED_FRONT);
+
   do { /* repeat loop */
     void* cur = cmds->begin;
 
@@ -130,6 +132,8 @@ execute_commands(struct command_queue* cmds)
       cur += execute_command(cur);
     }
   } while (i++ < cmds->repeat);
+
+  gpio_set_low(LED_FRONT);
 }
 
 size_t
