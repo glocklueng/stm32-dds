@@ -797,6 +797,10 @@ server_send(struct tcp_pcb* pcb)
 static void
 server_connection_close(struct tcp_pcb* pcb)
 {
+  if (pcb == NULL) {
+    return;
+  }
+
   /* remove all callbacks */
   tcp_arg(pcb, NULL);
   tcp_sent(pcb, NULL);
