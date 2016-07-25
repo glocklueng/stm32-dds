@@ -8,6 +8,8 @@
 
 #include <string.h>
 
+uint8_t command_execute_flag = 0;
+
 #define STARTUP_EEPROM eeprom_block0
 
 /* these registers are used to keep track of the necessary changes while

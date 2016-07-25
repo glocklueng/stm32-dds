@@ -1,5 +1,6 @@
 #include "ethernet.h"
 
+#include "commands.h"
 #include "config.h"
 #include "gpio.h"
 #include "scpi.h"
@@ -198,6 +199,11 @@ ethernet_loop()
 {
   for (;;) {
     ethernet_next_packet();
+
+    if (command_execute_flag) {
+      commands_execute();
+      command_execute_flag = 0;
+    }
 
     scpi_process(es.pin->payload, es.pin->len);
   }

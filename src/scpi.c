@@ -237,7 +237,7 @@ scpi_callback_mode(scpi_t* context)
   current_mode = value;
 
   if (current_mode == scpi_mode_execute) {
-    commands_execute();
+    command_execute_flag = 1;
     current_mode = scpi_mode_normal;
   }
 

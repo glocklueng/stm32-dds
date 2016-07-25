@@ -9,6 +9,8 @@
 
 #define COMMAND_QUEUE_LENGTH 1024
 
+extern uint8_t command_execute_flag;
+
 typedef enum {
   command_type_end = 0x00,
   command_type_register,           /* change register */
