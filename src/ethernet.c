@@ -544,10 +544,6 @@ lwip_periodic_handle(uint32_t localtime)
     arp_timer = localtime;
     etharp_tmr();
   }
-
-  if (localtime - es.last_activity >= CONNECTION_TIMEOUT) {
-    server_connection_close(es.pcb);
-  }
 }
 
 /**
