@@ -593,11 +593,6 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
   LWIP_UNUSED_ARG(arg);
   LWIP_UNUSED_ARG(err);
 
-  if (es.state != ES_NONE) {
-    tcp_close(newpcb);
-    return ERR_ABRT;
-  }
-
   es.state = ES_ACCEPTED;
   es.pcb = newpcb;
   es.pin = NULL;
@@ -612,6 +607,10 @@ server_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err)
   tcp_err(newpcb, server_err_callback);
 
   tcp_poll(newpcb, server_poll_callback, 1);
+
+  /* disable accept callback as long as we do have an open connection.
+   * This automatically rejects incoming messages */
+  tcp_accept(g_pcb, NULL);
 
   tcp_accepted(newpcb);
 
@@ -815,6 +814,9 @@ server_connection_close(struct tcp_pcb* pcb)
 
   es.pcb = NULL;
   es.state = ES_NONE;
+
+  /* accept connections again */
+  tcp_accept(g_pcb, server_accept_callback);
 }
 
 void
