@@ -206,7 +206,7 @@ void
 scpi_init()
 {
   SCPI_Init(&scpi_context, scpi_commands, &scpi_interface, scpi_units_def,
-            "LOREM-IPSUM", "DDSrev2", NULL, "2016-04-26", scpi_input_buffer,
+            "LOREM-IPSUM", "CamDDS", NULL, "2016-04-26", scpi_input_buffer,
             SCPI_INPUT_BUFFER_LENGTH, scpi_error_queue_data,
             SCPI_ERROR_QUEUE_SIZE);
 }
